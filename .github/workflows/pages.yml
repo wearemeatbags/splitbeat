@@ -15,5 +15,6 @@ jobs:
     uses: wearemeatbags/wearemeatbags.github.io/.github/workflows/versioned-game-pages.yml@main
     with:
       game: splitbeat
+      install_command: ":"
       build_command: mkdir -p dist && cp index.html dist/index.html
       output_directory: dist
