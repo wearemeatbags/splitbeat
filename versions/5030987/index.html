@@ -1,0 +1,2867 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>SplitBeat - Dual Attention Evasion</title>
+  <style>
+    :root {
+      --ink: #f7f8ff;
+      --muted: #8990aa;
+      --dim: #505872;
+      --void: #03040b;
+      --panel: #090c18;
+      --panel-2: #0d1122;
+      --line: rgba(159, 173, 255, 0.16);
+      --cyan: #31e6ff;
+      --pink: #ff4fd8;
+      --yellow: #ffe05b;
+      --green: #76ff93;
+      --danger: #ff315d;
+      --focus: #56f7c2;
+      --radius: 22px;
+      --ease: cubic-bezier(.2, .8, .2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-width: 0;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--void);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(49, 230, 255, 0.11), transparent 30%),
+        radial-gradient(circle at 84% 78%, rgba(255, 79, 216, 0.10), transparent 34%),
+        linear-gradient(145deg, #080b17 0%, #02030a 58%, #07040d 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      pointer-events: none;
+      opacity: 0.22;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 3px,
+        rgba(255, 255, 255, 0.018) 4px
+      );
+      mix-blend-mode: screen;
+    }
+
+    button {
+      color: inherit;
+      font: inherit;
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .app-frame {
+      position: relative;
+      width: min(1580px, calc(100vw - 30px));
+      height: min(960px, calc(100dvh - 30px));
+      min-height: 620px;
+      display: grid;
+      grid-template-rows: 106px minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid rgba(160, 177, 255, 0.18);
+      border-radius: 26px;
+      background: rgba(5, 7, 16, 0.92);
+      box-shadow:
+        0 42px 110px rgba(0, 0, 0, 0.62),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+      isolation: isolate;
+    }
+
+    .app-frame::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 50;
+      pointer-events: none;
+      border-radius: inherit;
+      box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.5);
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: minmax(170px, 0.8fr) minmax(100px, 0.55fr) minmax(290px, 1.45fr) minmax(108px, 0.55fr) auto;
+      gap: 10px;
+      align-items: stretch;
+      padding: 13px 15px 17px;
+      background: linear-gradient(180deg, rgba(15, 19, 38, 0.98), rgba(7, 9, 20, 0.96));
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand-lockup,
+    .hud-stat,
+    .focus-stat,
+    .hud-actions {
+      min-width: 0;
+      border: 1px solid rgba(166, 181, 255, 0.12);
+      background: rgba(255, 255, 255, 0.025);
+      border-radius: 14px;
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 10px 14px;
+    }
+
+    .brand-glyph {
+      width: 37px;
+      height: 37px;
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px;
+      padding: 6px;
+      border: 1px solid rgba(49, 230, 255, 0.42);
+      border-radius: 10px;
+      box-shadow: 0 0 22px rgba(49, 230, 255, 0.14);
+    }
+
+    .brand-glyph span {
+      border-radius: 2px;
+      background: var(--cyan);
+      box-shadow: 0 0 9px currentColor;
+    }
+
+    .brand-glyph span:nth-child(2),
+    .brand-glyph span:nth-child(3) {
+      color: var(--pink);
+      background: var(--pink);
+    }
+
+    .brand-name {
+      margin: 0;
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: clamp(21px, 2vw, 29px);
+      font-weight: 900;
+      line-height: 0.88;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+    }
+
+    .brand-name span {
+      color: var(--pink);
+    }
+
+    .brand-subtitle {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .hud-stat {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 9px 13px;
+    }
+
+    .hud-label,
+    .focus-label-row,
+    .panel-kicker,
+    .question-meta,
+    .menu-kicker,
+    .eyebrow {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .hud-value {
+      margin-top: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: clamp(20px, 2vw, 28px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.05em;
+      white-space: nowrap;
+    }
+
+    .hud-value small {
+      margin-left: 5px;
+      color: var(--cyan);
+      font-size: 11px;
+      letter-spacing: 0.02em;
+    }
+
+    .focus-stat {
+      display: grid;
+      align-content: center;
+      gap: 8px;
+      padding: 9px 14px;
+    }
+
+    .focus-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .focus-number {
+      color: var(--ink);
+      font-size: 12px;
+      letter-spacing: 0;
+    }
+
+    .focus-track {
+      position: relative;
+      height: 13px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      background:
+        repeating-linear-gradient(90deg, transparent 0 9%, rgba(255, 255, 255, 0.08) 9.5% 10%),
+        #03050d;
+      box-shadow: inset 0 2px 7px rgba(0, 0, 0, 0.8);
+    }
+
+    .focus-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 82%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--pink), var(--yellow) 43%, var(--focus));
+      box-shadow: 0 0 16px rgba(86, 247, 194, 0.65);
+      transition: width 180ms var(--ease), filter 180ms ease;
+    }
+
+    .focus-stat.gain .focus-fill {
+      animation: focusGain 420ms ease;
+    }
+
+    .focus-stat.loss .focus-fill {
+      animation: focusLoss 420ms ease;
+    }
+
+    .hud-actions {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      padding: 8px;
+    }
+
+    .utility-button {
+      min-width: 62px;
+      height: 45px;
+      padding: 0 11px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.035);
+      color: #b9bfd4;
+      cursor: pointer;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: 160ms ease;
+    }
+
+    .utility-button:hover:not(:disabled) {
+      border-color: rgba(49, 230, 255, 0.55);
+      color: var(--ink);
+      background: rgba(49, 230, 255, 0.08);
+    }
+
+    .utility-button:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    .utility-button.is-muted {
+      color: #ff879f;
+      border-color: rgba(255, 49, 93, 0.32);
+    }
+
+    .song-progress {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .song-progress-fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--pink));
+      box-shadow: 0 0 13px rgba(49, 230, 255, 0.7);
+      transition: width 80ms linear;
+    }
+
+    .split-stage {
+      position: relative;
+      z-index: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      background: #050711;
+    }
+
+    .rhythm-zone,
+    .trivia-zone {
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .rhythm-zone {
+      position: relative;
+      display: grid;
+      grid-template-rows: 49px minmax(0, 1fr) 38px;
+      overflow: hidden;
+      background: #040612;
+    }
+
+    .panel-topline {
+      position: relative;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 19px;
+      border-bottom: 1px solid rgba(159, 173, 255, 0.09);
+      background: linear-gradient(180deg, rgba(12, 16, 31, 0.95), rgba(7, 9, 20, 0.75));
+    }
+
+    .panel-title {
+      margin-left: 8px;
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .panel-title::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 9px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 11px var(--cyan);
+    }
+
+    .section-chip,
+    .difficulty-chip {
+      padding: 6px 9px;
+      border: 1px solid rgba(49, 230, 255, 0.18);
+      border-radius: 999px;
+      color: #a8ecf5;
+      background: rgba(49, 230, 255, 0.055);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .track-viewport {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(35, 58, 103, 0.28), transparent 40%),
+        #03050c;
+      isolation: isolate;
+    }
+
+    #webglMount,
+    #webglMount canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #webglMount canvas {
+      pointer-events: none;
+    }
+
+    .track-vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(1, 2, 7, 0.7), transparent 15%, transparent 85%, rgba(1, 2, 7, 0.72)),
+        linear-gradient(180deg, rgba(1, 2, 8, 0.33), transparent 34%, rgba(0, 0, 0, 0.14) 72%, rgba(0, 0, 0, 0.58));
+    }
+
+    .rhythm-feedback {
+      position: absolute;
+      z-index: 6;
+      left: 50%;
+      bottom: 42%;
+      transform: translate(-50%, 10px) scale(0.94);
+      opacity: 0;
+      color: var(--ink);
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: clamp(25px, 4vw, 50px);
+      letter-spacing: 0.09em;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow: 0 0 18px currentColor;
+      pointer-events: none;
+    }
+
+    .rhythm-feedback.show {
+      animation: judgment 470ms var(--ease);
+    }
+
+    .rhythm-feedback.perfect { color: var(--cyan); }
+    .rhythm-feedback.great { color: var(--green); }
+    .rhythm-feedback.good { color: var(--yellow); }
+    .rhythm-feedback.miss { color: var(--danger); }
+
+    .countdown {
+      position: absolute;
+      inset: 0;
+      z-index: 12;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle, rgba(6, 10, 24, 0.1), rgba(3, 4, 11, 0.56));
+    }
+
+    .countdown.show {
+      opacity: 1;
+    }
+
+    .countdown-value {
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: clamp(95px, 18vw, 230px);
+      letter-spacing: 0.03em;
+      line-height: 0.8;
+      color: var(--ink);
+      text-shadow: 0 0 40px rgba(49, 230, 255, 0.45), 8px 8px 0 rgba(255, 79, 216, 0.32);
+      animation: countdownPop 800ms var(--ease) infinite;
+    }
+
+    .track-error {
+      position: absolute;
+      inset: 0;
+      z-index: 15;
+      display: none;
+      place-items: center;
+      padding: 30px;
+      color: #ff9bac;
+      background: #060711;
+      text-align: center;
+    }
+
+    .track-error.show {
+      display: grid;
+    }
+
+    .rhythm-operator-strip {
+      position: relative;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      color: #687088;
+      background: #070914;
+      border-top: 1px solid rgba(159, 173, 255, 0.09);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .rhythm-operator-strip strong {
+      color: #c7cbe0;
+    }
+
+    .trivia-zone {
+      position: absolute;
+      z-index: 7;
+      top: 49px;
+      bottom: 38px;
+      left: 50%;
+      width: min(900px, 96%);
+      transform: translateX(-50%);
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+      gap: clamp(9px, 1.4vh, 15px);
+      padding: clamp(12px, 1.8vh, 20px) clamp(14px, 1.6vw, 22px) clamp(40px, 6vh, 56px);
+      overflow: hidden;
+      pointer-events: none;
+      background: transparent;
+      transition: box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .trivia-zone .trivia-feedback { grid-row: 5; }
+    .trivia-zone .answer-grid { grid-row: 6; }
+
+    .trivia-zone::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      pointer-events: none;
+      border: 1px solid transparent;
+      border-radius: 18px;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .trivia-zone.urgent::before {
+      border-color: rgba(255, 49, 93, 0.72);
+      box-shadow: inset 0 0 42px rgba(255, 49, 93, 0.14);
+      animation: urgentPulse 600ms ease-in-out infinite alternate;
+    }
+
+    .trivia-zone.is-correct {
+      background: radial-gradient(circle at 50% 82%, rgba(118, 255, 147, 0.12), transparent 52%);
+    }
+
+    .trivia-zone.is-wrong {
+      background: radial-gradient(circle at 50% 82%, rgba(255, 49, 93, 0.14), transparent 52%);
+    }
+
+    .question-head {
+      width: min(540px, 100%);
+      justify-self: center;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px;
+      text-shadow: 0 2px 10px rgba(2, 4, 12, 0.95);
+    }
+
+    .trivia-zone .question-timer-track {
+      width: min(540px, 100%);
+      justify-self: center;
+    }
+
+    .question-meta strong {
+      display: block;
+      margin-top: 6px;
+      color: var(--ink);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    .question-clock {
+      color: var(--cyan);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: clamp(25px, 3vw, 38px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.06em;
+    }
+
+    .urgent .question-clock {
+      color: var(--danger);
+      text-shadow: 0 0 13px rgba(255, 49, 93, 0.55);
+    }
+
+    .question-timer-track {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.055);
+      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .question-timer-fill {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--pink), var(--cyan));
+      box-shadow: 0 0 13px rgba(49, 230, 255, 0.5);
+      transform-origin: left;
+      transition: background 180ms ease;
+    }
+
+    .urgent .question-timer-fill {
+      background: var(--danger);
+      box-shadow: 0 0 15px rgba(255, 49, 93, 0.65);
+    }
+
+    .question-copy {
+      align-self: start;
+      justify-self: center;
+      margin: 0;
+      max-width: 24ch;
+      font-family: "Arial Narrow", "Helvetica Neue", sans-serif;
+      font-size: clamp(22px, 2.6vw, 36px);
+      font-stretch: condensed;
+      font-weight: 850;
+      line-height: 1.05;
+      letter-spacing: -0.035em;
+      text-align: center;
+      text-wrap: balance;
+      text-shadow: 0 2px 12px rgba(2, 4, 12, 0.95), 0 0 26px rgba(2, 4, 12, 0.85);
+    }
+
+    .answer-grid {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(9px, 1.2vw, 15px);
+    }
+
+    .answer-button {
+      position: relative;
+      min-width: 0;
+      min-height: 64px;
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: clamp(9px, 1vw, 14px);
+      overflow: hidden;
+      pointer-events: auto;
+      border: 1px solid rgba(164, 177, 231, 0.28);
+      border-radius: 14px;
+      color: #d9dcef;
+      background: linear-gradient(145deg, rgba(24, 29, 55, 0.72), rgba(12, 15, 31, 0.82));
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      cursor: pointer;
+      text-align: left;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.19);
+      transition: transform 140ms var(--ease), border-color 140ms ease, background 140ms ease, opacity 140ms ease;
+    }
+
+    .answer-button::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 2px;
+      opacity: 0;
+      background: var(--cyan);
+      transition: opacity 140ms ease;
+    }
+
+    .answer-button:hover:not(:disabled) {
+      z-index: 1;
+      transform: translateY(-3px);
+      border-color: rgba(49, 230, 255, 0.6);
+      background: linear-gradient(145deg, rgba(28, 45, 70, 0.92), rgba(12, 18, 38, 0.96));
+    }
+
+    .answer-button:hover:not(:disabled)::after {
+      opacity: 1;
+    }
+
+    .answer-button:disabled {
+      cursor: default;
+    }
+
+    .answer-button.dimmed {
+      opacity: 0.37;
+    }
+
+    .answer-button.correct {
+      border-color: rgba(118, 255, 147, 0.82);
+      color: #eaffef;
+      background: linear-gradient(145deg, rgba(33, 95, 68, 0.75), rgba(12, 31, 29, 0.96));
+      box-shadow: 0 0 27px rgba(118, 255, 147, 0.12);
+      animation: answerCorrect 440ms var(--ease);
+    }
+
+    .answer-button.wrong {
+      border-color: rgba(255, 49, 93, 0.88);
+      color: #ffe8ed;
+      background: linear-gradient(145deg, rgba(101, 29, 51, 0.78), rgba(36, 12, 27, 0.96));
+      animation: answerWrong 360ms ease;
+    }
+
+    .answer-number {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      color: var(--cyan);
+      background: rgba(0, 0, 0, 0.22);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .answer-text {
+      min-width: 0;
+      font-size: clamp(12px, 1.1vw, 16px);
+      font-weight: 730;
+      line-height: 1.18;
+      overflow-wrap: anywhere;
+    }
+
+    .trivia-feedback {
+      justify-self: center;
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 0 16px;
+      border: 1px solid rgba(164, 177, 231, 0.14);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(2, 4, 11, 0.62);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .trivia-feedback strong {
+      color: var(--ink);
+    }
+
+    .trivia-feedback.correct strong { color: var(--green); }
+    .trivia-feedback.wrong strong { color: var(--danger); }
+
+    .dual-bonus {
+      position: absolute;
+      z-index: 30;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8) rotate(-2deg);
+      opacity: 0;
+      pointer-events: none;
+      padding: 13px 18px;
+      border: 1px solid var(--yellow);
+      border-radius: 9px;
+      color: var(--yellow);
+      background: rgba(17, 11, 27, 0.92);
+      box-shadow: 0 0 34px rgba(255, 224, 91, 0.22);
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: clamp(18px, 2vw, 29px);
+      letter-spacing: 0.07em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .dual-bonus.show {
+      animation: dualBonus 950ms var(--ease);
+    }
+
+    .screen-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      place-items: center;
+      padding: 26px;
+      background: rgba(2, 3, 9, 0.7);
+      backdrop-filter: blur(11px) saturate(0.72);
+      -webkit-backdrop-filter: blur(11px) saturate(0.72);
+      transition: opacity 220ms ease, visibility 220ms ease;
+    }
+
+    .screen-overlay.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .menu-card {
+      width: min(820px, calc(100% - 20px));
+      max-height: min(760px, calc(100dvh - 70px));
+      overflow: auto;
+      border: 1px solid rgba(164, 177, 231, 0.22);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(49, 230, 255, 0.08), transparent 35%),
+        linear-gradient(145deg, rgba(18, 23, 46, 0.98), rgba(7, 9, 20, 0.99));
+      box-shadow: 0 35px 100px rgba(0, 0, 0, 0.67), inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+    }
+
+    .menu-card.compact {
+      width: min(620px, calc(100% - 20px));
+    }
+
+    .menu-card.results-card {
+      width: min(780px, calc(100% - 20px));
+    }
+
+    .menu-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 22px 27px;
+      border-bottom: 1px solid rgba(164, 177, 231, 0.12);
+    }
+
+    .menu-logo {
+      margin: 0;
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: clamp(32px, 5vw, 57px);
+      letter-spacing: 0.055em;
+      line-height: 0.86;
+      text-transform: uppercase;
+    }
+
+    .menu-logo span {
+      color: var(--pink);
+      text-shadow: 0 0 25px rgba(255, 79, 216, 0.25);
+    }
+
+    .menu-tabs {
+      display: flex;
+      gap: 5px;
+      padding: 4px;
+      border: 1px solid rgba(164, 177, 231, 0.12);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    .menu-tab {
+      padding: 9px 13px;
+      border: 0;
+      border-radius: 7px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .menu-tab[aria-selected="true"] {
+      color: var(--ink);
+      background: rgba(49, 230, 255, 0.11);
+      box-shadow: inset 0 0 0 1px rgba(49, 230, 255, 0.25);
+    }
+
+    .menu-body {
+      padding: clamp(24px, 3vw, 38px);
+    }
+
+    .play-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: clamp(24px, 4vw, 46px);
+      align-items: start;
+    }
+
+    .hero-copy {
+      margin: 10px 0 24px;
+      font-family: "Arial Narrow", "Helvetica Neue", sans-serif;
+      font-size: clamp(27px, 4.2vw, 45px);
+      font-weight: 850;
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+      text-wrap: balance;
+    }
+
+    .hero-copy em {
+      color: var(--cyan);
+      font-style: normal;
+    }
+
+    .mechanic-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .mechanic-list li {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 11px;
+      align-items: center;
+      color: #aeb4ca;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .mechanic-number {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(49, 230, 255, 0.27);
+      border-radius: 8px;
+      color: var(--cyan);
+      background: rgba(49, 230, 255, 0.06);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .menu-controls {
+      display: grid;
+      gap: 18px;
+      padding: 19px;
+      border: 1px solid rgba(164, 177, 231, 0.13);
+      border-radius: 15px;
+      background: rgba(2, 4, 11, 0.27);
+    }
+
+    .difficulty-picker {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .difficulty-button {
+      min-width: 0;
+      padding: 10px 5px;
+      border: 1px solid rgba(164, 177, 231, 0.14);
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.025);
+      cursor: pointer;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .difficulty-button.is-selected {
+      border-color: rgba(255, 79, 216, 0.5);
+      color: var(--ink);
+      background: rgba(255, 79, 216, 0.11);
+      box-shadow: 0 0 20px rgba(255, 79, 216, 0.08);
+    }
+
+    .difficulty-details {
+      min-height: 44px;
+      color: #838ba4;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .primary-button,
+    .secondary-button,
+    .text-button {
+      border: 0;
+      cursor: pointer;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: transform 140ms var(--ease), filter 140ms ease, border-color 140ms ease;
+    }
+
+    .primary-button {
+      min-height: 54px;
+      padding: 0 20px;
+      border-radius: 10px;
+      color: #050712;
+      background: linear-gradient(90deg, var(--cyan), #8cf3ff);
+      box-shadow: 0 11px 27px rgba(49, 230, 255, 0.19);
+    }
+
+    .primary-button:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+    }
+
+    .secondary-button {
+      min-height: 51px;
+      padding: 0 18px;
+      border: 1px solid rgba(164, 177, 231, 0.18);
+      border-radius: 10px;
+      color: #c0c5d8;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .secondary-button:hover {
+      border-color: rgba(49, 230, 255, 0.44);
+      color: var(--ink);
+    }
+
+    .button-stack {
+      display: grid;
+      gap: 9px;
+    }
+
+    .key-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .menu-key {
+      min-width: 32px;
+      height: 31px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.19);
+      border-radius: 7px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.045);
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.48);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 13px;
+    }
+
+    .how-card {
+      min-height: 180px;
+      padding: 20px;
+      border: 1px solid rgba(164, 177, 231, 0.12);
+      border-radius: 14px;
+      background: rgba(2, 4, 11, 0.24);
+    }
+
+    .how-card strong {
+      display: block;
+      margin: 13px 0 8px;
+      font-size: 15px;
+    }
+
+    .how-card p,
+    .pause-copy,
+    .result-copy {
+      margin: 0;
+      color: #8f96ad;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .menu-center {
+      padding: clamp(29px, 5vw, 55px);
+      text-align: center;
+    }
+
+    .menu-center .menu-logo {
+      margin: 11px 0 19px;
+    }
+
+    .pause-copy,
+    .result-copy {
+      max-width: 48ch;
+      margin: 0 auto 25px;
+    }
+
+    .pause-actions,
+    .result-actions {
+      width: min(360px, 100%);
+      display: grid;
+      gap: 9px;
+      margin: 0 auto;
+    }
+
+    .result-topline {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 23px;
+      text-align: left;
+    }
+
+    .result-score {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: clamp(38px, 7vw, 72px);
+      font-weight: 950;
+      line-height: 0.88;
+      letter-spacing: -0.07em;
+    }
+
+    .result-grade {
+      width: 91px;
+      height: 91px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 224, 91, 0.52);
+      border-radius: 21px;
+      color: var(--yellow);
+      background: rgba(255, 224, 91, 0.055);
+      box-shadow: 0 0 29px rgba(255, 224, 91, 0.12);
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: 58px;
+    }
+
+    .result-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+      margin-bottom: 25px;
+    }
+
+    .result-stat {
+      padding: 14px;
+      border: 1px solid rgba(164, 177, 231, 0.11);
+      border-radius: 11px;
+      background: rgba(2, 4, 11, 0.25);
+      text-align: left;
+    }
+
+    .result-stat span {
+      display: block;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .result-stat strong {
+      display: block;
+      margin-top: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 19px;
+    }
+
+    .result-actions {
+      grid-template-columns: 1fr 1fr;
+      width: 100%;
+    }
+
+    .result-actions .primary-button {
+      grid-column: 1 / -1;
+    }
+
+    .mobile-warning {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: none;
+      place-items: center;
+      padding: 28px;
+      color: var(--ink);
+      background: #050711;
+      text-align: center;
+    }
+
+    .mobile-warning-card {
+      max-width: 420px;
+      padding: 31px;
+      border: 1px solid rgba(49, 230, 255, 0.3);
+      border-radius: 20px;
+      background: #0b0f20;
+    }
+
+    .mobile-warning h2 {
+      margin: 12px 0;
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: 38px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .mobile-warning p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @keyframes judgment {
+      0% { opacity: 0; transform: translate(-50%, 12px) scale(0.83); }
+      22% { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+      68% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -17px) scale(0.96); }
+    }
+
+    @keyframes dualBonus {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.72) rotate(-4deg); }
+      22% { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(1deg); }
+      70% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+      100% { opacity: 0; transform: translate(-50%, -70%) scale(0.96); }
+    }
+
+    @keyframes countdownPop {
+      0% { opacity: 0; transform: scale(1.28); }
+      18% { opacity: 1; transform: scale(1); }
+      78% { opacity: 1; transform: scale(0.94); }
+      100% { opacity: 0; transform: scale(0.78); }
+    }
+
+    @keyframes urgentPulse {
+      from { opacity: 0.68; }
+      to { opacity: 1; }
+    }
+
+    @keyframes answerCorrect {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.025); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes answerWrong {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-3px); }
+    }
+
+    @keyframes focusGain {
+      50% { filter: brightness(1.7); }
+    }
+
+    @keyframes focusLoss {
+      35% { filter: saturate(1.8) brightness(1.35); }
+    }
+
+    @media (max-width: 1160px) {
+      .app-frame {
+        width: calc(100vw - 16px);
+        height: calc(100dvh - 16px);
+        grid-template-rows: 94px minmax(0, 1fr);
+      }
+
+      .topbar {
+        grid-template-columns: minmax(145px, .7fr) minmax(90px, .45fr) minmax(230px, 1.2fr) minmax(92px, .45fr) auto;
+        padding: 9px 10px 13px;
+        gap: 7px;
+      }
+
+      .brand-glyph,
+      .brand-subtitle {
+        display: none;
+      }
+
+      .brand-lockup,
+      .hud-stat,
+      .focus-stat {
+        padding: 8px 10px;
+      }
+
+      .answer-button {
+        grid-template-columns: 26px minmax(0, 1fr);
+        gap: 8px;
+        padding: 9px;
+      }
+
+      .answer-number {
+        width: 26px;
+        height: 26px;
+      }
+    }
+
+    @media (max-height: 720px) {
+      .app-frame {
+        min-height: 0;
+        grid-template-rows: 82px minmax(0, 1fr);
+      }
+
+      .topbar {
+        padding: 7px 9px 11px;
+      }
+
+      .hud-stat,
+      .focus-stat,
+      .brand-lockup {
+        border-radius: 10px;
+      }
+
+      .brand-subtitle,
+      .rhythm-operator-strip {
+        display: none;
+      }
+
+      .rhythm-zone {
+        grid-template-rows: 42px minmax(0, 1fr);
+      }
+
+      .trivia-zone {
+        top: 42px;
+        bottom: 0;
+        gap: 8px;
+        padding: 10px 14px 34px;
+      }
+
+      .question-copy {
+        font-size: clamp(19px, 2.6vw, 28px);
+      }
+
+      .answer-button {
+        min-height: 52px;
+      }
+
+      .trivia-feedback {
+        min-height: 30px;
+      }
+
+      .menu-header {
+        padding: 16px 22px;
+      }
+
+      .menu-body {
+        padding: 20px 28px;
+      }
+
+      .hero-copy {
+        margin-bottom: 15px;
+        font-size: 30px;
+      }
+
+      .mechanic-list {
+        gap: 6px;
+      }
+
+      .menu-controls {
+        gap: 12px;
+        padding: 15px;
+      }
+    }
+
+    @media (max-width: 899px), (orientation: portrait) and (max-width: 1024px) {
+      .mobile-warning {
+        display: grid;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-warning" role="alert">
+    <div class="mobile-warning-card">
+      <span class="eyebrow">Desktop input required</span>
+      <h2>Two hands. One screen.</h2>
+      <p>SplitBeat needs a physical keyboard. Use a landscape screen at least 900 pixels wide to play the intended divided-attention game.</p>
+    </div>
+  </div>
+
+  <div class="app-frame" id="appFrame">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-glyph" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div>
+          <h1 class="brand-name">Split<span>Beat</span></h1>
+          <span class="brand-subtitle" id="gameStatus">Attention link ready</span>
+        </div>
+      </div>
+
+      <div class="hud-stat">
+        <span class="hud-label">Score</span>
+        <span class="hud-value" id="scoreValue">0000000</span>
+      </div>
+
+      <div class="focus-stat" id="focusStat">
+        <div class="focus-label-row">
+          <span>Focus integrity</span>
+          <span class="focus-number" id="focusValue">82%</span>
+        </div>
+        <div class="focus-track" role="progressbar" aria-label="Focus" aria-valuemin="0" aria-valuemax="100" aria-valuenow="82">
+          <div class="focus-fill" id="focusFill"></div>
+        </div>
+      </div>
+
+      <div class="hud-stat">
+        <span class="hud-label">Combo</span>
+        <span class="hud-value"><span id="comboValue">0</span><small id="multiplierValue">x1</small></span>
+      </div>
+
+      <div class="hud-actions">
+        <div class="hud-stat" style="border:0; background:transparent; padding:0 5px; min-width:72px;">
+          <span class="hud-label">Time</span>
+          <span class="hud-value" id="timeValue">1:18</span>
+        </div>
+        <button class="utility-button" id="pauseButton" type="button" disabled>Pause</button>
+        <button class="utility-button" id="muteButton" type="button" aria-pressed="false">Snd on</button>
+      </div>
+
+      <div class="song-progress" aria-hidden="true"><div class="song-progress-fill" id="songProgressFill"></div></div>
+    </header>
+
+    <main class="split-stage">
+      <section class="rhythm-zone" aria-labelledby="rhythmTitle">
+        <div class="panel-topline">
+          <div><span class="panel-kicker">Left hand</span><span class="panel-title" id="rhythmTitle">Evasion field</span></div>
+          <span class="section-chip" id="sectionChip">Opening drift</span>
+        </div>
+
+        <div class="track-viewport" aria-label="Open side-scrolling evasion field. Hold W, A, S, and D to fly the ship and dodge incoming hazards.">
+          <div id="webglMount"></div>
+          <div class="track-vignette" aria-hidden="true"></div>
+          <div class="rhythm-feedback" id="rhythmFeedback" aria-hidden="true">Hit</div>
+          <div class="countdown" id="countdown" aria-hidden="true"><div class="countdown-value" id="countdownValue">3</div></div>
+          <div class="track-error" id="trackError">This browser could not start the evasion field. SplitBeat requires canvas rendering.</div>
+        </div>
+
+        <div class="rhythm-operator-strip">
+          <span><strong>W A S D</strong> fly the ship</span>
+          <span><strong>J K L ;</strong> answers</span>
+          <span><strong>Esc</strong> pause</span>
+          <span id="chartReadout">Hazard waves inbound</span>
+        </div>
+      </section>
+
+      <section class="trivia-zone" id="triviaPanel" aria-labelledby="questionCopy">
+        <div class="question-head">
+          <div class="question-meta">
+            <span>Right hand / J K L ;</span>
+            <strong id="questionIndex">Question standby</strong>
+          </div>
+          <div class="question-clock" id="questionClock">--.-</div>
+        </div>
+
+        <div class="question-timer-track" aria-hidden="true"><div class="question-timer-fill" id="questionTimerFill"></div></div>
+
+        <h2 class="question-copy" id="questionCopy">Start a round to load the first question.</h2>
+
+        <div class="answer-grid" id="answerGrid">
+          <button class="answer-button" type="button" data-answer="0" disabled><span class="answer-number">J</span><span class="answer-text">Awaiting link</span></button>
+          <button class="answer-button" type="button" data-answer="1" disabled><span class="answer-number">K</span><span class="answer-text">Awaiting link</span></button>
+          <button class="answer-button" type="button" data-answer="2" disabled><span class="answer-number">L</span><span class="answer-text">Awaiting link</span></button>
+          <button class="answer-button" type="button" data-answer="3" disabled><span class="answer-number">;</span><span class="answer-text">Awaiting link</span></button>
+        </div>
+
+        <div class="trivia-feedback" id="triviaFeedback"><span>Answer with J K L ;</span><strong>Focus online</strong></div>
+      </section>
+    </main>
+
+    <div class="dual-bonus" id="dualBonus" aria-hidden="true">Dual Focus +500</div>
+
+    <div class="screen-overlay" id="screenOverlay">
+      <section class="menu-card" id="mainMenuScreen" aria-label="SplitBeat main menu">
+        <header class="menu-header">
+          <div>
+            <span class="menu-kicker">Dual-attention game</span>
+            <h2 class="menu-logo">Split<span>Beat</span></h2>
+          </div>
+          <nav class="menu-tabs" aria-label="Main menu">
+            <button class="menu-tab" type="button" data-menu-tab="play" aria-selected="true">Play</button>
+            <button class="menu-tab" type="button" data-menu-tab="how" aria-selected="false">How to</button>
+          </nav>
+        </header>
+
+        <div class="menu-body" id="playMenuPanel">
+          <div class="play-layout">
+            <div>
+              <span class="eyebrow">One brain. Two jobs.</span>
+              <p class="hero-copy">Dodge the field with your <em>left hand</em>. Answer trivia with your <em>right</em>, both on one screen.</p>
+              <ol class="mechanic-list">
+                <li><span class="mechanic-number">01</span><span>W, A, S, and D fly the ship freely, with momentum included.</span></li>
+                <li><span class="mechanic-number">02</span><span>Answer with J, K, L, and ; before each trivia clock expires.</span></li>
+                <li><span class="mechanic-number">03</span><span>Protect Focus until the 78-second signal ends.</span></li>
+              </ol>
+            </div>
+
+            <div class="menu-controls">
+              <div style="display:flex; gap:22px; flex-wrap:wrap">
+                <div>
+                  <span class="eyebrow">Left hand</span>
+                  <div class="key-row" style="margin-top:9px"><span class="menu-key">W</span><span class="menu-key">A</span><span class="menu-key">S</span><span class="menu-key">D</span></div>
+                </div>
+                <div>
+                  <span class="eyebrow">Right hand</span>
+                  <div class="key-row" style="margin-top:9px"><span class="menu-key">J</span><span class="menu-key">K</span><span class="menu-key">L</span><span class="menu-key">;</span></div>
+                </div>
+              </div>
+              <div>
+                <span class="eyebrow">Difficulty</span>
+                <div class="difficulty-picker" style="margin-top:9px" role="group" aria-label="Difficulty">
+                  <button class="difficulty-button" type="button" data-difficulty="easy">Easy</button>
+                  <button class="difficulty-button is-selected" type="button" data-difficulty="normal">Normal</button>
+                  <button class="difficulty-button" type="button" data-difficulty="hard">Hard</button>
+                </div>
+              </div>
+              <p class="difficulty-details" id="difficultyDetails">Steady scroll, layered hazards, and 7.5-second trivia.</p>
+              <button class="primary-button" id="startButton" type="button">Start split</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-body" id="howMenuPanel" hidden>
+          <div class="how-grid">
+            <article class="how-card"><span class="mechanic-number">01</span><strong>Fly the field</strong><p>Hold W, A, S, and D to thrust in any direction. Momentum carries the ship, so feather your inputs.</p></article>
+            <article class="how-card"><span class="mechanic-number">02</span><strong>Answer from home row</strong><p>Each answer slot maps to J, K, L, or ; under your right hand. Wrong answers and timeouts drain Focus.</p></article>
+            <article class="how-card"><span class="mechanic-number">03</span><strong>Overlap the tasks</strong><p>A correct answer above a 10 dodge chain earns a Dual Focus bonus. The pressure is the point.</p></article>
+          </div>
+          <button class="primary-button" id="howBackButton" type="button" style="width:100%; margin-top:20px">Back to play</button>
+        </div>
+      </section>
+
+      <section class="menu-card compact" id="pauseScreen" aria-label="Paused" hidden>
+        <div class="menu-center">
+          <span class="menu-kicker">Attention link suspended</span>
+          <h2 class="menu-logo">Paused</h2>
+          <p class="pause-copy">The run and the trivia timer are frozen. Resume when both hands are ready.</p>
+          <div class="pause-actions">
+            <button class="primary-button" id="resumeButton" type="button">Resume</button>
+            <button class="secondary-button" id="pauseRestartButton" type="button">Restart round</button>
+            <button class="secondary-button" id="pauseMenuButton" type="button">Main menu</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="menu-card results-card" id="resultsScreen" aria-label="Round results" hidden>
+        <div class="menu-body">
+          <div class="result-topline">
+            <div>
+              <span class="menu-kicker" id="resultReason">Signal complete</span>
+              <h2 class="menu-logo" style="margin:10px 0 20px">Round <span>Report</span></h2>
+              <div class="result-score" id="resultScore">0000000</div>
+            </div>
+            <div class="result-grade" id="resultGrade">A</div>
+          </div>
+          <p class="result-copy" id="resultCopy" style="text-align:left; margin-left:0">You held both channels to the end.</p>
+          <div class="result-stats">
+            <div class="result-stat"><span>Best combo</span><strong id="resultBestCombo">0</strong></div>
+            <div class="result-stat"><span>Dodges</span><strong id="resultHits">0</strong></div>
+            <div class="result-stat"><span>Collisions</span><strong id="resultMisses">0</strong></div>
+            <div class="result-stat"><span>Trivia correct</span><strong id="resultCorrect">0</strong></div>
+            <div class="result-stat"><span>Trivia wrong</span><strong id="resultWrong">0</strong></div>
+            <div class="result-stat"><span>Dual bonuses</span><strong id="resultDual">0</strong></div>
+          </div>
+          <div class="result-actions">
+            <button class="primary-button" id="restartButton" type="button">Play again</button>
+            <button class="secondary-button" id="changeDifficultyButton" type="button">Change difficulty</button>
+            <button class="secondary-button" id="resultsMenuButton" type="button">Main menu</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="sr-only" id="liveRegion" aria-live="polite"></div>
+
+  <script>
+(() => {
+  "use strict";
+
+  // SplitBeat keeps gameplay in one clock. The evasion field, hazard spawns,
+  // trivia deadlines, and HUD all read from performance.now().
+
+  const BPM = 112;
+  const BEAT_MS = 60000 / BPM;
+  const RUN_DURATION_MS = 78000;
+  const COUNTDOWN_MS = 3000;
+  const QUESTION_FEEDBACK_MS = 700;
+  const STARTING_FOCUS = 82;
+  const COLLISION_GRACE_MS = 900;
+
+  const MOVE_KEYS = {
+    w: "up",
+    a: "left",
+    s: "down",
+    d: "right",
+    arrowup: "up",
+    arrowleft: "left",
+    arrowdown: "down",
+    arrowright: "right"
+  };
+  const SHIP_ACCEL = 2900;
+  const SHIP_MAX_SPEED = 470;
+  const SHIP_COAST_TAU = 0.16;
+
+  const ANSWER_KEYS = ["j", "k", "l", ";"];
+
+  const DIFFICULTIES = {
+    easy: {
+      rank: 0,
+      label: "Easy",
+      crossMs: 3400,
+      spawnMs: 1500,
+      collidePenalty: 9,
+      wrongPenalty: 8,
+      timeoutPenalty: 9,
+      triviaGain: 7,
+      questionMs: 8800,
+      gapFactor: 3.4,
+      description: "Slow drift, sparse hazards, and 8.8-second trivia."
+    },
+    normal: {
+      rank: 1,
+      label: "Normal",
+      crossMs: 2800,
+      spawnMs: 1150,
+      collidePenalty: 11,
+      wrongPenalty: 10,
+      timeoutPenalty: 11,
+      triviaGain: 6,
+      questionMs: 7500,
+      gapFactor: 2.9,
+      description: "Steady scroll, layered hazards, and 7.5-second trivia."
+    },
+    hard: {
+      rank: 2,
+      label: "Hard",
+      crossMs: 2250,
+      spawnMs: 900,
+      collidePenalty: 13,
+      wrongPenalty: 12,
+      timeoutPenalty: 13,
+      triviaGain: 5,
+      questionMs: 6200,
+      gapFactor: 2.4,
+      description: "Fast scroll, hazard walls, and 6.2-second trivia."
+    }
+  };
+
+  const QUESTIONS = [
+    { category: "World", prompt: "What is the capital of Australia?", answers: ["Sydney", "Canberra", "Melbourne", "Perth"], correct: 1 },
+    { category: "Science", prompt: "Which chemical symbol represents gold?", answers: ["Ag", "Gd", "Au", "Go"], correct: 2 },
+    { category: "Space", prompt: "Which planet is the largest in our solar system?", answers: ["Saturn", "Jupiter", "Neptune", "Earth"], correct: 1 },
+    { category: "Art", prompt: "Who painted The Starry Night?", answers: ["Claude Monet", "Pablo Picasso", "Vincent van Gogh", "Edvard Munch"], correct: 2 },
+    { category: "Computing", prompt: "What is binary 1010 in decimal?", answers: ["8", "10", "12", "14"], correct: 1 },
+    { category: "History", prompt: "In what year did Apollo 11 land on the Moon?", answers: ["1965", "1967", "1969", "1971"], correct: 2 },
+    { category: "Biology", prompt: "Which organ pumps blood through the human body?", answers: ["Liver", "Lung", "Kidney", "Heart"], correct: 3 },
+    { category: "Math", prompt: "What is the smallest prime number?", answers: ["0", "1", "2", "3"], correct: 2 },
+    { category: "Earth", prompt: "Which is the largest ocean on Earth?", answers: ["Atlantic", "Indian", "Pacific", "Arctic"], correct: 2 },
+    { category: "Math", prompt: "What is the square root of 144?", answers: ["10", "11", "12", "14"], correct: 2 },
+    { category: "Science", prompt: "Which gas do plants absorb during photosynthesis?", answers: ["Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"], correct: 2 },
+    { category: "Books", prompt: "Who wrote Frankenstein?", answers: ["Jane Austen", "Mary Shelley", "Emily Bronte", "George Eliot"], correct: 1 },
+    { category: "Chemistry", prompt: "Which element has atomic number 6?", answers: ["Carbon", "Oxygen", "Boron", "Nitrogen"], correct: 0 },
+    { category: "Games", prompt: "How many pieces does each player start with in chess?", answers: ["12", "14", "16", "18"], correct: 2 },
+    { category: "Space", prompt: "Which planet has the shortest year?", answers: ["Venus", "Mars", "Mercury", "Jupiter"], correct: 2 },
+    { category: "Geometry", prompt: "How many degrees are in a triangle's interior angles?", answers: ["90", "180", "270", "360"], correct: 1 },
+    { category: "Numbers", prompt: "What value does the Roman numeral XL represent?", answers: ["30", "40", "50", "60"], correct: 1 },
+    { category: "Web", prompt: "What does CSS stand for?", answers: ["Creative Style System", "Cascading Style Sheets", "Computer Sheet Syntax", "Color Style Source"], correct: 1 },
+    { category: "Nature", prompt: "What is the fastest land animal?", answers: ["Pronghorn", "Lion", "Cheetah", "Ostrich"], correct: 2 },
+    { category: "History", prompt: "Which country gifted the Statue of Liberty to the United States?", answers: ["France", "Spain", "Italy", "Canada"], correct: 0 }
+  ];
+
+  const byId = (id) => document.getElementById(id);
+  const dom = {
+    appFrame: byId("appFrame"),
+    scoreValue: byId("scoreValue"),
+    comboValue: byId("comboValue"),
+    multiplierValue: byId("multiplierValue"),
+    timeValue: byId("timeValue"),
+    focusStat: byId("focusStat"),
+    focusValue: byId("focusValue"),
+    focusFill: byId("focusFill"),
+    focusTrack: document.querySelector(".focus-track"),
+    gameStatus: byId("gameStatus"),
+    songProgressFill: byId("songProgressFill"),
+    pauseButton: byId("pauseButton"),
+    muteButton: byId("muteButton"),
+    fieldMount: byId("webglMount"),
+    trackError: byId("trackError"),
+    sectionChip: byId("sectionChip"),
+    chartReadout: byId("chartReadout"),
+    rhythmFeedback: byId("rhythmFeedback"),
+    countdown: byId("countdown"),
+    countdownValue: byId("countdownValue"),
+    triviaPanel: byId("triviaPanel"),
+    questionIndex: byId("questionIndex"),
+    questionClock: byId("questionClock"),
+    questionTimerFill: byId("questionTimerFill"),
+    questionCopy: byId("questionCopy"),
+    answerButtons: [...document.querySelectorAll(".answer-button")],
+    triviaFeedback: byId("triviaFeedback"),
+    dualBonus: byId("dualBonus"),
+    screenOverlay: byId("screenOverlay"),
+    mainMenuScreen: byId("mainMenuScreen"),
+    pauseScreen: byId("pauseScreen"),
+    resultsScreen: byId("resultsScreen"),
+    playMenuPanel: byId("playMenuPanel"),
+    howMenuPanel: byId("howMenuPanel"),
+    menuTabs: [...document.querySelectorAll("[data-menu-tab]")],
+    difficultyButtons: [...document.querySelectorAll("[data-difficulty]")],
+    difficultyDetails: byId("difficultyDetails"),
+    startButton: byId("startButton"),
+    howBackButton: byId("howBackButton"),
+    resumeButton: byId("resumeButton"),
+    pauseRestartButton: byId("pauseRestartButton"),
+    pauseMenuButton: byId("pauseMenuButton"),
+    restartButton: byId("restartButton"),
+    changeDifficultyButton: byId("changeDifficultyButton"),
+    resultsMenuButton: byId("resultsMenuButton"),
+    resultReason: byId("resultReason"),
+    resultScore: byId("resultScore"),
+    resultGrade: byId("resultGrade"),
+    resultCopy: byId("resultCopy"),
+    resultBestCombo: byId("resultBestCombo"),
+    resultHits: byId("resultHits"),
+    resultMisses: byId("resultMisses"),
+    resultCorrect: byId("resultCorrect"),
+    resultWrong: byId("resultWrong"),
+    resultDual: byId("resultDual"),
+    liveRegion: byId("liveRegion")
+  };
+
+  let status = "menu";
+  let selectedDifficulty = "normal";
+  let config = DIFFICULTIES.normal;
+  let gameStartTime = 0;
+  let lastElapsed = 0;
+  let pausedElapsed = 0;
+  let splitFlashUntil = 0;
+  let lastCountdownNumber = null;
+  let lastBeatIndex = -1;
+  let questionOrder = [];
+  let questionCursor = 0;
+  let questionsSeen = 0;
+  let currentQuestion = null;
+  let muted = false;
+  let audioContext = null;
+  let animationFrameId = 0;
+  let reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const held = { up: false, down: false, left: false, right: false };
+
+  const stats = {
+    score: 0,
+    combo: 0,
+    bestCombo: 0,
+    dodges: 0,
+    collisions: 0,
+    triviaCorrect: 0,
+    triviaWrong: 0,
+    triviaTimeouts: 0,
+    dualBonuses: 0,
+    focus: STARTING_FOCUS
+  };
+
+  // ---- Evasion field state -------------------------------------------------
+
+  let obstacles = [];
+  let nextSpawnAt = 0;
+  let lastSingleY = -1;
+  let lastGapY = -1;
+  const ship = { x: null, y: null, vx: 0, vy: 0 };
+  let invulnerableUntil = -Infinity;
+  let shakeUntil = 0;
+  let hitFlashUntil = 0;
+  let lastFrameTime = 0;
+  const trail = [];
+  const bursts = [];
+  let stars = [];
+
+  const view = {
+    ready: false,
+    canvas: null,
+    ctx: null,
+    width: 0,
+    height: 0,
+    dpr: 1,
+    resizeObserver: null
+  };
+
+  function initField() {
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.setAttribute("aria-hidden", "true");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("2D canvas unavailable");
+      dom.fieldMount.appendChild(canvas);
+      view.canvas = canvas;
+      view.ctx = ctx;
+
+      const resize = () => {
+        const host = dom.fieldMount.parentElement;
+        const rect = host.getBoundingClientRect();
+        view.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        view.width = Math.max(1, rect.width);
+        view.height = Math.max(1, rect.height);
+        canvas.width = Math.round(view.width * view.dpr);
+        canvas.height = Math.round(view.height * view.dpr);
+        canvas.style.width = `${view.width}px`;
+        canvas.style.height = `${view.height}px`;
+        seedStars();
+      };
+
+      resize();
+      view.resizeObserver = new ResizeObserver(resize);
+      view.resizeObserver.observe(dom.fieldMount.parentElement);
+      window.addEventListener("resize", resize);
+      view.ready = true;
+    } catch (error) {
+      console.error("SplitBeat could not start the evasion field.", error);
+      dom.trackError.classList.add("show");
+    }
+  }
+
+  function seedStars() {
+    const count = Math.round(clamp(view.width / 14, 40, 130));
+    stars = Array.from({ length: count }, () => ({
+      x: Math.random(),
+      y: Math.random(),
+      depth: 0.25 + Math.random() * 0.75,
+      size: 0.6 + Math.random() * 1.7
+    }));
+  }
+
+  // The flight band leaves the top clear for the question and the bottom
+  // clear for the answer row of the overlaid trivia HUD.
+  function fieldBand() {
+    return { top: view.height * 0.27, bottom: view.height * 0.8 };
+  }
+
+  function shipSize() {
+    return {
+      length: clamp(view.width * 0.05, 42, 66),
+      halfHeight: clamp(view.height * 0.034, 10, 20)
+    };
+  }
+
+  function hazardSize() {
+    const band = fieldBand();
+    return {
+      width: clamp(view.width * 0.035, 30, 54),
+      height: clamp((band.bottom - band.top) / 6, 26, 64)
+    };
+  }
+
+  function obstacleX(obstacle, elapsed) {
+    const { width } = hazardSize();
+    const start = view.width + width;
+    const end = -width * 2;
+    const progress = (elapsed - obstacle.spawnTime) / config.crossMs;
+    return start + (end - start) * progress;
+  }
+
+  // ---- Hazard spawner ------------------------------------------------------
+
+  function spawnWave(elapsed) {
+    const band = fieldBand();
+    const { height: hazardHeight } = hazardSize();
+    const shipHeight = shipSize().halfHeight * 2;
+    const phase = elapsed < 10000 ? 0 : elapsed < 30000 ? 1 : elapsed < 55000 ? 2 : 3;
+    const wallBias = config.rank * 0.05;
+    let kind = "single";
+    const roll = Math.random();
+    if (phase >= 1 && roll < 0.3 + wallBias) kind = "double";
+    if (phase >= 2 && roll > 0.82 - wallBias) kind = "wall";
+
+    const margin = hazardHeight / 2 + 6;
+    const randY = () => band.top + margin + Math.random() * (band.bottom - band.top - margin * 2);
+    const push = (yCenter, height) => obstacles.push({ yCenter, height, spawnTime: elapsed, kind, state: "pending" });
+
+    if (kind === "single") {
+      let y = randY();
+      if (lastSingleY >= 0 && Math.abs(y - lastSingleY) < hazardHeight) y = randY();
+      lastSingleY = y;
+      push(y, hazardHeight);
+    } else if (kind === "double") {
+      const first = randY();
+      let second = randY();
+      for (let tries = 0; tries < 8 && Math.abs(first - second) < hazardHeight + shipHeight * 2.2; tries += 1) {
+        second = randY();
+      }
+      push(first, hazardHeight);
+      if (Math.abs(first - second) >= hazardHeight + shipHeight * 2.2) push(second, hazardHeight);
+    } else {
+      const gapHeight = shipHeight * config.gapFactor;
+      const low = band.top + gapHeight / 2 + 8;
+      const high = band.bottom - gapHeight / 2 - 8;
+      let gapY = low + Math.random() * (high - low);
+      if (lastGapY >= 0 && Math.abs(gapY - lastGapY) < gapHeight) gapY = low + Math.random() * (high - low);
+      lastGapY = gapY;
+      const topHeight = gapY - gapHeight / 2 - band.top;
+      const bottomHeight = band.bottom - (gapY + gapHeight / 2);
+      if (topHeight > 10) push(band.top + topHeight / 2, topHeight);
+      if (bottomHeight > 10) push(gapY + gapHeight / 2 + bottomHeight / 2, bottomHeight);
+    }
+
+    const jitter = 0.85 + Math.random() * 0.35;
+    const breather = kind === "wall" ? 1.35 : 1;
+    nextSpawnAt = elapsed + config.spawnMs * jitter * breather;
+  }
+
+  function updateObstacles(elapsed) {
+    if (elapsed >= nextSpawnAt && elapsed < RUN_DURATION_MS - config.crossMs * 0.4) {
+      spawnWave(elapsed);
+    }
+    if (ship.x === null) return;
+
+    const { width: hazardWidth } = hazardSize();
+    const shipDims = shipSize();
+
+    for (const obstacle of obstacles) {
+      if (obstacle.state !== "pending") continue;
+      const x = obstacleX(obstacle, elapsed);
+      const overlapX = Math.abs(x - ship.x) < hazardWidth / 2 + shipDims.length * 0.32;
+
+      if (overlapX && Math.abs(ship.y - obstacle.yCenter) < obstacle.height / 2 + shipDims.halfHeight * 0.72) {
+        if (elapsed >= invulnerableUntil) {
+          obstacle.state = "hit";
+          registerCollision(obstacle, elapsed);
+          if (status !== "playing") return;
+        }
+      } else if (x + hazardWidth / 2 < ship.x - shipDims.length / 2) {
+        obstacle.state = "cleared";
+        registerDodge(elapsed);
+      }
+    }
+
+    obstacles = obstacles.filter((obstacle) => elapsed - obstacle.spawnTime < config.crossMs * 1.2);
+  }
+
+  function registerDodge(elapsed) {
+    stats.dodges += 1;
+    stats.combo += 1;
+    stats.bestCombo = Math.max(stats.bestCombo, stats.combo);
+    stats.score += 120 * currentMultiplier();
+    stats.focus = clamp(stats.focus + 0.18, 0, 100);
+    if (stats.combo > 0 && stats.combo % 10 === 0) {
+      showRhythmFeedback(`${stats.combo} chain`, "great");
+      playChainSound();
+    }
+    updateHud(elapsed);
+  }
+
+  function registerCollision(obstacle, elapsed) {
+    stats.collisions += 1;
+    stats.combo = 0;
+    invulnerableUntil = elapsed + COLLISION_GRACE_MS;
+    shakeUntil = performance.now() + 230;
+    hitFlashUntil = performance.now() + 300;
+    spawnBurst(obstacle);
+    showRhythmFeedback("Hit", "miss");
+    playMissSound();
+    changeFocus(-config.collidePenalty);
+  }
+
+  function spawnBurst(obstacle) {
+    if (reducedMotion) return;
+    const y = ship.y === null ? obstacle.yCenter : ship.y;
+    const x = (ship.x === null ? view.width * 0.18 : ship.x) + hazardSize().width * 0.4;
+    for (let i = 0; i < 14; i += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 60 + Math.random() * 220;
+      bursts.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        size: 1.5 + Math.random() * 3
+      });
+    }
+  }
+
+  function resetFieldState() {
+    obstacles = [];
+    bursts.length = 0;
+    trail.length = 0;
+    nextSpawnAt = 1400;
+    lastSingleY = -1;
+    lastGapY = -1;
+    ship.x = null;
+    ship.y = null;
+    ship.vx = 0;
+    ship.vy = 0;
+    invulnerableUntil = -Infinity;
+    shakeUntil = 0;
+    hitFlashUntil = 0;
+  }
+
+  function updateShip(now) {
+    if (!view.ready) return;
+    const band = fieldBand();
+    const { length: len, halfHeight: hh } = shipSize();
+    if (ship.x === null) {
+      ship.x = view.width * 0.18;
+      ship.y = (band.top + band.bottom) / 2;
+    }
+
+    const dt = clamp((now - lastFrameTime) / 1000 || 0.016, 0, 0.05);
+    let ax = (held.right ? 1 : 0) - (held.left ? 1 : 0);
+    let ay = (held.down ? 1 : 0) - (held.up ? 1 : 0);
+    if (ax && ay) {
+      ax *= Math.SQRT1_2;
+      ay *= Math.SQRT1_2;
+    }
+
+    ship.vx += ax * SHIP_ACCEL * dt;
+    ship.vy += ay * SHIP_ACCEL * dt;
+    const coast = Math.exp(-dt / SHIP_COAST_TAU);
+    if (!ax) ship.vx *= coast;
+    if (!ay) ship.vy *= coast;
+    const speed = Math.hypot(ship.vx, ship.vy);
+    if (speed > SHIP_MAX_SPEED) {
+      const scale = SHIP_MAX_SPEED / speed;
+      ship.vx *= scale;
+      ship.vy *= scale;
+    }
+
+    const minX = len * 0.7;
+    const maxX = view.width * 0.86;
+    const minY = band.top + hh;
+    const maxY = band.bottom - hh;
+    ship.x = clamp(ship.x + ship.vx * dt, minX, maxX);
+    ship.y = clamp(ship.y + ship.vy * dt, minY, maxY);
+    if (ship.x === minX || ship.x === maxX) ship.vx = 0;
+    if (ship.y === minY || ship.y === maxY) ship.vy = 0;
+  }
+
+  // ---- Rendering -----------------------------------------------------------
+
+  function renderField(now) {
+    if (!view.ready) return;
+    const ctx = view.ctx;
+    const w = view.width;
+    const h = view.height;
+    const inRound = status === "playing" || status === "countdown" || status === "paused";
+    const elapsed = status === "playing" ? lastElapsed : status === "paused" ? pausedElapsed : lastElapsed;
+    const scroll = inRound ? elapsed : now * 0.22;
+
+    ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    let shakeX = 0;
+    let shakeY = 0;
+    if (!reducedMotion && now < shakeUntil) {
+      const power = ((shakeUntil - now) / 230) * 6;
+      shakeX = (Math.random() - 0.5) * power;
+      shakeY = (Math.random() - 0.5) * power;
+      ctx.translate(shakeX, shakeY);
+    }
+
+    drawStars(ctx, w, h, scroll);
+    drawBounds(ctx, w);
+
+    if (inRound) {
+      drawObstacles(ctx, elapsed, now);
+      drawTrail(ctx);
+      drawShip(ctx, now, elapsed);
+      drawBursts(ctx);
+    } else {
+      drawIdleShip(ctx, now);
+    }
+
+    if (now < hitFlashUntil) {
+      const strength = (hitFlashUntil - now) / 300;
+      ctx.fillStyle = `rgba(255, 49, 93, ${0.16 * strength})`;
+      ctx.fillRect(-12, -12, w + 24, h + 24);
+    }
+  }
+
+  function drawStars(ctx, w, h, scroll) {
+    for (const star of stars) {
+      const x = ((star.x - (scroll * star.depth * 0.00004) % 1) % 1 + 1) % 1 * w;
+      const y = star.y * h;
+      ctx.globalAlpha = 0.25 + star.depth * 0.45;
+      ctx.fillStyle = star.depth > 0.7 ? "#cfe4ff" : "#6f7ba6";
+      ctx.fillRect(x, y, star.size, star.size);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawBounds(ctx, w) {
+    const band = fieldBand();
+
+    for (const edge of [band.top, band.bottom]) {
+      const rail = ctx.createLinearGradient(0, 0, w, 0);
+      rail.addColorStop(0, "rgba(49, 230, 255, 0.02)");
+      rail.addColorStop(0.5, "rgba(49, 230, 255, 0.22)");
+      rail.addColorStop(1, "rgba(49, 230, 255, 0.02)");
+      ctx.strokeStyle = rail;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, edge);
+      ctx.lineTo(w, edge);
+      ctx.stroke();
+    }
+  }
+
+  function drawObstacles(ctx, elapsed, now) {
+    const { width: hw } = hazardSize();
+
+    for (const obstacle of obstacles) {
+      if (obstacle.state === "hit") continue;
+      const x = obstacleX(obstacle, elapsed);
+      if (x < -hw || x > view.width + hw) continue;
+      const y = obstacle.yCenter;
+      const oh = obstacle.height;
+      const pulse = 0.75 + 0.25 * Math.sin(now * 0.012 + obstacle.spawnTime);
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.shadowColor = "#ff315d";
+      ctx.shadowBlur = reducedMotion ? 6 : 16 * pulse;
+
+      const gradient = ctx.createLinearGradient(-hw / 2, 0, hw / 2, 0);
+      gradient.addColorStop(0, "#3d0b1c");
+      gradient.addColorStop(0.5, "#71142f");
+      gradient.addColorStop(1, "#3d0b1c");
+      ctx.fillStyle = gradient;
+      ctx.strokeStyle = `rgba(255, 49, 93, ${0.55 + 0.4 * pulse})`;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.roundRect(-hw / 2, -oh / 2, hw, oh, 5);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(255, 178, 196, 0.75)";
+      ctx.lineWidth = 1.4;
+      const braceCount = Math.max(1, Math.round(oh / 56));
+      const step = oh / braceCount;
+      const inset = Math.min(hw, step) * 0.22;
+      for (let brace = 0; brace < braceCount; brace += 1) {
+        const cy = -oh / 2 + step * (brace + 0.5);
+        ctx.beginPath();
+        ctx.moveTo(-hw / 2 + inset, cy - step / 2 + inset);
+        ctx.lineTo(hw / 2 - inset, cy + step / 2 - inset);
+        ctx.moveTo(hw / 2 - inset, cy - step / 2 + inset);
+        ctx.lineTo(-hw / 2 + inset, cy + step / 2 - inset);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawShip(ctx, now, elapsed) {
+    if (ship.x === null) return;
+
+    if (!reducedMotion) {
+      trail.push({ x: ship.x - shipSize().length * 0.42, y: ship.y, life: 1 });
+      if (trail.length > 26) trail.shift();
+    }
+
+    const blinking = elapsed < invulnerableUntil && Math.sin(now * 0.028) > 0;
+    drawShipShape(ctx, ship.x, ship.y, clamp(ship.vy * 0.0011, -0.5, 0.5), blinking ? 0.35 : 1, now);
+  }
+
+  function drawIdleShip(ctx, now) {
+    const y = view.height * 0.53 + Math.sin(now * 0.0013) * 9;
+    drawShipShape(ctx, view.width * 0.18, y, Math.sin(now * 0.0013 + 1.2) * 0.06, 0.85, now);
+  }
+
+  function drawShipShape(ctx, x, y, tilt, alpha, now) {
+    const { length: len, halfHeight: hh } = shipSize();
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(tilt);
+    ctx.globalAlpha = alpha;
+
+    const flicker = reducedMotion ? 0.6 : 0.45 + Math.random() * 0.55;
+    const flameLen = len * (0.34 + flicker * 0.3);
+    const flame = ctx.createLinearGradient(-len / 2 - flameLen, 0, -len / 2, 0);
+    flame.addColorStop(0, "rgba(49, 230, 255, 0)");
+    flame.addColorStop(1, "rgba(49, 230, 255, 0.85)");
+    ctx.fillStyle = flame;
+    ctx.beginPath();
+    ctx.moveTo(-len / 2 - flameLen, 0);
+    ctx.lineTo(-len / 2 + 2, -hh * 0.42);
+    ctx.lineTo(-len / 2 + 2, hh * 0.42);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowColor = "#31e6ff";
+    ctx.shadowBlur = reducedMotion ? 8 : 18;
+    const body = ctx.createLinearGradient(-len / 2, 0, len / 2, 0);
+    body.addColorStop(0, "#0d3b4d");
+    body.addColorStop(0.65, "#1699b8");
+    body.addColorStop(1, "#8ff2ff");
+    ctx.fillStyle = body;
+    ctx.strokeStyle = "#5ceaff";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(len / 2, 0);
+    ctx.lineTo(-len / 2, -hh);
+    ctx.lineTo(-len * 0.3, 0);
+    ctx.lineTo(-len / 2, hh);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#eaffff";
+    ctx.beginPath();
+    ctx.arc(len * 0.14, 0, Math.max(2, hh * 0.22), 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function drawTrail(ctx) {
+    for (const particle of trail) {
+      particle.life -= 0.045;
+      if (particle.life <= 0) continue;
+      particle.x -= 2.6;
+      ctx.globalAlpha = particle.life * 0.5;
+      ctx.fillStyle = "#31e6ff";
+      ctx.fillRect(particle.x, particle.y - 1, 5 * particle.life + 1, 2);
+    }
+    ctx.globalAlpha = 1;
+    while (trail.length && trail[0].life <= 0) trail.shift();
+  }
+
+  function drawBursts(ctx) {
+    for (const particle of bursts) {
+      particle.life -= 0.032;
+      if (particle.life <= 0) continue;
+      particle.x += particle.vx * 0.016;
+      particle.y += particle.vy * 0.016;
+      particle.vx *= 0.94;
+      particle.vy *= 0.94;
+      ctx.globalAlpha = particle.life;
+      ctx.fillStyle = particle.life > 0.55 ? "#ffb2c4" : "#ff315d";
+      ctx.fillRect(particle.x, particle.y, particle.size, particle.size);
+    }
+    ctx.globalAlpha = 1;
+    for (let index = bursts.length - 1; index >= 0; index -= 1) {
+      if (bursts[index].life <= 0) bursts.splice(index, 1);
+    }
+  }
+
+  // ---- Shared helpers (HUD, focus, screens) --------------------------------
+
+  function resetStats() {
+    stats.score = 0;
+    stats.combo = 0;
+    stats.bestCombo = 0;
+    stats.dodges = 0;
+    stats.collisions = 0;
+    stats.triviaCorrect = 0;
+    stats.triviaWrong = 0;
+    stats.triviaTimeouts = 0;
+    stats.dualBonuses = 0;
+    stats.focus = STARTING_FOCUS;
+  }
+
+  function currentMultiplier() {
+    return Math.min(4, 1 + Math.floor(stats.combo / 10));
+  }
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function formatTime(milliseconds) {
+    const seconds = Math.max(0, Math.ceil(milliseconds / 1000));
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+  }
+
+  function sectionForElapsed(elapsed) {
+    if (elapsed < 23500) return "Opening drift";
+    if (elapsed < 49000) return "Crossfire";
+    return "Overdrive";
+  }
+
+  function updateHud(elapsed = lastElapsed) {
+    const safeElapsed = clamp(elapsed, 0, RUN_DURATION_MS);
+    dom.scoreValue.textContent = String(Math.floor(stats.score)).padStart(7, "0");
+    dom.comboValue.textContent = String(stats.combo);
+    dom.multiplierValue.textContent = `x${currentMultiplier()}`;
+    dom.focusValue.textContent = `${Math.round(stats.focus)}%`;
+    dom.focusFill.style.width = `${stats.focus}%`;
+    dom.focusTrack.setAttribute("aria-valuenow", String(Math.round(stats.focus)));
+    dom.timeValue.textContent = formatTime(RUN_DURATION_MS - safeElapsed);
+    dom.songProgressFill.style.width = `${(safeElapsed / RUN_DURATION_MS) * 100}%`;
+    dom.sectionChip.textContent = sectionForElapsed(safeElapsed);
+    document.body.classList.toggle("low-focus", stats.focus <= 25);
+  }
+
+  function flashFocus(kind) {
+    dom.focusStat.classList.remove("gain", "loss");
+    void dom.focusStat.offsetWidth;
+    dom.focusStat.classList.add(kind);
+    window.setTimeout(() => dom.focusStat.classList.remove(kind), 450);
+  }
+
+  function changeFocus(amount) {
+    const previous = stats.focus;
+    stats.focus = clamp(stats.focus + amount, 0, 100);
+    if (stats.focus !== previous) flashFocus(amount >= 0 ? "gain" : "loss");
+    updateHud();
+    if (stats.focus <= 0 && status === "playing") finishGame("focus");
+  }
+
+  function showRhythmFeedback(label, tone) {
+    dom.rhythmFeedback.textContent = label;
+    dom.rhythmFeedback.className = `rhythm-feedback ${tone}`;
+    void dom.rhythmFeedback.offsetWidth;
+    dom.rhythmFeedback.classList.add("show");
+  }
+
+  function showDualBonus() {
+    dom.dualBonus.classList.remove("show");
+    void dom.dualBonus.offsetWidth;
+    dom.dualBonus.classList.add("show");
+  }
+
+  function setOverlayScreen(screen) {
+    dom.mainMenuScreen.hidden = screen !== "menu";
+    dom.pauseScreen.hidden = screen !== "pause";
+    dom.resultsScreen.hidden = screen !== "results";
+    dom.screenOverlay.classList.toggle("is-hidden", screen === null);
+  }
+
+  function setMenuTab(tabName) {
+    const isPlay = tabName === "play";
+    dom.playMenuPanel.hidden = !isPlay;
+    dom.howMenuPanel.hidden = isPlay;
+    dom.menuTabs.forEach((button) => button.setAttribute("aria-selected", String(button.dataset.menuTab === tabName)));
+    if (isPlay) window.setTimeout(() => dom.startButton.focus(), 0);
+  }
+
+  function setDifficulty(name) {
+    if (!DIFFICULTIES[name] || status === "playing" || status === "countdown") return;
+    selectedDifficulty = name;
+    config = DIFFICULTIES[name];
+    dom.difficultyButtons.forEach((button) => button.classList.toggle("is-selected", button.dataset.difficulty === name));
+    dom.difficultyDetails.textContent = config.description;
+    dom.chartReadout.textContent = `~${Math.round(RUN_DURATION_MS / config.spawnMs)} hazard waves`;
+  }
+
+  function clearHeldKeys() {
+    held.up = false;
+    held.down = false;
+    held.left = false;
+    held.right = false;
+  }
+
+  // ---- Trivia --------------------------------------------------------------
+
+  function resetTriviaDisplay() {
+    currentQuestion = null;
+    dom.triviaPanel.classList.remove("urgent", "is-correct", "is-wrong");
+    dom.questionIndex.textContent = "Question standby";
+    dom.questionClock.textContent = "--.-";
+    dom.questionTimerFill.style.width = "100%";
+    dom.questionCopy.textContent = "Start a round to load the first question.";
+    dom.answerButtons.forEach((button) => {
+      button.disabled = true;
+      button.className = "answer-button";
+      button.querySelector(".answer-text").textContent = "Awaiting link";
+    });
+    setTriviaFeedback("Answer with J K L ;", "Focus online", "");
+  }
+
+  function showMainMenu() {
+    clearHeldKeys();
+    resetFieldState();
+    status = "menu";
+    lastElapsed = 0;
+    pausedElapsed = 0;
+    resetStats();
+    resetTriviaDisplay();
+    updateHud(0);
+    dom.pauseButton.disabled = true;
+    dom.gameStatus.textContent = "Attention link ready";
+    dom.countdown.classList.remove("show");
+    setMenuTab("play");
+    setOverlayScreen("menu");
+  }
+
+  function shuffleQuestionOrder() {
+    questionOrder = QUESTIONS.map((_, index) => index);
+    for (let index = questionOrder.length - 1; index > 0; index -= 1) {
+      const target = Math.floor(Math.random() * (index + 1));
+      [questionOrder[index], questionOrder[target]] = [questionOrder[target], questionOrder[index]];
+    }
+    questionCursor = 0;
+  }
+
+  function beginQuestion(elapsed) {
+    if (questionCursor >= questionOrder.length) shuffleQuestionOrder();
+    const questionIndex = questionOrder[questionCursor++];
+    const question = QUESTIONS[questionIndex];
+    questionsSeen += 1;
+    currentQuestion = {
+      question,
+      startedAt: elapsed,
+      deadline: elapsed + config.questionMs,
+      resolved: false,
+      resolveAt: Infinity
+    };
+
+    dom.triviaPanel.classList.remove("urgent", "is-correct", "is-wrong");
+    dom.questionIndex.textContent = `Question ${String(questionsSeen).padStart(2, "0")} / ${question.category}`;
+    dom.questionCopy.textContent = question.prompt;
+    dom.questionClock.textContent = (config.questionMs / 1000).toFixed(1);
+    dom.questionTimerFill.style.width = "100%";
+    dom.answerButtons.forEach((button, index) => {
+      button.className = "answer-button";
+      button.disabled = status !== "playing";
+      button.querySelector(".answer-text").textContent = question.answers[index];
+    });
+    setTriviaFeedback("Answer with J K L ;", "Clock running", "");
+  }
+
+  function setTriviaFeedback(left, right, tone) {
+    dom.triviaFeedback.className = `trivia-feedback${tone ? ` ${tone}` : ""}`;
+    dom.triviaFeedback.innerHTML = `<span>${left}</span><strong>${right}</strong>`;
+  }
+
+  function setAnswersEnabled(enabled) {
+    if (!currentQuestion || currentQuestion.resolved) return;
+    dom.answerButtons.forEach((button) => { button.disabled = !enabled; });
+  }
+
+  function resolveQuestion(outcome, selectedIndex, elapsed) {
+    if (!currentQuestion || currentQuestion.resolved || status !== "playing") return;
+    currentQuestion.resolved = true;
+    currentQuestion.resolveAt = elapsed + QUESTION_FEEDBACK_MS;
+    const { question } = currentQuestion;
+
+    dom.answerButtons.forEach((button, index) => {
+      button.disabled = true;
+      if (index === question.correct) button.classList.add("correct");
+      else if (index === selectedIndex) button.classList.add("wrong");
+      else button.classList.add("dimmed");
+    });
+    dom.triviaPanel.classList.remove("urgent");
+
+    if (outcome === "correct") {
+      stats.triviaCorrect += 1;
+      let award = 750;
+      let focusGain = config.triviaGain;
+      const dual = stats.combo > 10;
+      if (dual) {
+        award += 500;
+        focusGain += 2;
+        stats.dualBonuses += 1;
+        showDualBonus();
+      }
+      stats.score += award;
+      dom.triviaPanel.classList.add("is-correct");
+      setTriviaFeedback(dual ? "Dual focus locked" : "Answer locked", dual ? "+1250" : "+750", "correct");
+      dom.liveRegion.textContent = dual ? "Correct. Dual Focus bonus." : "Correct answer.";
+      changeFocus(focusGain);
+      playCorrectSound(dual);
+    } else {
+      stats.triviaWrong += 1;
+      dom.triviaPanel.classList.add("is-wrong");
+      if (outcome === "timeout") {
+        stats.triviaTimeouts += 1;
+        setTriviaFeedback("Clock expired", `-${config.timeoutPenalty} focus`, "wrong");
+        dom.liveRegion.textContent = "Question timed out.";
+        changeFocus(-config.timeoutPenalty);
+      } else {
+        setTriviaFeedback("Incorrect answer", `-${config.wrongPenalty} focus`, "wrong");
+        dom.liveRegion.textContent = "Incorrect answer.";
+        changeFocus(-config.wrongPenalty);
+      }
+      playWrongSound();
+    }
+
+    updateHud();
+  }
+
+  function updateTrivia(elapsed) {
+    if (!currentQuestion) {
+      beginQuestion(elapsed);
+      return;
+    }
+
+    if (currentQuestion.resolved) {
+      if (elapsed >= currentQuestion.resolveAt) beginQuestion(elapsed);
+      return;
+    }
+
+    const remaining = currentQuestion.deadline - elapsed;
+    if (remaining <= 0) {
+      dom.questionClock.textContent = "0.0";
+      dom.questionTimerFill.style.width = "0%";
+      resolveQuestion("timeout", -1, elapsed);
+      return;
+    }
+
+    const ratio = clamp(remaining / config.questionMs, 0, 1);
+    dom.questionClock.textContent = (remaining / 1000).toFixed(1);
+    dom.questionTimerFill.style.width = `${ratio * 100}%`;
+    dom.triviaPanel.classList.toggle("urgent", remaining <= 2400);
+  }
+
+  function handleAnswer(index) {
+    if (status !== "playing" || !currentQuestion || currentQuestion.resolved) return;
+    const elapsed = performance.now() - gameStartTime;
+    if (elapsed >= currentQuestion.deadline) {
+      resolveQuestion("timeout", -1, elapsed);
+      return;
+    }
+    resolveQuestion(index === currentQuestion.question.correct ? "correct" : "wrong", index, elapsed);
+  }
+
+  // ---- Round flow ----------------------------------------------------------
+
+  function startRound() {
+    if (status === "countdown" || status === "playing") return;
+
+    clearHeldKeys();
+    resetFieldState();
+    resetStats();
+    config = DIFFICULTIES[selectedDifficulty];
+    lastElapsed = 0;
+    pausedElapsed = 0;
+    lastBeatIndex = -1;
+    lastCountdownNumber = null;
+    questionsSeen = 0;
+    shuffleQuestionOrder();
+    status = "countdown";
+    gameStartTime = performance.now() + COUNTDOWN_MS;
+    beginQuestion(0);
+    setAnswersEnabled(false);
+    setOverlayScreen(null);
+    dom.pauseButton.disabled = true;
+    dom.countdown.classList.add("show");
+    dom.countdownValue.textContent = "3";
+    dom.gameStatus.textContent = `${config.label} link arming`;
+    dom.chartReadout.textContent = `~${Math.round(RUN_DURATION_MS / config.spawnMs)} hazard waves`;
+    updateHud(0);
+    unlockAudio();
+  }
+
+  function updateCountdown(now) {
+    const remaining = Math.max(0, gameStartTime - now);
+    const number = Math.max(1, Math.ceil(remaining / 1000));
+    if (number !== lastCountdownNumber && remaining > 0) {
+      lastCountdownNumber = number;
+      dom.countdownValue.textContent = String(number);
+      playCountdownSound(number);
+    }
+
+    if (remaining <= 0) {
+      status = "playing";
+      lastElapsed = Math.max(0, now - gameStartTime);
+      splitFlashUntil = now + 560;
+      dom.countdownValue.textContent = "SPLIT";
+      dom.pauseButton.disabled = false;
+      dom.gameStatus.textContent = `${config.label} link live`;
+      setAnswersEnabled(true);
+      playSplitSound();
+    }
+  }
+
+  function updateMetronome(elapsed) {
+    const beatIndex = Math.floor(elapsed / BEAT_MS);
+    if (beatIndex === lastBeatIndex) return;
+    lastBeatIndex = beatIndex;
+    playMetronomeBeat(beatIndex % 4 === 0);
+  }
+
+  function updatePlaying(now) {
+    const elapsed = Math.max(0, now - gameStartTime);
+    lastElapsed = elapsed;
+    updateObstacles(elapsed);
+    if (status !== "playing") return;
+    updateTrivia(elapsed);
+    if (status !== "playing") return;
+    updateMetronome(elapsed);
+    updateHud(elapsed);
+
+    if (now >= splitFlashUntil) dom.countdown.classList.remove("show");
+
+    if (elapsed >= RUN_DURATION_MS) finishGame("complete");
+  }
+
+  function pauseGame() {
+    if (status !== "playing") return;
+    status = "paused";
+    pausedElapsed = lastElapsed;
+    clearHeldKeys();
+    setAnswersEnabled(false);
+    dom.pauseButton.disabled = true;
+    dom.gameStatus.textContent = "Attention link paused";
+    setOverlayScreen("pause");
+    dom.resumeButton.focus();
+  }
+
+  function resumeGame() {
+    if (status !== "paused") return;
+    gameStartTime = performance.now() - pausedElapsed;
+    lastElapsed = pausedElapsed;
+    lastBeatIndex = Math.floor(pausedElapsed / BEAT_MS);
+    status = "playing";
+    setAnswersEnabled(true);
+    dom.pauseButton.disabled = false;
+    dom.gameStatus.textContent = `${config.label} link live`;
+    setOverlayScreen(null);
+    unlockAudio();
+  }
+
+  function calculateGrade() {
+    const dodgeTotal = stats.dodges + stats.collisions;
+    const triviaTotal = stats.triviaCorrect + stats.triviaWrong;
+    const dodgeAccuracy = dodgeTotal ? stats.dodges / dodgeTotal : 0;
+    const triviaAccuracy = triviaTotal ? stats.triviaCorrect / triviaTotal : 0;
+    if (dodgeAccuracy >= 0.93 && triviaAccuracy >= 0.82 && stats.focus >= 45) return "S";
+    if (dodgeAccuracy >= 0.82 && triviaAccuracy >= 0.65) return "A";
+    if (dodgeAccuracy >= 0.67 && triviaAccuracy >= 0.48) return "B";
+    if (dodgeAccuracy >= 0.48 || triviaAccuracy >= 0.4) return "C";
+    return "D";
+  }
+
+  function finishGame(reason) {
+    if (status !== "playing") return;
+    status = "gameOver";
+    clearHeldKeys();
+    setAnswersEnabled(false);
+    dom.countdown.classList.remove("show");
+    dom.pauseButton.disabled = true;
+    dom.triviaPanel.classList.remove("urgent");
+
+    const dodgeTotal = stats.dodges + stats.collisions;
+    const triviaTotal = stats.triviaCorrect + stats.triviaWrong;
+    const dodgeAccuracy = dodgeTotal ? Math.round((stats.dodges / dodgeTotal) * 100) : 0;
+    const triviaAccuracy = triviaTotal ? Math.round((stats.triviaCorrect / triviaTotal) * 100) : 0;
+    const complete = reason === "complete";
+
+    dom.resultReason.textContent = complete ? "Signal complete" : "Focus depleted";
+    dom.resultScore.textContent = String(Math.floor(stats.score)).padStart(7, "0");
+    dom.resultGrade.textContent = calculateGrade();
+    dom.resultCopy.textContent = complete
+      ? `You held both channels to the end with ${dodgeAccuracy}% dodge accuracy and ${triviaAccuracy}% trivia accuracy.`
+      : `The attention link collapsed at ${formatTime(lastElapsed)} elapsed. Dodge accuracy was ${dodgeAccuracy}% and trivia accuracy was ${triviaAccuracy}%.`;
+    dom.resultBestCombo.textContent = String(stats.bestCombo);
+    dom.resultHits.textContent = String(stats.dodges);
+    dom.resultMisses.textContent = String(stats.collisions);
+    dom.resultCorrect.textContent = String(stats.triviaCorrect);
+    dom.resultWrong.textContent = String(stats.triviaWrong);
+    dom.resultDual.textContent = String(stats.dualBonuses);
+    dom.gameStatus.textContent = complete ? "Signal complete" : "Focus signal lost";
+    updateHud(lastElapsed);
+    setOverlayScreen("results");
+    dom.restartButton.focus();
+    playResultSound(complete);
+  }
+
+  // ---- Audio ---------------------------------------------------------------
+
+  function toggleMute() {
+    muted = !muted;
+    dom.muteButton.textContent = muted ? "Snd off" : "Snd on";
+    dom.muteButton.classList.toggle("is-muted", muted);
+    dom.muteButton.setAttribute("aria-pressed", String(muted));
+    if (!muted) unlockAudio();
+  }
+
+  async function unlockAudio() {
+    if (muted) return;
+    try {
+      if (!audioContext) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        audioContext = new AudioContextClass();
+      }
+      if (audioContext.state === "suspended") await audioContext.resume();
+    } catch (error) {
+      console.warn("SplitBeat audio is unavailable.", error);
+    }
+  }
+
+  function playTone(frequency, duration, type = "sine", volume = 0.03, delay = 0, endFrequency = null) {
+    if (muted || !audioContext || audioContext.state !== "running") return;
+    const start = audioContext.currentTime + delay;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, start);
+    if (endFrequency) oscillator.frequency.exponentialRampToValueAtTime(endFrequency, start + duration);
+    gain.gain.setValueAtTime(Math.max(0.0001, volume), start);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    oscillator.connect(gain).connect(audioContext.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.02);
+  }
+
+  function playMetronomeBeat(accent) {
+    playTone(accent ? 145 : 105, 0.105, "sine", accent ? 0.04 : 0.024, 0, accent ? 48 : 55);
+  }
+
+  function playChainSound() {
+    playTone(659.25, 0.08, "triangle", 0.022);
+    playTone(880, 0.1, "triangle", 0.02, 0.06);
+  }
+
+  function playMissSound() {
+    playTone(105, 0.16, "sawtooth", 0.026, 0, 52);
+    playTone(58, 0.22, "sine", 0.03, 0.02, 38);
+  }
+
+  function playCorrectSound(dual) {
+    playTone(523.25, 0.1, "triangle", 0.026);
+    playTone(659.25, 0.1, "triangle", 0.023, 0.07);
+    playTone(dual ? 987.77 : 783.99, 0.16, "triangle", 0.025, 0.14);
+  }
+
+  function playWrongSound() {
+    playTone(170, 0.21, "sawtooth", 0.026, 0, 78);
+  }
+
+  function playCountdownSound(number) {
+    playTone(number === 1 ? 660 : 440, 0.07, "square", 0.024);
+  }
+
+  function playSplitSound() {
+    playTone(523.25, 0.14, "triangle", 0.032);
+    playTone(783.99, 0.18, "triangle", 0.026, 0.05);
+  }
+
+  function playResultSound(complete) {
+    if (complete) {
+      playTone(392, 0.14, "triangle", 0.027);
+      playTone(523.25, 0.14, "triangle", 0.025, 0.11);
+      playTone(783.99, 0.28, "triangle", 0.023, 0.22);
+    } else {
+      playTone(155, 0.35, "sawtooth", 0.023, 0, 65);
+    }
+  }
+
+  // ---- Input ---------------------------------------------------------------
+
+  function handleKeyDown(event) {
+    const key = event.key.toLowerCase();
+    const direction = MOVE_KEYS[key];
+
+    if (direction) {
+      event.preventDefault();
+      held[direction] = true;
+      return;
+    }
+
+    const answerIndex = ANSWER_KEYS.indexOf(key);
+    if (answerIndex >= 0) {
+      event.preventDefault();
+      if (event.repeat) return;
+      handleAnswer(answerIndex);
+      return;
+    }
+
+    if (key === "escape" || key === "p") {
+      event.preventDefault();
+      if (status === "playing") pauseGame();
+      else if (status === "paused") resumeGame();
+      return;
+    }
+
+    if ((key === "enter" || key === " ") && status === "menu" && !dom.playMenuPanel.hidden) {
+      event.preventDefault();
+      startRound();
+    }
+  }
+
+  function handleKeyUp(event) {
+    const direction = MOVE_KEYS[event.key.toLowerCase()];
+    if (direction) held[direction] = false;
+  }
+
+  function gameLoop(now) {
+    if (status === "countdown") updateCountdown(now);
+    if (status === "playing" || status === "countdown") updateShip(now);
+    if (status === "playing") updatePlaying(now);
+    renderField(now);
+    lastFrameTime = now;
+    animationFrameId = requestAnimationFrame(gameLoop);
+  }
+
+  dom.menuTabs.forEach((button) => button.addEventListener("click", () => setMenuTab(button.dataset.menuTab)));
+  dom.howBackButton.addEventListener("click", () => setMenuTab("play"));
+  dom.difficultyButtons.forEach((button) => button.addEventListener("click", () => setDifficulty(button.dataset.difficulty)));
+  dom.startButton.addEventListener("click", startRound);
+  dom.pauseButton.addEventListener("click", pauseGame);
+  dom.resumeButton.addEventListener("click", resumeGame);
+  dom.pauseRestartButton.addEventListener("click", startRound);
+  dom.pauseMenuButton.addEventListener("click", showMainMenu);
+  dom.restartButton.addEventListener("click", startRound);
+  dom.changeDifficultyButton.addEventListener("click", showMainMenu);
+  dom.resultsMenuButton.addEventListener("click", showMainMenu);
+  dom.muteButton.addEventListener("click", toggleMute);
+  dom.answerButtons.forEach((button, index) => button.addEventListener("click", () => handleAnswer(index)));
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+  window.addEventListener("blur", clearHeldKeys);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && status === "playing") pauseGame();
+  });
+
+  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const updateMotionPreference = (event) => { reducedMotion = event.matches; };
+  if (motionQuery.addEventListener) motionQuery.addEventListener("change", updateMotionPreference);
+  else motionQuery.addListener(updateMotionPreference);
+
+  // A read-only snapshot makes quick QA possible from browser tools.
+  window.SplitBeat = Object.freeze({
+    getSnapshot: () => ({
+      status,
+      difficulty: selectedDifficulty,
+      elapsed: lastElapsed,
+      score: stats.score,
+      combo: stats.combo,
+      bestCombo: stats.bestCombo,
+      dodges: stats.dodges,
+      collisions: stats.collisions,
+      triviaCorrect: stats.triviaCorrect,
+      triviaWrong: stats.triviaWrong,
+      focus: stats.focus,
+      shipX: ship.x === null ? null : Math.round(ship.x),
+      shipY: ship.y === null ? null : Math.round(ship.y),
+      obstacleCount: obstacles.length,
+      questionCount: QUESTIONS.length
+    })
+  });
+
+  initField();
+  setDifficulty("normal");
+  showMainMenu();
+  animationFrameId = requestAnimationFrame(gameLoop);
+})();
+  </script>
+</body>
+</html>
