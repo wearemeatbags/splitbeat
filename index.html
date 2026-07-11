@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#050711">
+  <meta name="description" content="Dodge a neon hazard field with one hand while answering timed trivia with the other.">
   <title>SplitBeat - Dual Attention Evasion</title>
   <style>
     :root {
@@ -272,6 +274,21 @@
       animation: focusLoss 420ms ease;
     }
 
+    .low-focus .focus-stat {
+      border-color: rgba(255, 49, 93, 0.58);
+      background: rgba(255, 49, 93, 0.065);
+      box-shadow: inset 0 0 22px rgba(255, 49, 93, 0.08);
+    }
+
+    .low-focus .focus-number {
+      color: #ff9bb0;
+    }
+
+    .low-focus .focus-fill {
+      background: linear-gradient(90deg, #ff315d, #ff6f88);
+      box-shadow: 0 0 18px rgba(255, 49, 93, 0.65);
+    }
+
     .hud-actions {
       display: flex;
       gap: 7px;
@@ -280,7 +297,7 @@
     }
 
     .utility-button {
-      min-width: 62px;
+      min-width: 70px;
       height: 45px;
       padding: 0 11px;
       border: 1px solid rgba(255, 255, 255, 0.13);
@@ -289,7 +306,7 @@
       color: #b9bfd4;
       cursor: pointer;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 800;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -323,11 +340,13 @@
     }
 
     .song-progress-fill {
-      width: 0;
+      width: 100%;
       height: 100%;
       background: linear-gradient(90deg, var(--cyan), var(--pink));
       box-shadow: 0 0 13px rgba(49, 230, 255, 0.7);
-      transition: width 80ms linear;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 80ms linear;
     }
 
     .split-stage {
@@ -393,7 +412,7 @@
       color: #a8ecf5;
       background: rgba(49, 230, 255, 0.055);
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 800;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -428,7 +447,7 @@
       z-index: 2;
       pointer-events: none;
       background:
-        linear-gradient(90deg, rgba(1, 2, 7, 0.7), transparent 15%, transparent 85%, rgba(1, 2, 7, 0.72)),
+        linear-gradient(90deg, rgba(1, 2, 7, 0.62), transparent 13%, transparent 90%, rgba(1, 2, 7, 0.34)),
         linear-gradient(180deg, rgba(1, 2, 8, 0.33), transparent 34%, rgba(0, 0, 0, 0.14) 72%, rgba(0, 0, 0, 0.58));
     }
 
@@ -518,6 +537,15 @@
 
     .rhythm-operator-strip strong {
       color: #c7cbe0;
+    }
+
+    .rhythm-operator-strip span {
+      transition: color 120ms ease, text-shadow 120ms ease;
+    }
+
+    .rhythm-operator-strip span.is-active {
+      color: var(--cyan);
+      text-shadow: 0 0 12px rgba(49, 230, 255, 0.55);
     }
 
     .trivia-zone {
@@ -616,8 +644,9 @@
       border-radius: inherit;
       background: linear-gradient(90deg, var(--pink), var(--cyan));
       box-shadow: 0 0 13px rgba(49, 230, 255, 0.5);
+      transform: scaleX(1);
       transform-origin: left;
-      transition: background 180ms ease;
+      transition: background 180ms ease, transform 80ms linear;
     }
 
     .urgent .question-timer-fill {
@@ -689,6 +718,17 @@
     }
 
     .answer-button:hover:not(:disabled)::after {
+      opacity: 1;
+    }
+
+    .answer-button.is-key-active:not(:disabled) {
+      transform: translateY(1px) scale(0.985);
+      border-color: rgba(49, 230, 255, 0.9);
+      background: linear-gradient(145deg, rgba(32, 59, 86, 0.96), rgba(13, 23, 45, 0.98));
+      box-shadow: 0 0 26px rgba(49, 230, 255, 0.14), inset 0 0 0 1px rgba(49, 230, 255, 0.2);
+    }
+
+    .answer-button.is-key-active:not(:disabled)::after {
       opacity: 1;
     }
 
@@ -819,6 +859,7 @@
         radial-gradient(circle at 18% 12%, rgba(49, 230, 255, 0.08), transparent 35%),
         linear-gradient(145deg, rgba(18, 23, 46, 0.98), rgba(7, 9, 20, 0.99));
       box-shadow: 0 35px 100px rgba(0, 0, 0, 0.67), inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+      animation: menuEnter 260ms var(--ease) both;
     }
 
     .menu-card.compact {
@@ -869,13 +910,13 @@
       background: transparent;
       cursor: pointer;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 900;
       letter-spacing: 0.1em;
       text-transform: uppercase;
     }
 
-    .menu-tab[aria-selected="true"] {
+    .menu-tab[aria-pressed="true"] {
       color: var(--ink);
       background: rgba(49, 230, 255, 0.11);
       box-shadow: inset 0 0 0 1px rgba(49, 230, 255, 0.25);
@@ -963,7 +1004,7 @@
       background: rgba(255, 255, 255, 0.025);
       cursor: pointer;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 900;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -1152,7 +1193,7 @@
       display: block;
       color: var(--muted);
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 8px;
+      font-size: 9px;
       font-weight: 800;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -1219,6 +1260,15 @@
       clip: rect(0, 0, 0, 0);
       white-space: nowrap;
       border: 0;
+    }
+
+    body.layout-blocked .app-frame {
+      visibility: hidden;
+    }
+
+    @keyframes menuEnter {
+      from { opacity: 0; transform: translateY(10px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     @keyframes judgment {
@@ -1369,9 +1419,57 @@
         gap: 12px;
         padding: 15px;
       }
+
+      .results-card .menu-body {
+        padding: 15px 22px;
+      }
+
+      .results-card .result-topline {
+        margin-bottom: 10px;
+      }
+
+      .results-card .menu-logo {
+        margin: 7px 0 10px !important;
+        font-size: 38px;
+      }
+
+      .results-card .result-score {
+        font-size: 43px;
+      }
+
+      .results-card .result-grade {
+        width: 66px;
+        height: 66px;
+        border-radius: 16px;
+        font-size: 42px;
+      }
+
+      .results-card .result-copy {
+        margin-bottom: 12px;
+        line-height: 1.4;
+      }
+
+      .results-card .result-stats {
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+
+      .results-card .result-stat {
+        padding: 8px 11px;
+      }
+
+      .results-card .result-stat strong {
+        margin-top: 3px;
+        font-size: 16px;
+      }
+
+      .results-card .primary-button,
+      .results-card .secondary-button {
+        min-height: 43px;
+      }
     }
 
-    @media (max-width: 899px), (orientation: portrait) and (max-width: 1024px) {
+    @media (max-width: 899px), (orientation: portrait) {
       .mobile-warning {
         display: grid;
       }
@@ -1390,7 +1488,7 @@
   </style>
 </head>
 <body>
-  <div class="mobile-warning" role="alert">
+  <div class="mobile-warning" id="mobileWarning" role="alert">
     <div class="mobile-warning-card">
       <span class="eyebrow">Desktop input required</span>
       <h2>Two hands. One screen.</h2>
@@ -1398,8 +1496,8 @@
     </div>
   </div>
 
-  <div class="app-frame" id="appFrame">
-    <header class="topbar">
+  <div class="app-frame" id="appFrame" tabindex="-1">
+    <header class="topbar" id="topbar">
       <div class="brand-lockup">
         <div class="brand-glyph" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
         <div>
@@ -1415,7 +1513,7 @@
 
       <div class="focus-stat" id="focusStat">
         <div class="focus-label-row">
-          <span>Focus integrity</span>
+          <span>Focus</span>
           <span class="focus-number" id="focusValue">82%</span>
         </div>
         <div class="focus-track" role="progressbar" aria-label="Focus" aria-valuemin="0" aria-valuemax="100" aria-valuenow="82">
@@ -1434,13 +1532,13 @@
           <span class="hud-value" id="timeValue">1:18</span>
         </div>
         <button class="utility-button" id="pauseButton" type="button" disabled>Pause</button>
-        <button class="utility-button" id="muteButton" type="button" aria-pressed="false">Snd on</button>
+        <button class="utility-button" id="muteButton" type="button" aria-pressed="false" aria-label="Turn sound off">Sound on</button>
       </div>
 
       <div class="song-progress" aria-hidden="true"><div class="song-progress-fill" id="songProgressFill"></div></div>
     </header>
 
-    <main class="split-stage">
+    <main class="split-stage" id="splitStage">
       <section class="rhythm-zone" aria-labelledby="rhythmTitle">
         <div class="panel-topline">
           <div><span class="panel-kicker">Left hand</span><span class="panel-title" id="rhythmTitle">Evasion field</span></div>
@@ -1456,7 +1554,7 @@
         </div>
 
         <div class="rhythm-operator-strip">
-          <span><strong>W A S D</strong> fly the ship</span>
+          <span id="movementHint"><strong>W A S D</strong> fly the ship</span>
           <span><strong>J K L ;</strong> answers</span>
           <span><strong>Esc</strong> pause</span>
           <span id="chartReadout">Hazard waves inbound</span>
@@ -1490,15 +1588,15 @@
     <div class="dual-bonus" id="dualBonus" aria-hidden="true">Dual Focus +500</div>
 
     <div class="screen-overlay" id="screenOverlay">
-      <section class="menu-card" id="mainMenuScreen" aria-label="SplitBeat main menu">
+      <section class="menu-card" id="mainMenuScreen" role="dialog" aria-modal="true" aria-label="SplitBeat main menu">
         <header class="menu-header">
           <div>
             <span class="menu-kicker">Dual-attention game</span>
             <h2 class="menu-logo">Split<span>Beat</span></h2>
           </div>
           <nav class="menu-tabs" aria-label="Main menu">
-            <button class="menu-tab" type="button" data-menu-tab="play" aria-selected="true">Play</button>
-            <button class="menu-tab" type="button" data-menu-tab="how" aria-selected="false">How to</button>
+            <button class="menu-tab" type="button" data-menu-tab="play" aria-pressed="true">Play</button>
+            <button class="menu-tab" type="button" data-menu-tab="how" aria-pressed="false">How to play</button>
           </nav>
         </header>
 
@@ -1528,13 +1626,13 @@
               <div>
                 <span class="eyebrow">Difficulty</span>
                 <div class="difficulty-picker" style="margin-top:9px" role="group" aria-label="Difficulty">
-                  <button class="difficulty-button" type="button" data-difficulty="easy">Easy</button>
-                  <button class="difficulty-button is-selected" type="button" data-difficulty="normal">Normal</button>
-                  <button class="difficulty-button" type="button" data-difficulty="hard">Hard</button>
+                  <button class="difficulty-button" type="button" data-difficulty="easy" aria-pressed="false">Easy</button>
+                  <button class="difficulty-button is-selected" type="button" data-difficulty="normal" aria-pressed="true">Normal</button>
+                  <button class="difficulty-button" type="button" data-difficulty="hard" aria-pressed="false">Hard</button>
                 </div>
               </div>
               <p class="difficulty-details" id="difficultyDetails">Steady scroll, layered hazards, and 7.5-second trivia.</p>
-              <button class="primary-button" id="startButton" type="button">Start split</button>
+              <button class="primary-button" id="startButton" type="button">Start round</button>
             </div>
           </div>
         </div>
@@ -1549,11 +1647,11 @@
         </div>
       </section>
 
-      <section class="menu-card compact" id="pauseScreen" aria-label="Paused" hidden>
+      <section class="menu-card compact" id="pauseScreen" role="dialog" aria-modal="true" aria-label="Paused" hidden>
         <div class="menu-center">
           <span class="menu-kicker">Attention link suspended</span>
           <h2 class="menu-logo">Paused</h2>
-          <p class="pause-copy">The run and the trivia timer are frozen. Resume when both hands are ready.</p>
+          <p class="pause-copy">The round and all timers are frozen. Resume when both hands are ready.</p>
           <div class="pause-actions">
             <button class="primary-button" id="resumeButton" type="button">Resume</button>
             <button class="secondary-button" id="pauseRestartButton" type="button">Restart round</button>
@@ -1562,7 +1660,7 @@
         </div>
       </section>
 
-      <section class="menu-card results-card" id="resultsScreen" aria-label="Round results" hidden>
+      <section class="menu-card results-card" id="resultsScreen" role="dialog" aria-modal="true" aria-label="Round results" hidden>
         <div class="menu-body">
           <div class="result-topline">
             <div>
@@ -1591,7 +1689,7 @@
     </div>
   </div>
 
-  <div class="sr-only" id="liveRegion" aria-live="polite"></div>
+  <div class="sr-only" id="liveRegion" aria-live="polite" aria-atomic="true"></div>
 
   <script>
 (() => {
@@ -1607,6 +1705,10 @@
   const QUESTION_FEEDBACK_MS = 700;
   const STARTING_FOCUS = 82;
   const COLLISION_GRACE_MS = 900;
+  const MAX_ACTIVE_FRAME_GAP_MS = 450;
+  const TRAIL_INTERVAL_SECONDS = 1 / 34;
+  const TRAIL_LIFETIME_SECONDS = 0.48;
+  const BURST_LIFETIME_SECONDS = 0.56;
 
   const MOVE_KEYS = {
     w: "up",
@@ -1618,11 +1720,22 @@
     arrowdown: "down",
     arrowright: "right"
   };
+  const MOVE_CODES = {
+    KeyW: "up",
+    KeyA: "left",
+    KeyS: "down",
+    KeyD: "right",
+    ArrowUp: "up",
+    ArrowLeft: "left",
+    ArrowDown: "down",
+    ArrowRight: "right"
+  };
   const SHIP_ACCEL = 2900;
   const SHIP_MAX_SPEED = 470;
   const SHIP_COAST_TAU = 0.16;
 
   const ANSWER_KEYS = ["j", "k", "l", ";"];
+  const ANSWER_CODES = { KeyJ: 0, KeyK: 1, KeyL: 2, Semicolon: 3 };
 
   const DIFFICULTIES = {
     easy: {
@@ -1636,6 +1749,7 @@
       triviaGain: 7,
       questionMs: 8800,
       gapFactor: 3.4,
+      estimatedWaves: 47,
       description: "Slow drift, sparse hazards, and 8.8-second trivia."
     },
     normal: {
@@ -1649,6 +1763,7 @@
       triviaGain: 6,
       questionMs: 7500,
       gapFactor: 2.9,
+      estimatedWaves: 61,
       description: "Steady scroll, layered hazards, and 7.5-second trivia."
     },
     hard: {
@@ -1662,6 +1777,7 @@
       triviaGain: 5,
       questionMs: 6200,
       gapFactor: 2.4,
+      estimatedWaves: 77,
       description: "Fast scroll, hazard walls, and 6.2-second trivia."
     }
   };
@@ -1692,6 +1808,9 @@
   const byId = (id) => document.getElementById(id);
   const dom = {
     appFrame: byId("appFrame"),
+    topbar: byId("topbar"),
+    splitStage: byId("splitStage"),
+    mobileWarning: byId("mobileWarning"),
     scoreValue: byId("scoreValue"),
     comboValue: byId("comboValue"),
     multiplierValue: byId("multiplierValue"),
@@ -1708,6 +1827,7 @@
     trackError: byId("trackError"),
     sectionChip: byId("sectionChip"),
     chartReadout: byId("chartReadout"),
+    movementHint: byId("movementHint"),
     rhythmFeedback: byId("rhythmFeedback"),
     countdown: byId("countdown"),
     countdownValue: byId("countdownValue"),
@@ -1755,6 +1875,8 @@
   let gameStartTime = 0;
   let lastElapsed = 0;
   let pausedElapsed = 0;
+  let pausedFromStatus = "playing";
+  let pausedCountdownRemaining = 0;
   let splitFlashUntil = 0;
   let lastCountdownNumber = null;
   let lastBeatIndex = -1;
@@ -1764,8 +1886,15 @@
   let currentQuestion = null;
   let muted = false;
   let audioContext = null;
+  let masterGain = null;
+  const activeVoices = new Set();
   let animationFrameId = 0;
   let reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let focusFlashTimer = 0;
+
+  let roundSeed = 0;
+  let hazardRandom = Math.random;
+  let triviaRandom = Math.random;
 
   const held = { up: false, down: false, left: false, right: false };
 
@@ -1788,11 +1917,14 @@
   let nextSpawnAt = 0;
   let lastSingleY = -1;
   let lastGapY = -1;
+  let lastGapSpawnAt = -Infinity;
+  let waveCounter = 0;
   const ship = { x: null, y: null, vx: 0, vy: 0 };
   let invulnerableUntil = -Infinity;
   let shakeUntil = 0;
   let hitFlashUntil = 0;
   let lastFrameTime = 0;
+  let trailAccumulator = 0;
   const trail = [];
   const bursts = [];
   let stars = [];
@@ -1820,6 +1952,9 @@
       const resize = () => {
         const host = dom.fieldMount.parentElement;
         const rect = host.getBoundingClientRect();
+        const oldWidth = view.width;
+        const oldHeight = view.height;
+        const oldBand = bandForHeight(oldHeight);
         view.dpr = Math.min(window.devicePixelRatio || 1, 2);
         view.width = Math.max(1, rect.width);
         view.height = Math.max(1, rect.height);
@@ -1827,34 +1962,66 @@
         canvas.height = Math.round(view.height * view.dpr);
         canvas.style.width = `${view.width}px`;
         canvas.style.height = `${view.height}px`;
-        seedStars();
+
+        if (oldWidth > 1 && oldHeight > 1) {
+          const newBand = fieldBand();
+          const oldBandHeight = oldBand.bottom - oldBand.top;
+          const newBandHeight = newBand.bottom - newBand.top;
+          const remapY = (value) => newBand.top + ((value - oldBand.top) / oldBandHeight) * newBandHeight;
+          if (ship.x !== null) {
+            ship.x = (ship.x / oldWidth) * view.width;
+            ship.y = remapY(ship.y);
+          }
+          for (const obstacle of obstacles) {
+            obstacle.yCenter = remapY(obstacle.yCenter);
+            obstacle.height = (obstacle.height / oldBandHeight) * newBandHeight;
+          }
+          for (const particle of [...trail, ...bursts]) {
+            particle.x = (particle.x / oldWidth) * view.width;
+            particle.y = (particle.y / oldHeight) * view.height;
+          }
+        }
+
+        syncStars();
       };
 
       resize();
-      view.resizeObserver = new ResizeObserver(resize);
-      view.resizeObserver.observe(dom.fieldMount.parentElement);
-      window.addEventListener("resize", resize);
+      if ("ResizeObserver" in window) {
+        view.resizeObserver = new ResizeObserver(resize);
+        view.resizeObserver.observe(dom.fieldMount.parentElement);
+      } else {
+        window.addEventListener("resize", resize);
+      }
       view.ready = true;
     } catch (error) {
       console.error("SplitBeat could not start the evasion field.", error);
       dom.trackError.classList.add("show");
+      dom.startButton.disabled = true;
+      dom.startButton.textContent = "Canvas unavailable";
     }
   }
 
-  function seedStars() {
+  function syncStars() {
     const count = Math.round(clamp(view.width / 14, 40, 130));
-    stars = Array.from({ length: count }, () => ({
-      x: Math.random(),
-      y: Math.random(),
-      depth: 0.25 + Math.random() * 0.75,
-      size: 0.6 + Math.random() * 1.7
-    }));
+    if (stars.length > count) stars.length = count;
+    while (stars.length < count) {
+      stars.push({
+        x: Math.random(),
+        y: Math.random(),
+        depth: 0.25 + Math.random() * 0.75,
+        size: 0.6 + Math.random() * 1.7
+      });
+    }
   }
 
   // The flight band leaves the top clear for the question and the bottom
   // clear for the answer row of the overlaid trivia HUD.
+  function bandForHeight(height) {
+    return { top: height * 0.27, bottom: height * 0.8 };
+  }
+
   function fieldBand() {
-    return { top: view.height * 0.27, bottom: view.height * 0.8 };
+    return bandForHeight(view.height);
   }
 
   function shipSize() {
@@ -1880,6 +2047,37 @@
     return start + (end - start) * progress;
   }
 
+  function makeRandom(seed) {
+    let value = seed >>> 0;
+    return () => {
+      value = (value + 0x6d2b79f5) >>> 0;
+      let result = value;
+      result = Math.imul(result ^ (result >>> 15), result | 1);
+      result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
+      return ((result ^ (result >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function createRoundSeed() {
+    const seedParameter = new URLSearchParams(window.location.search).get("seed");
+    const requested = seedParameter === null || seedParameter.trim() === "" ? NaN : Number(seedParameter);
+    if (Number.isInteger(requested) && requested >= 0) return requested >>> 0;
+    if (window.crypto?.getRandomValues) {
+      return window.crypto.getRandomValues(new Uint32Array(1))[0];
+    }
+    return (Date.now() ^ Math.floor(performance.now() * 1000)) >>> 0;
+  }
+
+  function resetRoundRandomness() {
+    roundSeed = createRoundSeed();
+    hazardRandom = makeRandom(roundSeed || 1);
+    triviaRandom = makeRandom((roundSeed ^ 0x9e3779b9) >>> 0 || 1);
+  }
+
+  function randomBetween(min, max, random = hazardRandom) {
+    return min + random() * Math.max(0, max - min);
+  }
+
   // ---- Hazard spawner ------------------------------------------------------
 
   function spawnWave(elapsed) {
@@ -1889,48 +2087,63 @@
     const phase = elapsed < 10000 ? 0 : elapsed < 30000 ? 1 : elapsed < 55000 ? 2 : 3;
     const wallBias = config.rank * 0.05;
     let kind = "single";
-    const roll = Math.random();
+    const roll = hazardRandom();
     if (phase >= 1 && roll < 0.3 + wallBias) kind = "double";
     if (phase >= 2 && roll > 0.82 - wallBias) kind = "wall";
 
     const margin = hazardHeight / 2 + 6;
-    const randY = () => band.top + margin + Math.random() * (band.bottom - band.top - margin * 2);
-    const push = (yCenter, height) => obstacles.push({ yCenter, height, spawnTime: elapsed, kind, state: "pending" });
+    const randY = () => randomBetween(band.top + margin, band.bottom - margin);
+    const waveId = waveCounter++;
+    const push = (yCenter, height) => obstacles.push({ yCenter, height, spawnTime: elapsed, waveId, kind, state: "pending" });
 
     if (kind === "single") {
-      let y = randY();
-      if (lastSingleY >= 0 && Math.abs(y - lastSingleY) < hazardHeight) y = randY();
+      const candidates = Array.from({ length: 4 }, randY);
+      const y = lastSingleY < 0
+        ? candidates[0]
+        : candidates.reduce((best, candidate) => (
+          Math.abs(candidate - lastSingleY) > Math.abs(best - lastSingleY) ? candidate : best
+        ));
       lastSingleY = y;
       push(y, hazardHeight);
     } else if (kind === "double") {
       const first = randY();
-      let second = randY();
-      for (let tries = 0; tries < 8 && Math.abs(first - second) < hazardHeight + shipHeight * 2.2; tries += 1) {
-        second = randY();
-      }
+      const second = Array.from({ length: 8 }, randY).reduce((best, candidate) => (
+        Math.abs(candidate - first) > Math.abs(best - first) ? candidate : best
+      ));
       push(first, hazardHeight);
       if (Math.abs(first - second) >= hazardHeight + shipHeight * 2.2) push(second, hazardHeight);
     } else {
       const gapHeight = shipHeight * config.gapFactor;
       const low = band.top + gapHeight / 2 + 8;
       const high = band.bottom - gapHeight / 2 - 8;
-      let gapY = low + Math.random() * (high - low);
-      if (lastGapY >= 0 && Math.abs(gapY - lastGapY) < gapHeight) gapY = low + Math.random() * (high - low);
+      let gapY = randomBetween(low, high);
+      if (lastGapY >= 0) {
+        const secondsSinceWall = Math.max(config.spawnMs / 1000, (elapsed - lastGapSpawnAt) / 1000);
+        const reachableShift = Math.max(gapHeight * 0.7, SHIP_MAX_SPEED * secondsSinceWall * 0.58);
+        gapY = clamp(gapY, lastGapY - reachableShift, lastGapY + reachableShift);
+        gapY = clamp(gapY, low, high);
+      }
       lastGapY = gapY;
+      lastGapSpawnAt = elapsed;
       const topHeight = gapY - gapHeight / 2 - band.top;
       const bottomHeight = band.bottom - (gapY + gapHeight / 2);
       if (topHeight > 10) push(band.top + topHeight / 2, topHeight);
       if (bottomHeight > 10) push(gapY + gapHeight / 2 + bottomHeight / 2, bottomHeight);
     }
 
-    const jitter = 0.85 + Math.random() * 0.35;
+    const jitter = 0.85 + hazardRandom() * 0.35;
     const breather = kind === "wall" ? 1.35 : 1;
     nextSpawnAt = elapsed + config.spawnMs * jitter * breather;
   }
 
-  function updateObstacles(elapsed) {
-    if (elapsed >= nextSpawnAt && elapsed < RUN_DURATION_MS - config.crossMs * 0.4) {
-      spawnWave(elapsed);
+  function updateObstacles(elapsed, previousElapsed) {
+    let catchUpWaves = 0;
+    while (elapsed >= nextSpawnAt && nextSpawnAt < RUN_DURATION_MS - config.crossMs * 0.4 && catchUpWaves < 2) {
+      spawnWave(nextSpawnAt);
+      catchUpWaves += 1;
+    }
+    if (elapsed >= nextSpawnAt && catchUpWaves === 2) {
+      nextSpawnAt = elapsed + config.spawnMs;
     }
     if (ship.x === null) return;
 
@@ -1940,11 +2153,17 @@
     for (const obstacle of obstacles) {
       if (obstacle.state !== "pending") continue;
       const x = obstacleX(obstacle, elapsed);
-      const overlapX = Math.abs(x - ship.x) < hazardWidth / 2 + shipDims.length * 0.32;
+      const priorTime = Math.max(obstacle.spawnTime, previousElapsed);
+      const previousX = obstacleX(obstacle, priorTime);
+      const obstacleLeft = Math.min(previousX, x) - hazardWidth / 2;
+      const obstacleRight = Math.max(previousX, x) + hazardWidth / 2;
+      const shipLeft = ship.x - shipDims.length * 0.32;
+      const shipRight = ship.x + shipDims.length * 0.32;
+      const overlapX = obstacleRight >= shipLeft && obstacleLeft <= shipRight;
 
       if (overlapX && Math.abs(ship.y - obstacle.yCenter) < obstacle.height / 2 + shipDims.halfHeight * 0.72) {
+        obstacle.state = elapsed >= invulnerableUntil ? "hit" : "contacted";
         if (elapsed >= invulnerableUntil) {
-          obstacle.state = "hit";
           registerCollision(obstacle, elapsed);
           if (status !== "playing") return;
         }
@@ -1974,8 +2193,8 @@
     stats.collisions += 1;
     stats.combo = 0;
     invulnerableUntil = elapsed + COLLISION_GRACE_MS;
-    shakeUntil = performance.now() + 230;
-    hitFlashUntil = performance.now() + 300;
+    shakeUntil = elapsed + 230;
+    hitFlashUntil = elapsed + 300;
     spawnBurst(obstacle);
     showRhythmFeedback("Hit", "miss");
     playMissSound();
@@ -1994,7 +2213,8 @@
         y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        life: 1,
+        life: BURST_LIFETIME_SECONDS,
+        maxLife: BURST_LIFETIME_SECONDS,
         size: 1.5 + Math.random() * 3
       });
     }
@@ -2007,6 +2227,8 @@
     nextSpawnAt = 1400;
     lastSingleY = -1;
     lastGapY = -1;
+    lastGapSpawnAt = -Infinity;
+    waveCounter = 0;
     ship.x = null;
     ship.y = null;
     ship.vx = 0;
@@ -2014,9 +2236,10 @@
     invulnerableUntil = -Infinity;
     shakeUntil = 0;
     hitFlashUntil = 0;
+    trailAccumulator = 0;
   }
 
-  function updateShip(now) {
+  function updateShip(dt) {
     if (!view.ready) return;
     const band = fieldBand();
     const { length: len, halfHeight: hh } = shipSize();
@@ -2025,7 +2248,6 @@
       ship.y = (band.top + band.bottom) / 2;
     }
 
-    const dt = clamp((now - lastFrameTime) / 1000 || 0.016, 0, 0.05);
     let ax = (held.right ? 1 : 0) - (held.left ? 1 : 0);
     let ay = (held.down ? 1 : 0) - (held.up ? 1 : 0);
     if (ax && ay) {
@@ -2046,13 +2268,54 @@
     }
 
     const minX = len * 0.7;
-    const maxX = view.width * 0.86;
+    const maxX = view.width * 0.64;
     const minY = band.top + hh;
     const maxY = band.bottom - hh;
     ship.x = clamp(ship.x + ship.vx * dt, minX, maxX);
     ship.y = clamp(ship.y + ship.vy * dt, minY, maxY);
     if (ship.x === minX || ship.x === maxX) ship.vx = 0;
     if (ship.y === minY || ship.y === maxY) ship.vy = 0;
+  }
+
+  function updateEffects(dt) {
+    if (!view.ready || ship.x === null || dt <= 0) return;
+
+    if (reducedMotion) {
+      trail.length = 0;
+      bursts.length = 0;
+      trailAccumulator = 0;
+      return;
+    }
+
+    trailAccumulator += dt;
+    while (trailAccumulator >= TRAIL_INTERVAL_SECONDS) {
+      trailAccumulator -= TRAIL_INTERVAL_SECONDS;
+      trail.push({
+        x: ship.x - shipSize().length * 0.42,
+        y: ship.y,
+        life: TRAIL_LIFETIME_SECONDS,
+        maxLife: TRAIL_LIFETIME_SECONDS
+      });
+    }
+    if (trail.length > 30) trail.splice(0, trail.length - 30);
+
+    for (const particle of trail) {
+      particle.life -= dt;
+      particle.x -= 150 * dt;
+    }
+    while (trail.length && trail[0].life <= 0) trail.shift();
+
+    const drag = Math.exp(-3.9 * dt);
+    for (const particle of bursts) {
+      particle.life -= dt;
+      particle.x += particle.vx * dt;
+      particle.y += particle.vy * dt;
+      particle.vx *= drag;
+      particle.vy *= drag;
+    }
+    for (let index = bursts.length - 1; index >= 0; index -= 1) {
+      if (bursts[index].life <= 0) bursts.splice(index, 1);
+    }
   }
 
   // ---- Rendering -----------------------------------------------------------
@@ -2064,15 +2327,15 @@
     const h = view.height;
     const inRound = status === "playing" || status === "countdown" || status === "paused";
     const elapsed = status === "playing" ? lastElapsed : status === "paused" ? pausedElapsed : lastElapsed;
-    const scroll = inRound ? elapsed : now * 0.22;
+    const scroll = reducedMotion ? 0 : inRound ? elapsed : now * 0.22;
 
     ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
     let shakeX = 0;
     let shakeY = 0;
-    if (!reducedMotion && now < shakeUntil) {
-      const power = ((shakeUntil - now) / 230) * 6;
+    if (inRound && !reducedMotion && elapsed < shakeUntil) {
+      const power = ((shakeUntil - elapsed) / 230) * 6;
       shakeX = (Math.random() - 0.5) * power;
       shakeY = (Math.random() - 0.5) * power;
       ctx.translate(shakeX, shakeY);
@@ -2082,16 +2345,16 @@
     drawBounds(ctx, w);
 
     if (inRound) {
-      drawObstacles(ctx, elapsed, now);
+      drawObstacles(ctx, elapsed);
       drawTrail(ctx);
-      drawShip(ctx, now, elapsed);
+      drawShip(ctx, elapsed);
       drawBursts(ctx);
     } else {
       drawIdleShip(ctx, now);
     }
 
-    if (now < hitFlashUntil) {
-      const strength = (hitFlashUntil - now) / 300;
+    if (inRound && elapsed < hitFlashUntil) {
+      const strength = (hitFlashUntil - elapsed) / 300;
       ctx.fillStyle = `rgba(255, 49, 93, ${0.16 * strength})`;
       ctx.fillRect(-12, -12, w + 24, h + 24);
     }
@@ -2125,7 +2388,7 @@
     }
   }
 
-  function drawObstacles(ctx, elapsed, now) {
+  function drawObstacles(ctx, elapsed) {
     const { width: hw } = hazardSize();
 
     for (const obstacle of obstacles) {
@@ -2134,10 +2397,11 @@
       if (x < -hw || x > view.width + hw) continue;
       const y = obstacle.yCenter;
       const oh = obstacle.height;
-      const pulse = 0.75 + 0.25 * Math.sin(now * 0.012 + obstacle.spawnTime);
+      const pulse = reducedMotion ? 0.86 : 0.75 + 0.25 * Math.sin(elapsed * 0.012 + obstacle.spawnTime);
 
       ctx.save();
       ctx.translate(x, y);
+      ctx.globalAlpha = obstacle.state === "contacted" ? 0.42 : 1;
       ctx.shadowColor = "#ff315d";
       ctx.shadowBlur = reducedMotion ? 6 : 16 * pulse;
 
@@ -2154,6 +2418,13 @@
       ctx.stroke();
 
       ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(255, 221, 230, 0.95)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-hw / 2 + 3, -oh / 2 + 5);
+      ctx.lineTo(-hw / 2 + 3, oh / 2 - 5);
+      ctx.stroke();
+
       ctx.strokeStyle = "rgba(255, 178, 196, 0.75)";
       ctx.lineWidth = 1.4;
       const braceCount = Math.max(1, Math.round(oh / 56));
@@ -2172,24 +2443,21 @@
     }
   }
 
-  function drawShip(ctx, now, elapsed) {
+  function drawShip(ctx, elapsed) {
     if (ship.x === null) return;
-
-    if (!reducedMotion) {
-      trail.push({ x: ship.x - shipSize().length * 0.42, y: ship.y, life: 1 });
-      if (trail.length > 26) trail.shift();
-    }
-
-    const blinking = elapsed < invulnerableUntil && Math.sin(now * 0.028) > 0;
-    drawShipShape(ctx, ship.x, ship.y, clamp(ship.vy * 0.0011, -0.5, 0.5), blinking ? 0.35 : 1, now);
+    const invulnerable = elapsed < invulnerableUntil;
+    const tilt = reducedMotion ? 0 : clamp(ship.vy * 0.0011, -0.5, 0.5);
+    drawShipShape(ctx, ship.x, ship.y, tilt, invulnerable ? 0.78 : 1, elapsed, invulnerable);
   }
 
   function drawIdleShip(ctx, now) {
-    const y = view.height * 0.53 + Math.sin(now * 0.0013) * 9;
-    drawShipShape(ctx, view.width * 0.18, y, Math.sin(now * 0.0013 + 1.2) * 0.06, 0.85, now);
+    const motionTime = reducedMotion ? 0 : now;
+    const y = view.height * 0.53 + Math.sin(motionTime * 0.0013) * (reducedMotion ? 0 : 9);
+    const tilt = reducedMotion ? 0 : Math.sin(motionTime * 0.0013 + 1.2) * 0.06;
+    drawShipShape(ctx, view.width * 0.18, y, tilt, 0.9, motionTime, false);
   }
 
-  function drawShipShape(ctx, x, y, tilt, alpha, now) {
+  function drawShipShape(ctx, x, y, tilt, alpha, animationTime, invulnerable) {
     const { length: len, halfHeight: hh } = shipSize();
 
     ctx.save();
@@ -2197,7 +2465,7 @@
     ctx.rotate(tilt);
     ctx.globalAlpha = alpha;
 
-    const flicker = reducedMotion ? 0.6 : 0.45 + Math.random() * 0.55;
+    const flicker = reducedMotion ? 0.64 : 0.72 + Math.sin(animationTime * 0.014) * 0.18;
     const flameLen = len * (0.34 + flicker * 0.3);
     const flame = ctx.createLinearGradient(-len / 2 - flameLen, 0, -len / 2, 0);
     flame.addColorStop(0, "rgba(49, 230, 255, 0)");
@@ -2210,15 +2478,13 @@
     ctx.closePath();
     ctx.fill();
 
-    ctx.shadowColor = "#31e6ff";
-    ctx.shadowBlur = reducedMotion ? 8 : 18;
+    ctx.shadowColor = invulnerable ? "#ffe05b" : "#31e6ff";
+    ctx.shadowBlur = reducedMotion ? 8 : invulnerable ? 28 : 18;
     const body = ctx.createLinearGradient(-len / 2, 0, len / 2, 0);
     body.addColorStop(0, "#0d3b4d");
     body.addColorStop(0.65, "#1699b8");
     body.addColorStop(1, "#8ff2ff");
     ctx.fillStyle = body;
-    ctx.strokeStyle = "#5ceaff";
-    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(len / 2, 0);
     ctx.lineTo(-len / 2, -hh);
@@ -2226,6 +2492,11 @@
     ctx.lineTo(-len / 2, hh);
     ctx.closePath();
     ctx.fill();
+    ctx.strokeStyle = "rgba(2, 8, 18, 0.95)";
+    ctx.lineWidth = 4.5;
+    ctx.stroke();
+    ctx.strokeStyle = invulnerable ? "#ffe89a" : "#8ff6ff";
+    ctx.lineWidth = 1.6;
     ctx.stroke();
 
     ctx.shadowBlur = 0;
@@ -2239,33 +2510,24 @@
 
   function drawTrail(ctx) {
     for (const particle of trail) {
-      particle.life -= 0.045;
       if (particle.life <= 0) continue;
-      particle.x -= 2.6;
-      ctx.globalAlpha = particle.life * 0.5;
+      const ratio = particle.life / particle.maxLife;
+      ctx.globalAlpha = ratio * 0.65;
       ctx.fillStyle = "#31e6ff";
-      ctx.fillRect(particle.x, particle.y - 1, 5 * particle.life + 1, 2);
+      ctx.fillRect(particle.x, particle.y - 1.25, 8 * ratio + 2, 2.5);
     }
     ctx.globalAlpha = 1;
-    while (trail.length && trail[0].life <= 0) trail.shift();
   }
 
   function drawBursts(ctx) {
     for (const particle of bursts) {
-      particle.life -= 0.032;
       if (particle.life <= 0) continue;
-      particle.x += particle.vx * 0.016;
-      particle.y += particle.vy * 0.016;
-      particle.vx *= 0.94;
-      particle.vy *= 0.94;
-      ctx.globalAlpha = particle.life;
-      ctx.fillStyle = particle.life > 0.55 ? "#ffb2c4" : "#ff315d";
+      const ratio = particle.life / particle.maxLife;
+      ctx.globalAlpha = ratio;
+      ctx.fillStyle = ratio > 0.55 ? "#ffb2c4" : "#ff315d";
       ctx.fillRect(particle.x, particle.y, particle.size, particle.size);
     }
     ctx.globalAlpha = 1;
-    for (let index = bursts.length - 1; index >= 0; index -= 1) {
-      if (bursts[index].life <= 0) bursts.splice(index, 1);
-    }
   }
 
   // ---- Shared helpers (HUD, focus, screens) --------------------------------
@@ -2303,25 +2565,37 @@
     return "Overdrive";
   }
 
+  function setTextIfChanged(element, value) {
+    if (element.textContent !== value) element.textContent = value;
+  }
+
+  function setStyleIfChanged(element, property, value) {
+    if (element.style[property] !== value) element.style[property] = value;
+  }
+
   function updateHud(elapsed = lastElapsed) {
     const safeElapsed = clamp(elapsed, 0, RUN_DURATION_MS);
-    dom.scoreValue.textContent = String(Math.floor(stats.score)).padStart(7, "0");
-    dom.comboValue.textContent = String(stats.combo);
-    dom.multiplierValue.textContent = `x${currentMultiplier()}`;
-    dom.focusValue.textContent = `${Math.round(stats.focus)}%`;
-    dom.focusFill.style.width = `${stats.focus}%`;
-    dom.focusTrack.setAttribute("aria-valuenow", String(Math.round(stats.focus)));
-    dom.timeValue.textContent = formatTime(RUN_DURATION_MS - safeElapsed);
-    dom.songProgressFill.style.width = `${(safeElapsed / RUN_DURATION_MS) * 100}%`;
-    dom.sectionChip.textContent = sectionForElapsed(safeElapsed);
-    document.body.classList.toggle("low-focus", stats.focus <= 25);
+    const roundedFocus = Math.round(stats.focus);
+    setTextIfChanged(dom.scoreValue, String(Math.floor(stats.score)).padStart(7, "0"));
+    setTextIfChanged(dom.comboValue, String(stats.combo));
+    setTextIfChanged(dom.multiplierValue, `x${currentMultiplier()}`);
+    setTextIfChanged(dom.focusValue, `${roundedFocus}%`);
+    setStyleIfChanged(dom.focusFill, "width", `${stats.focus}%`);
+    if (dom.focusTrack.getAttribute("aria-valuenow") !== String(roundedFocus)) {
+      dom.focusTrack.setAttribute("aria-valuenow", String(roundedFocus));
+    }
+    setTextIfChanged(dom.timeValue, formatTime(RUN_DURATION_MS - safeElapsed));
+    setStyleIfChanged(dom.songProgressFill, "transform", `scaleX(${safeElapsed / RUN_DURATION_MS})`);
+    setTextIfChanged(dom.sectionChip, sectionForElapsed(safeElapsed));
+    document.body.classList.toggle("low-focus", roundedFocus <= 25);
   }
 
   function flashFocus(kind) {
+    window.clearTimeout(focusFlashTimer);
     dom.focusStat.classList.remove("gain", "loss");
     void dom.focusStat.offsetWidth;
     dom.focusStat.classList.add(kind);
-    window.setTimeout(() => dom.focusStat.classList.remove(kind), 450);
+    focusFlashTimer = window.setTimeout(() => dom.focusStat.classList.remove(kind), 450);
   }
 
   function changeFocus(amount) {
@@ -2346,17 +2620,22 @@
   }
 
   function setOverlayScreen(screen) {
+    const overlayActive = screen !== null;
     dom.mainMenuScreen.hidden = screen !== "menu";
     dom.pauseScreen.hidden = screen !== "pause";
     dom.resultsScreen.hidden = screen !== "results";
-    dom.screenOverlay.classList.toggle("is-hidden", screen === null);
+    dom.screenOverlay.classList.toggle("is-hidden", !overlayActive);
+    dom.screenOverlay.setAttribute("aria-hidden", String(!overlayActive));
+    dom.topbar.inert = overlayActive;
+    dom.splitStage.inert = overlayActive;
+    if (!overlayActive) window.setTimeout(() => dom.appFrame.focus({ preventScroll: true }), 0);
   }
 
   function setMenuTab(tabName) {
     const isPlay = tabName === "play";
     dom.playMenuPanel.hidden = !isPlay;
     dom.howMenuPanel.hidden = isPlay;
-    dom.menuTabs.forEach((button) => button.setAttribute("aria-selected", String(button.dataset.menuTab === tabName)));
+    dom.menuTabs.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.menuTab === tabName)));
     if (isPlay) window.setTimeout(() => dom.startButton.focus(), 0);
   }
 
@@ -2364,9 +2643,13 @@
     if (!DIFFICULTIES[name] || status === "playing" || status === "countdown") return;
     selectedDifficulty = name;
     config = DIFFICULTIES[name];
-    dom.difficultyButtons.forEach((button) => button.classList.toggle("is-selected", button.dataset.difficulty === name));
+    dom.difficultyButtons.forEach((button) => {
+      const selected = button.dataset.difficulty === name;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
     dom.difficultyDetails.textContent = config.description;
-    dom.chartReadout.textContent = `~${Math.round(RUN_DURATION_MS / config.spawnMs)} hazard waves`;
+    dom.chartReadout.textContent = `About ${config.estimatedWaves} hazard waves`;
   }
 
   function clearHeldKeys() {
@@ -2374,6 +2657,8 @@
     held.down = false;
     held.left = false;
     held.right = false;
+    dom.movementHint.classList.remove("is-active");
+    dom.answerButtons.forEach((button) => button.classList.remove("is-key-active"));
   }
 
   // ---- Trivia --------------------------------------------------------------
@@ -2383,7 +2668,7 @@
     dom.triviaPanel.classList.remove("urgent", "is-correct", "is-wrong");
     dom.questionIndex.textContent = "Question standby";
     dom.questionClock.textContent = "--.-";
-    dom.questionTimerFill.style.width = "100%";
+    dom.questionTimerFill.style.transform = "scaleX(1)";
     dom.questionCopy.textContent = "Start a round to load the first question.";
     dom.answerButtons.forEach((button) => {
       button.disabled = true;
@@ -2394,6 +2679,7 @@
   }
 
   function showMainMenu() {
+    stopActiveVoices();
     clearHeldKeys();
     resetFieldState();
     status = "menu";
@@ -2412,7 +2698,7 @@
   function shuffleQuestionOrder() {
     questionOrder = QUESTIONS.map((_, index) => index);
     for (let index = questionOrder.length - 1; index > 0; index -= 1) {
-      const target = Math.floor(Math.random() * (index + 1));
+      const target = Math.floor(triviaRandom() * (index + 1));
       [questionOrder[index], questionOrder[target]] = [questionOrder[target], questionOrder[index]];
     }
     questionCursor = 0;
@@ -2435,13 +2721,14 @@
     dom.questionIndex.textContent = `Question ${String(questionsSeen).padStart(2, "0")} / ${question.category}`;
     dom.questionCopy.textContent = question.prompt;
     dom.questionClock.textContent = (config.questionMs / 1000).toFixed(1);
-    dom.questionTimerFill.style.width = "100%";
+    dom.questionTimerFill.style.transform = "scaleX(1)";
     dom.answerButtons.forEach((button, index) => {
       button.className = "answer-button";
       button.disabled = status !== "playing";
       button.querySelector(".answer-text").textContent = question.answers[index];
     });
     setTriviaFeedback("Answer with J K L ;", "Clock running", "");
+    dom.liveRegion.textContent = `Question ${questionsSeen}. ${question.prompt} Answer with J, K, L, or semicolon.`;
   }
 
   function setTriviaFeedback(left, right, tone) {
@@ -2518,20 +2805,21 @@
     const remaining = currentQuestion.deadline - elapsed;
     if (remaining <= 0) {
       dom.questionClock.textContent = "0.0";
-      dom.questionTimerFill.style.width = "0%";
+      dom.questionTimerFill.style.transform = "scaleX(0)";
       resolveQuestion("timeout", -1, elapsed);
       return;
     }
 
     const ratio = clamp(remaining / config.questionMs, 0, 1);
     dom.questionClock.textContent = (remaining / 1000).toFixed(1);
-    dom.questionTimerFill.style.width = `${ratio * 100}%`;
+    dom.questionTimerFill.style.transform = `scaleX(${ratio})`;
     dom.triviaPanel.classList.toggle("urgent", remaining <= 2400);
   }
 
   function handleAnswer(index) {
     if (status !== "playing" || !currentQuestion || currentQuestion.resolved) return;
     const elapsed = performance.now() - gameStartTime;
+    if (elapsed >= RUN_DURATION_MS) return;
     if (elapsed >= currentQuestion.deadline) {
       resolveQuestion("timeout", -1, elapsed);
       return;
@@ -2544,10 +2832,12 @@
   function startRound() {
     if (status === "countdown" || status === "playing") return;
 
+    stopActiveVoices();
     clearHeldKeys();
     resetFieldState();
     resetStats();
     config = DIFFICULTIES[selectedDifficulty];
+    resetRoundRandomness();
     lastElapsed = 0;
     pausedElapsed = 0;
     lastBeatIndex = -1;
@@ -2556,6 +2846,7 @@
     shuffleQuestionOrder();
     status = "countdown";
     gameStartTime = performance.now() + COUNTDOWN_MS;
+    updateShip(0);
     beginQuestion(0);
     setAnswersEnabled(false);
     setOverlayScreen(null);
@@ -2563,8 +2854,9 @@
     dom.countdown.classList.add("show");
     dom.countdownValue.textContent = "3";
     dom.gameStatus.textContent = `${config.label} link arming`;
-    dom.chartReadout.textContent = `~${Math.round(RUN_DURATION_MS / config.spawnMs)} hazard waves`;
+    dom.chartReadout.textContent = `About ${config.estimatedWaves} hazard waves`;
     updateHud(0);
+    dom.liveRegion.textContent = "Round starting. Three.";
     unlockAudio();
   }
 
@@ -2580,11 +2872,12 @@
     if (remaining <= 0) {
       status = "playing";
       lastElapsed = Math.max(0, now - gameStartTime);
-      splitFlashUntil = now + 560;
+      splitFlashUntil = lastElapsed + 560;
       dom.countdownValue.textContent = "SPLIT";
       dom.pauseButton.disabled = false;
       dom.gameStatus.textContent = `${config.label} link live`;
       setAnswersEnabled(true);
+      dom.liveRegion.textContent = "Split. Round live.";
       playSplitSound();
     }
   }
@@ -2596,42 +2889,70 @@
     playMetronomeBeat(beatIndex % 4 === 0);
   }
 
-  function updatePlaying(now) {
+  function updatePlaying(now, previousElapsed) {
     const elapsed = Math.max(0, now - gameStartTime);
+    if (elapsed >= RUN_DURATION_MS) {
+      lastElapsed = RUN_DURATION_MS;
+      dom.countdown.classList.remove("show");
+      updateHud(RUN_DURATION_MS);
+      finishGame("complete");
+      return;
+    }
+
     lastElapsed = elapsed;
-    updateObstacles(elapsed);
+    updateObstacles(elapsed, previousElapsed);
     if (status !== "playing") return;
     updateTrivia(elapsed);
     if (status !== "playing") return;
     updateMetronome(elapsed);
     updateHud(elapsed);
 
-    if (now >= splitFlashUntil) dom.countdown.classList.remove("show");
-
-    if (elapsed >= RUN_DURATION_MS) finishGame("complete");
+    if (elapsed >= splitFlashUntil) dom.countdown.classList.remove("show");
   }
 
-  function pauseGame() {
-    if (status !== "playing") return;
+  function pauseGame(countdownRemainingOverride = null) {
+    if (status !== "playing" && status !== "countdown") return;
+    pausedFromStatus = status;
+    if (status === "countdown") {
+      pausedCountdownRemaining = countdownRemainingOverride === null
+        ? Math.max(0, gameStartTime - performance.now())
+        : Math.max(0, countdownRemainingOverride);
+    } else {
+      pausedElapsed = lastElapsed;
+    }
     status = "paused";
-    pausedElapsed = lastElapsed;
     clearHeldKeys();
     setAnswersEnabled(false);
     dom.pauseButton.disabled = true;
+    dom.countdown.classList.remove("show");
     dom.gameStatus.textContent = "Attention link paused";
+    stopActiveVoices();
     setOverlayScreen("pause");
     dom.resumeButton.focus();
+    dom.liveRegion.textContent = "Round paused. All timers are frozen.";
   }
 
   function resumeGame() {
     if (status !== "paused") return;
-    gameStartTime = performance.now() - pausedElapsed;
-    lastElapsed = pausedElapsed;
-    lastBeatIndex = Math.floor(pausedElapsed / BEAT_MS);
-    status = "playing";
-    setAnswersEnabled(true);
-    dom.pauseButton.disabled = false;
-    dom.gameStatus.textContent = `${config.label} link live`;
+    const now = performance.now();
+    if (pausedFromStatus === "countdown") {
+      gameStartTime = now + pausedCountdownRemaining;
+      lastCountdownNumber = null;
+      status = "countdown";
+      dom.countdown.classList.add("show");
+      dom.pauseButton.disabled = true;
+      dom.gameStatus.textContent = `${config.label} link arming`;
+      dom.liveRegion.textContent = "Countdown resumed.";
+    } else {
+      gameStartTime = now - pausedElapsed;
+      lastElapsed = pausedElapsed;
+      lastBeatIndex = Math.floor(pausedElapsed / BEAT_MS);
+      status = "playing";
+      setAnswersEnabled(true);
+      dom.pauseButton.disabled = false;
+      dom.gameStatus.textContent = `${config.label} link live`;
+      dom.liveRegion.textContent = "Round resumed.";
+    }
     setOverlayScreen(null);
     unlockAudio();
   }
@@ -2662,6 +2983,7 @@
     const dodgeAccuracy = dodgeTotal ? Math.round((stats.dodges / dodgeTotal) * 100) : 0;
     const triviaAccuracy = triviaTotal ? Math.round((stats.triviaCorrect / triviaTotal) * 100) : 0;
     const complete = reason === "complete";
+    lastElapsed = clamp(lastElapsed, 0, RUN_DURATION_MS);
 
     dom.resultReason.textContent = complete ? "Signal complete" : "Focus depleted";
     dom.resultScore.textContent = String(Math.floor(stats.score)).padStart(7, "0");
@@ -2679,6 +3001,9 @@
     updateHud(lastElapsed);
     setOverlayScreen("results");
     dom.restartButton.focus();
+    dom.liveRegion.textContent = complete
+      ? `Round complete. Grade ${dom.resultGrade.textContent}. Score ${Math.floor(stats.score)}.`
+      : `Focus depleted. Grade ${dom.resultGrade.textContent}. Score ${Math.floor(stats.score)}.`;
     playResultSound(complete);
   }
 
@@ -2686,21 +3011,37 @@
 
   function toggleMute() {
     muted = !muted;
-    dom.muteButton.textContent = muted ? "Snd off" : "Snd on";
+    dom.muteButton.textContent = muted ? "Sound off" : "Sound on";
     dom.muteButton.classList.toggle("is-muted", muted);
     dom.muteButton.setAttribute("aria-pressed", String(muted));
+    dom.muteButton.setAttribute("aria-label", muted ? "Turn sound on" : "Turn sound off");
+    if (masterGain && audioContext) {
+      masterGain.gain.cancelScheduledValues(audioContext.currentTime);
+      masterGain.gain.setValueAtTime(muted ? 0 : 1, audioContext.currentTime);
+    }
+    if (muted) stopActiveVoices();
     if (!muted) unlockAudio();
+  }
+
+  function stopActiveVoices() {
+    for (const voice of [...activeVoices]) {
+      try { voice.oscillator.stop(); } catch (error) { /* The voice may already have ended. */ }
+      voice.cleanup();
+    }
   }
 
   async function unlockAudio() {
     if (muted) return;
     try {
-      if (!audioContext) {
+      if (!audioContext || audioContext.state === "closed") {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) return;
         audioContext = new AudioContextClass();
+        masterGain = audioContext.createGain();
+        masterGain.gain.value = muted ? 0 : 1;
+        masterGain.connect(audioContext.destination);
       }
-      if (audioContext.state === "suspended") await audioContext.resume();
+      if (audioContext.state !== "running") await audioContext.resume();
     } catch (error) {
       console.warn("SplitBeat audio is unavailable.", error);
     }
@@ -2716,7 +3057,15 @@
     if (endFrequency) oscillator.frequency.exponentialRampToValueAtTime(endFrequency, start + duration);
     gain.gain.setValueAtTime(Math.max(0.0001, volume), start);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-    oscillator.connect(gain).connect(audioContext.destination);
+    oscillator.connect(gain).connect(masterGain || audioContext.destination);
+    const voice = { oscillator, gain, cleanup: null };
+    voice.cleanup = () => {
+      if (!activeVoices.delete(voice)) return;
+      oscillator.disconnect();
+      gain.disconnect();
+    };
+    activeVoices.add(voice);
+    oscillator.addEventListener("ended", voice.cleanup, { once: true });
     oscillator.start(start);
     oscillator.stop(start + duration + 0.02);
   }
@@ -2766,46 +3115,99 @@
 
   // ---- Input ---------------------------------------------------------------
 
+  function isInteractiveTarget(target) {
+    return target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, [contenteditable='true']"));
+  }
+
+  function activeOverlayCard() {
+    return [dom.mainMenuScreen, dom.pauseScreen, dom.resultsScreen].find((screen) => !screen.hidden) || null;
+  }
+
+  function trapOverlayFocus(event) {
+    if (event.key !== "Tab" || dom.screenOverlay.classList.contains("is-hidden")) return false;
+    const card = activeOverlayCard();
+    if (!card) return false;
+    const focusable = [...card.querySelectorAll("button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex='-1'])")]
+      .filter((element) => !element.closest("[hidden]"));
+    if (!focusable.length) return false;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+      return true;
+    }
+    if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+      return true;
+    }
+    return false;
+  }
+
   function handleKeyDown(event) {
     const key = event.key.toLowerCase();
-    const direction = MOVE_KEYS[key];
+    if (trapOverlayFocus(event)) return;
+
+    const direction = MOVE_CODES[event.code] || MOVE_KEYS[key];
 
     if (direction) {
-      event.preventDefault();
-      held[direction] = true;
+      if (status === "playing" || status === "countdown") {
+        event.preventDefault();
+        held[direction] = true;
+        if (status === "playing") dom.movementHint.classList.add("is-active");
+      }
       return;
     }
 
-    const answerIndex = ANSWER_KEYS.indexOf(key);
+    const answerIndex = ANSWER_CODES[event.code] ?? ANSWER_KEYS.indexOf(key);
     if (answerIndex >= 0) {
-      event.preventDefault();
-      if (event.repeat) return;
-      handleAnswer(answerIndex);
+      if (status === "playing") {
+        event.preventDefault();
+        dom.answerButtons[answerIndex].classList.add("is-key-active");
+        if (!event.repeat) handleAnswer(answerIndex);
+      }
       return;
     }
 
     if (key === "escape" || key === "p") {
       event.preventDefault();
-      if (status === "playing") pauseGame();
+      if (event.repeat) return;
+      if (status === "playing" || status === "countdown") pauseGame();
       else if (status === "paused") resumeGame();
       return;
     }
 
-    if ((key === "enter" || key === " ") && status === "menu" && !dom.playMenuPanel.hidden) {
+    if ((key === "enter" || key === " ") && status === "menu" && !dom.playMenuPanel.hidden && !isInteractiveTarget(event.target)) {
       event.preventDefault();
       startRound();
     }
   }
 
   function handleKeyUp(event) {
-    const direction = MOVE_KEYS[event.key.toLowerCase()];
-    if (direction) held[direction] = false;
+    const direction = MOVE_CODES[event.code] || MOVE_KEYS[event.key.toLowerCase()];
+    if (direction) {
+      held[direction] = false;
+      if (!Object.values(held).some(Boolean)) dom.movementHint.classList.remove("is-active");
+    }
+    const answerIndex = ANSWER_CODES[event.code] ?? ANSWER_KEYS.indexOf(event.key.toLowerCase());
+    if (answerIndex >= 0) dom.answerButtons[answerIndex].classList.remove("is-key-active");
   }
 
   function gameLoop(now) {
+    const rawFrameMs = lastFrameTime ? now - lastFrameTime : 16;
+    if ((status === "playing" || status === "countdown") && rawFrameMs > MAX_ACTIVE_FRAME_GAP_MS) {
+      const countdownRemaining = status === "countdown" ? Math.max(0, gameStartTime - lastFrameTime) : null;
+      pauseGame(countdownRemaining);
+    }
+
+    const frameSeconds = clamp(rawFrameMs / 1000, 0, 0.05);
+    const previousElapsed = lastElapsed;
     if (status === "countdown") updateCountdown(now);
-    if (status === "playing" || status === "countdown") updateShip(now);
-    if (status === "playing") updatePlaying(now);
+    if (status === "countdown") updateShip(0);
+    if (status === "playing") updateShip(frameSeconds);
+    if (status === "playing") updatePlaying(now, previousElapsed);
+    if (status === "playing") updateEffects(frameSeconds);
     renderField(now);
     lastFrameTime = now;
     animationFrameId = requestAnimationFrame(gameLoop);
@@ -2826,21 +3228,44 @@
   dom.answerButtons.forEach((button, index) => button.addEventListener("click", () => handleAnswer(index)));
   window.addEventListener("keydown", handleKeyDown);
   window.addEventListener("keyup", handleKeyUp);
-  window.addEventListener("blur", clearHeldKeys);
+  window.addEventListener("blur", () => {
+    if (status === "playing" || status === "countdown") pauseGame();
+    else clearHeldKeys();
+  });
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden && status === "playing") pauseGame();
+    if (document.hidden && (status === "playing" || status === "countdown")) pauseGame();
   });
 
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const updateMotionPreference = (event) => { reducedMotion = event.matches; };
+  const updateMotionPreference = (event) => {
+    reducedMotion = event.matches;
+    if (reducedMotion) {
+      trail.length = 0;
+      bursts.length = 0;
+      trailAccumulator = 0;
+    }
+  };
   if (motionQuery.addEventListener) motionQuery.addEventListener("change", updateMotionPreference);
   else motionQuery.addListener(updateMotionPreference);
+
+  const layoutQuery = window.matchMedia("(max-width: 899px), (orientation: portrait)");
+  const updateLayoutSupport = (event) => {
+    const blocked = event.matches;
+    if (blocked && (status === "playing" || status === "countdown")) pauseGame();
+    document.body.classList.toggle("layout-blocked", blocked);
+    dom.appFrame.inert = blocked;
+    dom.appFrame.setAttribute("aria-hidden", String(blocked));
+    dom.mobileWarning.setAttribute("aria-hidden", String(!blocked));
+  };
+  if (layoutQuery.addEventListener) layoutQuery.addEventListener("change", updateLayoutSupport);
+  else layoutQuery.addListener(updateLayoutSupport);
 
   // A read-only snapshot makes quick QA possible from browser tools.
   window.SplitBeat = Object.freeze({
     getSnapshot: () => ({
       status,
       difficulty: selectedDifficulty,
+      seed: roundSeed,
       elapsed: lastElapsed,
       score: stats.score,
       combo: stats.combo,
@@ -2850,9 +3275,29 @@
       triviaCorrect: stats.triviaCorrect,
       triviaWrong: stats.triviaWrong,
       focus: stats.focus,
+      muted,
+      audioState: audioContext?.state || "idle",
+      reducedMotion,
+      viewport: {
+        width: Math.round(view.width),
+        height: Math.round(view.height),
+        dpr: view.dpr
+      },
       shipX: ship.x === null ? null : Math.round(ship.x),
       shipY: ship.y === null ? null : Math.round(ship.y),
       obstacleCount: obstacles.length,
+      obstacles: obstacles.map((obstacle) => ({
+        wave: obstacle.waveId,
+        kind: obstacle.kind,
+        state: obstacle.state,
+        x: Math.round(obstacleX(obstacle, lastElapsed)),
+        y: Math.round(obstacle.yCenter),
+        height: Math.round(obstacle.height)
+      })),
+      nextSpawnAt: Math.round(nextSpawnAt),
+      trailCount: trail.length,
+      burstCount: bursts.length,
+      questionDeadline: currentQuestion ? Math.round(currentQuestion.deadline) : null,
       questionCount: QUESTIONS.length
     })
   });
@@ -2860,6 +3305,7 @@
   initField();
   setDifficulty("normal");
   showMainMenu();
+  updateLayoutSupport(layoutQuery);
   animationFrameId = requestAnimationFrame(gameLoop);
 })();
   </script>
