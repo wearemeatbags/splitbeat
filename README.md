@@ -1,8 +1,8 @@
 # SplitBeat
 
-SplitBeat is a browser game about divided attention. Fly through a scrolling
-hazard field with one hand while answering timed trivia with the other. Both
-tasks draw from one shared Focus meter.
+SplitBeat is a beat-driven browser game about divided attention. Fly through
+authored hazard phrases while answering timed trivia. Clean waves build Sync,
+correct answers bank it, and both tasks draw from one shared Focus meter.
 
 A We Are Meatbags game.
 
@@ -13,6 +13,10 @@ A We Are Meatbags game.
 - Mouse or trackpad: optional trivia input
 - Enter or Space: start a round
 - Escape or P: pause and resume
+
+Couch Duo gives Player 1 the Pilot role and Player 2 the Operator role. Both
+players ready up before launch, then deterministic surprise handoffs swap their
+roles during the signal.
 
 SplitBeat needs a physical keyboard and a landscape screen at least 900 pixels
 wide.
@@ -30,6 +34,12 @@ Then open <http://localhost:8000/>.
 For a repeatable hazard and question sequence during QA, append a numeric seed,
 for example <http://localhost:8000/?seed=314159>.
 
+Run the zero-dependency deterministic checks with:
+
+```sh
+node --test tests/*.test.mjs
+```
+
 ## Release history
 
 The `main` branch contains one shippable game version per commit:
@@ -38,6 +48,9 @@ The `main` branch contains one shippable game version per commit:
 - v2: free-flight spaceship evasion with keyboard trivia
 - v3: the v2 spaceship game with fairer spawning, interruption-safe timing,
   refined controls, clearer feedback, smoother motion, and accessibility polish
+- v4: beat-authored wave phrases, wave-level scoring, shared Sync, persistent
+  records, Standard and Endless signals, preferences, and focused Couch Duo with
+  surprise role swaps
 
 The Pages workflow delegates to the We Are Meatbags versioned deployment
 workflow. It publishes the newest commit at the site root, preserves every

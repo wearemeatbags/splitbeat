@@ -11,7 +11,17 @@ permissions:
   id-token: write
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/*.test.mjs
+
   deploy:
+    needs: verify
     uses: wearemeatbags/wearemeatbags.github.io/.github/workflows/versioned-game-pages.yml@main
     with:
       game: splitbeat

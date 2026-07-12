@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#050711">
-  <meta name="description" content="Dodge a neon hazard field with one hand while answering timed trivia with the other.">
-  <title>SplitBeat - Dual Attention Evasion</title>
+  <meta name="description" content="Fly and think at the same time in a beat-driven solo or couch co-op attention game.">
+  <title>SplitBeat V4 - Dual Attention Evasion</title>
   <style>
     :root {
       --ink: #f7f8ff;
@@ -225,6 +225,38 @@
       letter-spacing: 0.02em;
     }
 
+    .hud-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .sync-number {
+      color: var(--yellow);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+    }
+
+    .sync-track {
+      height: 4px;
+      margin-top: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .sync-fill {
+      width: 0;
+      height: 100%;
+      transform-origin: left;
+      background: linear-gradient(90deg, var(--cyan), var(--yellow), var(--pink));
+      box-shadow: 0 0 12px rgba(255, 224, 91, 0.34);
+      transition: width 160ms var(--ease);
+    }
+
     .focus-stat {
       display: grid;
       align-content: center;
@@ -415,6 +447,17 @@
       font-size: 10px;
       font-weight: 800;
       letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .role-readout {
+      display: block;
+      margin-top: 4px;
+      color: rgba(207, 216, 244, 0.7);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
     }
 
@@ -989,13 +1032,19 @@
       background: rgba(2, 4, 11, 0.27);
     }
 
-    .difficulty-picker {
+    .difficulty-picker,
+    .option-picker {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 6px;
     }
 
-    .difficulty-button {
+    .option-picker.two {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .difficulty-button,
+    .option-button {
       min-width: 0;
       padding: 10px 5px;
       border: 1px solid rgba(164, 177, 231, 0.14);
@@ -1010,11 +1059,195 @@
       text-transform: uppercase;
     }
 
-    .difficulty-button.is-selected {
+    .difficulty-button.is-selected,
+    .option-button.is-selected {
       border-color: rgba(255, 79, 216, 0.5);
       color: var(--ink);
       background: rgba(255, 79, 216, 0.11);
       box-shadow: 0 0 20px rgba(255, 79, 216, 0.08);
+    }
+
+    .setup-section {
+      display: grid;
+      gap: 8px;
+    }
+
+    .round-details,
+    .record-preview {
+      margin: 0;
+      color: #8d95ae;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .record-preview {
+      min-height: 32px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255, 224, 91, 0.14);
+      border-radius: 8px;
+      color: #c8cde0;
+      background: rgba(255, 224, 91, 0.035);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .menu-version-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .menu-version-link:hover {
+      color: var(--cyan);
+    }
+
+    .preferences-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .preference-card {
+      display: grid;
+      gap: 13px;
+      min-height: 135px;
+      padding: 18px;
+      border: 1px solid rgba(164, 177, 231, 0.13);
+      border-radius: 14px;
+      background: rgba(2, 4, 11, 0.24);
+    }
+
+    .preference-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .preference-card .secondary-button {
+      min-height: 42px;
+    }
+
+    .volume-control {
+      width: 100%;
+      accent-color: var(--cyan);
+    }
+
+    .duo-ready-grid,
+    .result-role-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .duo-role-card,
+    .result-role-card {
+      display: grid;
+      gap: 10px;
+      padding: 20px;
+      border: 1px solid rgba(164, 177, 231, 0.14);
+      border-radius: 15px;
+      background: rgba(2, 4, 11, 0.3);
+      text-align: left;
+    }
+
+    .duo-role-card.is-ready {
+      border-color: rgba(118, 255, 147, 0.42);
+      background: rgba(118, 255, 147, 0.055);
+      box-shadow: 0 0 24px rgba(118, 255, 147, 0.07);
+    }
+
+    .duo-role-card h3,
+    .result-role-card h3 {
+      margin: 0;
+      font-family: "Arial Narrow", "Helvetica Neue", sans-serif;
+      font-size: 23px;
+      letter-spacing: -0.02em;
+    }
+
+    .duo-role-card p,
+    .result-role-card p {
+      margin: 0;
+      color: #9098b0;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .duo-ready-status,
+    .result-best {
+      margin: 16px 0;
+      color: #c7cde0;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .duo-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 4px;
+    }
+
+    .duo-actions .primary-button {
+      grid-column: 1 / -1;
+    }
+
+    .primary-button:disabled,
+    .secondary-button:disabled {
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+      opacity: 0.42;
+      transform: none;
+    }
+
+    .role-swap-banner {
+      position: absolute;
+      z-index: 38;
+      top: 51%;
+      left: 50%;
+      min-width: min(520px, calc(100% - 60px));
+      padding: 18px 24px;
+      border: 1px solid rgba(255, 224, 91, 0.72);
+      border-radius: 14px;
+      opacity: 0;
+      color: var(--ink);
+      background: rgba(10, 8, 20, 0.94);
+      box-shadow: 0 0 55px rgba(255, 224, 91, 0.22);
+      pointer-events: none;
+      text-align: center;
+      transform: translate(-50%, -50%) scale(0.88);
+    }
+
+    .role-swap-banner strong,
+    .role-swap-banner span {
+      display: block;
+    }
+
+    .role-swap-banner strong {
+      color: var(--yellow);
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: clamp(28px, 4vw, 52px);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .role-swap-banner span {
+      margin-top: 5px;
+      color: #d0d5e6;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .role-swap-banner.show-warning {
+      animation: swapWarning 1050ms var(--ease) both;
+    }
+
+    .role-swap-banner.show-swap {
+      animation: swapNow 1500ms var(--ease) both;
     }
 
     .difficulty-details {
@@ -1181,6 +1414,49 @@
       margin-bottom: 25px;
     }
 
+    .result-context {
+      margin: -12px 0 16px;
+      color: var(--cyan);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .result-role-grid {
+      margin-bottom: 12px;
+    }
+
+    .role-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .role-metric {
+      padding-top: 9px;
+      border-top: 1px solid rgba(164, 177, 231, 0.1);
+    }
+
+    .role-metric span,
+    .role-metric strong {
+      display: block;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .role-metric span {
+      color: var(--muted);
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .role-metric strong {
+      margin-top: 4px;
+      font-size: 16px;
+    }
+
     .result-stat {
       padding: 14px;
       border: 1px solid rgba(164, 177, 231, 0.11);
@@ -1283,6 +1559,18 @@
       22% { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(1deg); }
       70% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
       100% { opacity: 0; transform: translate(-50%, -70%) scale(0.96); }
+    }
+
+    @keyframes swapWarning {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.88); }
+      20%, 78% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
+    }
+
+    @keyframes swapNow {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(1.24) rotate(-2deg); }
+      18%, 76% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+      100% { opacity: 0; transform: translate(-50%, -62%) scale(0.96); }
     }
 
     @keyframes countdownPop {
@@ -1454,6 +1742,20 @@
         margin-bottom: 12px;
       }
 
+      .results-card .result-role-card {
+        gap: 6px;
+        padding: 10px 12px;
+      }
+
+      .results-card .result-role-card h3 {
+        font-size: 18px;
+      }
+
+      .results-card .result-best,
+      .results-card .result-context {
+        margin-bottom: 8px;
+      }
+
       .results-card .result-stat {
         padding: 8px 11px;
       }
@@ -1475,6 +1777,42 @@
       }
     }
 
+    body.reduce-motion *,
+    body.reduce-motion *::before,
+    body.reduce-motion *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+
+    body.reduce-motion .role-swap-banner.show-warning,
+    body.reduce-motion .role-swap-banner.show-swap {
+      animation: none !important;
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+
+    body.reduce-motion .countdown-value {
+      animation: none !important;
+      opacity: 1;
+      transform: none;
+    }
+
+    body.reduce-motion .rhythm-feedback.show,
+    body.reduce-motion .dual-bonus.show {
+      animation: none !important;
+      opacity: 1;
+    }
+
+    body.reduce-motion .rhythm-feedback.show {
+      transform: translate(-50%, 0) scale(1);
+    }
+
+    body.reduce-motion .dual-bonus.show {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *,
       *::before,
@@ -1483,6 +1821,33 @@
         animation-duration: 0.001ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.001ms !important;
+      }
+
+      .role-swap-banner.show-warning,
+      .role-swap-banner.show-swap {
+        animation: none !important;
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+
+      .countdown-value {
+        animation: none !important;
+        opacity: 1;
+        transform: none;
+      }
+
+      .rhythm-feedback.show,
+      .dual-bonus.show {
+        animation: none !important;
+        opacity: 1;
+      }
+
+      .rhythm-feedback.show {
+        transform: translate(-50%, 0) scale(1);
+      }
+
+      .dual-bonus.show {
+        transform: translate(-50%, -50%) scale(1);
       }
     }
   </style>
@@ -1522,13 +1887,14 @@
       </div>
 
       <div class="hud-stat">
-        <span class="hud-label">Combo</span>
+        <div class="hud-label-row"><span class="hud-label">Combo</span><span class="sync-number" id="syncValue">Sync 0%</span></div>
         <span class="hud-value"><span id="comboValue">0</span><small id="multiplierValue">x1</small></span>
+        <div class="sync-track" role="progressbar" aria-label="Shared Sync" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="sync-fill" id="syncFill"></div></div>
       </div>
 
       <div class="hud-actions">
         <div class="hud-stat" style="border:0; background:transparent; padding:0 5px; min-width:72px;">
-          <span class="hud-label">Time</span>
+          <span class="hud-label" id="timeLabel">Time</span>
           <span class="hud-value" id="timeValue">1:18</span>
         </div>
         <button class="utility-button" id="pauseButton" type="button" disabled>Pause</button>
@@ -1541,7 +1907,7 @@
     <main class="split-stage" id="splitStage">
       <section class="rhythm-zone" aria-labelledby="rhythmTitle">
         <div class="panel-topline">
-          <div><span class="panel-kicker">Left hand</span><span class="panel-title" id="rhythmTitle">Evasion field</span></div>
+          <div><span class="panel-kicker" id="pilotRoleLabel">Flight channel</span><span class="panel-title" id="rhythmTitle">Evasion field</span><span class="role-readout" id="pilotRunStats">Pilot link ready</span></div>
           <span class="section-chip" id="sectionChip">Opening drift</span>
         </div>
 
@@ -1564,8 +1930,9 @@
       <section class="trivia-zone" id="triviaPanel" aria-labelledby="questionCopy">
         <div class="question-head">
           <div class="question-meta">
-            <span>Right hand / J K L ;</span>
+            <span id="operatorRoleLabel">Trivia channel / J K L ;</span>
             <strong id="questionIndex">Question standby</strong>
+            <span class="role-readout" id="operatorRunStats">Operator link ready</span>
           </div>
           <div class="question-clock" id="questionClock">--.-</div>
         </div>
@@ -1585,65 +1952,95 @@
       </section>
     </main>
 
-    <div class="dual-bonus" id="dualBonus" aria-hidden="true">Dual Focus +500</div>
+    <div class="dual-bonus" id="dualBonus" aria-hidden="true">Sync banked</div>
+    <div class="role-swap-banner" id="roleSwapBanner" aria-hidden="true"><strong id="roleSwapTitle">Role swap</strong><span id="roleSwapCopy">Player 1 to Operator · Player 2 to Pilot</span></div>
 
     <div class="screen-overlay" id="screenOverlay">
       <section class="menu-card" id="mainMenuScreen" role="dialog" aria-modal="true" aria-label="SplitBeat main menu">
         <header class="menu-header">
           <div>
-            <span class="menu-kicker">Dual-attention game</span>
+            <span class="menu-kicker"><a class="menu-version-link" href="https://wearemeatbags.github.io/">We Are Meatbags · Version 4</a></span>
             <h2 class="menu-logo">Split<span>Beat</span></h2>
           </div>
           <nav class="menu-tabs" aria-label="Main menu">
             <button class="menu-tab" type="button" data-menu-tab="play" aria-pressed="true">Play</button>
             <button class="menu-tab" type="button" data-menu-tab="how" aria-pressed="false">How to play</button>
+            <button class="menu-tab" type="button" data-menu-tab="preferences" aria-pressed="false">Preferences</button>
           </nav>
         </header>
 
         <div class="menu-body" id="playMenuPanel">
           <div class="play-layout">
             <div>
-              <span class="eyebrow">One brain. Two jobs.</span>
-              <p class="hero-copy">Dodge the field with your <em>left hand</em>. Answer trivia with your <em>right</em>, both on one screen.</p>
+              <span class="eyebrow" id="menuEyebrow">One brain. Two jobs.</span>
+              <p class="hero-copy" id="menuHeroCopy">Dodge the field with your <em>left hand</em>. Answer trivia with your <em>right</em>, both on one screen.</p>
               <ol class="mechanic-list">
-                <li><span class="mechanic-number">01</span><span>W, A, S, and D fly the ship freely, with momentum included.</span></li>
-                <li><span class="mechanic-number">02</span><span>Answer with J, K, L, and ; before each trivia clock expires.</span></li>
-                <li><span class="mechanic-number">03</span><span>Protect Focus until the 78-second signal ends.</span></li>
+                <li><span class="mechanic-number">01</span><span>Beat-authored hazard phrases make every approach readable and musical.</span></li>
+                <li><span class="mechanic-number">02</span><span>Pilot clears build Sync. Correct answers bank it into score and Focus.</span></li>
+                <li><span class="mechanic-number">03</span><span id="menuModeRule">Protect Focus until the 78-second Standard Signal ends.</span></li>
               </ol>
             </div>
 
             <div class="menu-controls">
-              <div style="display:flex; gap:22px; flex-wrap:wrap">
-                <div>
-                  <span class="eyebrow">Left hand</span>
-                  <div class="key-row" style="margin-top:9px"><span class="menu-key">W</span><span class="menu-key">A</span><span class="menu-key">S</span><span class="menu-key">D</span></div>
-                </div>
-                <div>
-                  <span class="eyebrow">Right hand</span>
-                  <div class="key-row" style="margin-top:9px"><span class="menu-key">J</span><span class="menu-key">K</span><span class="menu-key">L</span><span class="menu-key">;</span></div>
+              <div class="setup-section">
+                <span class="eyebrow">Play style</span>
+                <div class="option-picker two" role="group" aria-label="Play style">
+                  <button class="option-button is-selected" type="button" data-play-style="solo" aria-pressed="true">Solo</button>
+                  <button class="option-button" type="button" data-play-style="duo" aria-pressed="false">Couch Duo</button>
                 </div>
               </div>
-              <div>
+              <div class="setup-section">
+                <span class="eyebrow">Signal</span>
+                <div class="option-picker two" role="group" aria-label="Signal mode">
+                  <button class="option-button is-selected" type="button" data-mode="standard" aria-pressed="true">Standard</button>
+                  <button class="option-button" type="button" data-mode="endless" aria-pressed="false">Endless</button>
+                </div>
+              </div>
+              <div class="setup-section">
                 <span class="eyebrow">Difficulty</span>
-                <div class="difficulty-picker" style="margin-top:9px" role="group" aria-label="Difficulty">
+                <div class="difficulty-picker" role="group" aria-label="Difficulty">
                   <button class="difficulty-button" type="button" data-difficulty="easy" aria-pressed="false">Easy</button>
                   <button class="difficulty-button is-selected" type="button" data-difficulty="normal" aria-pressed="true">Normal</button>
                   <button class="difficulty-button" type="button" data-difficulty="hard" aria-pressed="false">Hard</button>
                 </div>
               </div>
-              <p class="difficulty-details" id="difficultyDetails">Steady scroll, layered hazards, and 7.5-second trivia.</p>
-              <button class="primary-button" id="startButton" type="button">Start round</button>
+              <p class="round-details" id="roundDetails">Standard Signal · Normal · 78 seconds</p>
+              <p class="record-preview" id="recordPreview" aria-live="polite">No record yet. Set the first signal.</p>
+              <button class="primary-button" id="startButton" type="button">Start solo signal</button>
             </div>
           </div>
         </div>
 
         <div class="menu-body" id="howMenuPanel" hidden>
           <div class="how-grid">
-            <article class="how-card"><span class="mechanic-number">01</span><strong>Fly the field</strong><p>Hold W, A, S, and D to thrust in any direction. Momentum carries the ship, so feather your inputs.</p></article>
-            <article class="how-card"><span class="mechanic-number">02</span><strong>Answer from home row</strong><p>Each answer slot maps to J, K, L, or ; under your right hand. Wrong answers and timeouts drain Focus.</p></article>
-            <article class="how-card"><span class="mechanic-number">03</span><strong>Overlap the tasks</strong><p>A correct answer above a 10 dodge chain earns a Dual Focus bonus. The pressure is the point.</p></article>
+            <article class="how-card"><span class="mechanic-number">01</span><strong>Fly on the beat</strong><p>Hold W, A, S, and D to thrust. Incoming walls and patterns reach the timing line on the music.</p></article>
+            <article class="how-card"><span class="mechanic-number">02</span><strong>Bank shared Sync</strong><p>Every clean wave builds Sync. A correct J, K, L, or ; answer converts it into score and Focus.</p></article>
+            <article class="how-card"><span class="mechanic-number">03</span><strong>Link a crew</strong><p>Couch Duo assigns a Pilot and Operator, confirms both players, then surprises the team with role swaps.</p></article>
           </div>
           <button class="primary-button" id="howBackButton" type="button" style="width:100%; margin-top:20px">Back to play</button>
+        </div>
+
+        <div class="menu-body" id="preferencesMenuPanel" hidden>
+          <div class="preferences-grid">
+            <article class="preference-card"><span class="eyebrow">Sound</span><p>Toggle all generated music and feedback.</p><button class="secondary-button" id="menuSoundButton" type="button" aria-pressed="false">Sound on</button></article>
+            <article class="preference-card"><label class="eyebrow" for="volumeControl">Volume <span id="volumeValue">70%</span></label><p>Set the master game volume.</p><input class="volume-control" id="volumeControl" type="range" min="0" max="100" step="5" value="70"></article>
+            <article class="preference-card"><span class="eyebrow">Metronome</span><p>Keep or remove the low beat pulse. Gameplay remains beat-locked.</p><button class="secondary-button" id="metronomeButton" type="button" aria-pressed="true">Metronome on</button></article>
+            <article class="preference-card"><span class="eyebrow">Motion</span><p>System follows your device preference. Reduced removes shake and particles.</p><div class="option-picker two" role="group" aria-label="Motion preference"><button class="option-button is-selected" type="button" data-motion="system" aria-pressed="true">System</button><button class="option-button" type="button" data-motion="reduced" aria-pressed="false">Reduced</button></div></article>
+          </div>
+          <button class="primary-button" id="preferencesBackButton" type="button" style="width:100%; margin-top:20px">Back to play</button>
+        </div>
+      </section>
+
+      <section class="menu-card compact" id="duoReadyScreen" role="dialog" aria-modal="true" aria-labelledby="duoReadyTitle" tabindex="-1" hidden>
+        <div class="menu-body">
+          <span class="menu-kicker">Couch Duo briefing</span>
+          <h2 class="menu-logo" id="duoReadyTitle" style="margin:10px 0 22px">Link <span>Your Crew</span></h2>
+          <div class="duo-ready-grid">
+            <article class="duo-role-card" id="pilotReadyCard"><span class="eyebrow">Player 1</span><h3>Pilot</h3><p>Fly the ship and build shared Sync.</p><div class="key-row"><span class="menu-key">W</span><span class="menu-key">A</span><span class="menu-key">S</span><span class="menu-key">D</span></div><button class="secondary-button" id="pilotReadyButton" type="button" aria-pressed="false">Pilot ready</button></article>
+            <article class="duo-role-card" id="operatorReadyCard"><span class="eyebrow">Player 2</span><h3>Operator</h3><p>Answer signals and bank shared Sync.</p><div class="key-row"><span class="menu-key">J</span><span class="menu-key">K</span><span class="menu-key">L</span><span class="menu-key">;</span></div><button class="secondary-button" id="operatorReadyButton" type="button" aria-pressed="false">Operator ready</button></article>
+          </div>
+          <p class="duo-ready-status" id="duoReadyStatus" aria-live="polite">Each player presses one of their role keys, or uses the ready button.</p>
+          <div class="duo-actions"><button class="primary-button" id="duoLaunchButton" type="button" disabled>Launch Duo signal</button><button class="secondary-button" id="duoBackButton" type="button">Back to setup</button></div>
         </div>
       </section>
 
@@ -1651,9 +2048,11 @@
         <div class="menu-center">
           <span class="menu-kicker">Attention link suspended</span>
           <h2 class="menu-logo">Paused</h2>
-          <p class="pause-copy">The round and all timers are frozen. Resume when both hands are ready.</p>
+          <p class="pause-copy">The round, chart, trivia clock, and role-swap clock are frozen.</p>
           <div class="pause-actions">
             <button class="primary-button" id="resumeButton" type="button">Resume</button>
+            <button class="secondary-button" id="pauseSoundButton" type="button">Sound on</button>
+            <button class="secondary-button" id="pauseEffectsButton" type="button">Use reduced motion</button>
             <button class="secondary-button" id="pauseRestartButton" type="button">Restart round</button>
             <button class="secondary-button" id="pauseMenuButton" type="button">Main menu</button>
           </div>
@@ -1670,18 +2069,21 @@
             </div>
             <div class="result-grade" id="resultGrade">A</div>
           </div>
+          <p class="result-context" id="resultContext">Standard Signal · Normal · Solo</p>
           <p class="result-copy" id="resultCopy" style="text-align:left; margin-left:0">You held both channels to the end.</p>
+          <p class="result-best" id="resultBest" aria-live="polite">First result recorded.</p>
+          <div class="result-role-grid">
+            <article class="result-role-card"><span class="eyebrow" id="resultPilotOwner">Flight channel</span><h3 id="resultPilotTitle">Pilot report</h3><div class="role-metrics"><div class="role-metric"><span id="resultPilotMetric1Label">Accuracy</span><strong id="resultDodgeAccuracy">0%</strong></div><div class="role-metric"><span id="resultPilotMetric2Label">Clears</span><strong id="resultHits">0</strong></div><div class="role-metric"><span id="resultPilotMetric3Label">Hits</span><strong id="resultMisses">0</strong></div></div></article>
+            <article class="result-role-card"><span class="eyebrow" id="resultOperatorOwner">Trivia channel</span><h3 id="resultOperatorTitle">Operator report</h3><div class="role-metrics"><div class="role-metric"><span id="resultOperatorMetric1Label">Accuracy</span><strong id="resultTriviaAccuracy">0%</strong></div><div class="role-metric"><span id="resultOperatorMetric2Label">Correct</span><strong id="resultCorrect">0</strong></div><div class="role-metric"><span id="resultOperatorMetric3Label">Wrong</span><strong id="resultWrong">0</strong></div></div></article>
+          </div>
           <div class="result-stats">
             <div class="result-stat"><span>Best combo</span><strong id="resultBestCombo">0</strong></div>
-            <div class="result-stat"><span>Dodges</span><strong id="resultHits">0</strong></div>
-            <div class="result-stat"><span>Collisions</span><strong id="resultMisses">0</strong></div>
-            <div class="result-stat"><span>Trivia correct</span><strong id="resultCorrect">0</strong></div>
-            <div class="result-stat"><span>Trivia wrong</span><strong id="resultWrong">0</strong></div>
-            <div class="result-stat"><span>Dual bonuses</span><strong id="resultDual">0</strong></div>
+            <div class="result-stat"><span>Sync banks</span><strong id="resultSyncBanks">0</strong></div>
+            <div class="result-stat"><span id="resultRunLabel">Finishing Focus</span><strong id="resultRunValue">0%</strong></div>
           </div>
           <div class="result-actions">
             <button class="primary-button" id="restartButton" type="button">Play again</button>
-            <button class="secondary-button" id="changeDifficultyButton" type="button">Change difficulty</button>
+            <button class="secondary-button" id="changeSetupButton" type="button">Change setup</button>
             <button class="secondary-button" id="resultsMenuButton" type="button">Main menu</button>
           </div>
         </div>
@@ -1695,12 +2097,219 @@
 (() => {
   "use strict";
 
-  // SplitBeat keeps gameplay in one clock. The evasion field, hazard spawns,
-  // trivia deadlines, and HUD all read from performance.now().
+  // SPLITBEAT_CORE_START
+  const SplitBeatCore = (() => {
+    const GAME_VERSION = 4;
+    const BPM = 112;
+    const BEAT_MS = 60000 / BPM;
+    const STANDARD_DURATION_MS = 78000;
+    const ENDLESS_TIER_MS = 30000;
+    const PHRASE_BEATS = 12;
+    const FIRST_ARRIVAL_BEAT = 8;
+    const STORAGE_KEY = "splitbeat.v4";
+    const FIRST_ROLE_SWAP_BEATS = Object.freeze([44, 56, 68]);
+    const SECOND_STANDARD_SWAP_BEATS = Object.freeze([92, 104, 116]);
+    const ENDLESS_SWAP_INTERVAL_BEATS = Object.freeze([48, 60, 72, 84]);
 
-  const BPM = 112;
-  const BEAT_MS = 60000 / BPM;
-  const RUN_DURATION_MS = 78000;
+    const MODES = Object.freeze({
+      standard: { label: "Standard Signal", durationMs: STANDARD_DURATION_MS, endless: false },
+      endless: { label: "Endless Signal", durationMs: Infinity, endless: true }
+    });
+
+    const DIFFICULTIES = Object.freeze({
+      easy: { rank: 0, label: "Easy", approachBeats: 6, collidePenalty: 9, wrongPenalty: 8, timeoutPenalty: 9, triviaGain: 7, questionMs: 8800, gapFactor: 3.4, estimatedWaves: 46, description: "Wide approaches, four events per phrase, and 8.8-second trivia." },
+      normal: { rank: 1, label: "Normal", approachBeats: 5, collidePenalty: 11, wrongPenalty: 10, timeoutPenalty: 11, triviaGain: 6, questionMs: 7500, gapFactor: 2.9, estimatedWaves: 69, description: "Layered six-event phrases, readable gates, and 7.5-second trivia." },
+      hard: { rank: 2, label: "Hard", approachBeats: 4, collidePenalty: 13, wrongPenalty: 12, timeoutPenalty: 13, triviaGain: 5, questionMs: 6200, gapFactor: 2.4, estimatedWaves: 92, description: "Dense half-beat phrases, tighter gates, and 6.2-second trivia." }
+    });
+
+    const EVENT_BEATS = [0, 1.5, 3, 4.5, 6, 7.5, 9, 10.5];
+    const EVENT_LEVELS = [0, 1, 0, 2, 0, 1, 0, 2];
+    const PHRASE_DEFINITIONS = [
+      { id: "drift-weave", label: "Drift weave", rating: 0, codes: ["S2", "S0", "S4", "S1", "S1", "S4", "S3", "S0"] },
+      { id: "rising-signal", label: "Rising signal", rating: 0, codes: ["S4", "S4", "S3", "S3", "S2", "S2", "S1", "S0"] },
+      { id: "echo-pairs", label: "Echo pairs", rating: 0, codes: ["S1", "S1", "S1", "S4", "S3", "S3", "S3", "S0"] },
+      { id: "split-center", label: "Split center", rating: 1, codes: ["D04", "S2", "S0", "S4", "D13", "S2", "S4", "S0"] },
+      { id: "switchback-gate", label: "Switchback gate", rating: 1, codes: ["W1", "S4", "S3", "S0", "S2", "D04", "W3", "S0"] },
+      { id: "orbital-cross", label: "Orbital cross", rating: 1, codes: ["S0", "D14", "S4", "S2", "D03", "S2", "S1", "D04"] },
+      { id: "crossfire", label: "Crossfire", rating: 2, codes: ["W2", "D04", "S0", "S4", "D13", "S2", "W1", "S4"] },
+      { id: "overdrive", label: "Overdrive", rating: 2, codes: ["D04", "S2", "W3", "S0", "D13", "S4", "W1", "S2"] }
+    ];
+
+    function parseWaveCode(code) {
+      if (/^S[0-4]$/.test(code)) return { kind: "single", lanes: [Number(code[1])] };
+      if (/^D[0-4]{2}$/.test(code)) return { kind: "double", lanes: [Number(code[1]), Number(code[2])] };
+      if (/^W[0-4]$/.test(code)) return { kind: "wall", gapLane: Number(code[1]) };
+      throw new Error(`Invalid wave code: ${code}`);
+    }
+
+    const WAVE_PHRASES = Object.freeze(PHRASE_DEFINITIONS.map((phrase) => Object.freeze({
+      id: phrase.id,
+      label: phrase.label,
+      rating: phrase.rating,
+      events: Object.freeze(phrase.codes.map((code, index) => Object.freeze({
+        beat: EVENT_BEATS[index],
+        level: EVENT_LEVELS[index],
+        ...parseWaveCode(code)
+      })))
+    })));
+
+    const QUESTIONS = Object.freeze([
+      { rank: 0, category: "World", prompt: "What is the capital of Australia?", answers: ["Sydney", "Canberra", "Melbourne", "Perth"], correct: 1 },
+      { rank: 0, category: "Science", prompt: "Which chemical symbol represents gold?", answers: ["Ag", "Gd", "Au", "Go"], correct: 2 },
+      { rank: 0, category: "Space", prompt: "Which planet is the largest in our solar system?", answers: ["Saturn", "Jupiter", "Neptune", "Earth"], correct: 1 },
+      { rank: 0, category: "Art", prompt: "Who painted The Starry Night?", answers: ["Claude Monet", "Pablo Picasso", "Vincent van Gogh", "Edvard Munch"], correct: 2 },
+      { rank: 1, category: "Computing", prompt: "What is binary 1010 in decimal?", answers: ["8", "10", "12", "14"], correct: 1 },
+      { rank: 0, category: "History", prompt: "In what year did Apollo 11 land on the Moon?", answers: ["1965", "1967", "1969", "1971"], correct: 2 },
+      { rank: 0, category: "Biology", prompt: "Which organ pumps blood through the human body?", answers: ["Liver", "Lung", "Kidney", "Heart"], correct: 3 },
+      { rank: 0, category: "Math", prompt: "What is the smallest prime number?", answers: ["0", "1", "2", "3"], correct: 2 },
+      { rank: 0, category: "Earth", prompt: "Which is the largest ocean on Earth?", answers: ["Atlantic", "Indian", "Pacific", "Arctic"], correct: 2 },
+      { rank: 0, category: "Math", prompt: "What is the square root of 144?", answers: ["10", "11", "12", "14"], correct: 2 },
+      { rank: 0, category: "Science", prompt: "Which gas do plants absorb during photosynthesis?", answers: ["Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"], correct: 2 },
+      { rank: 0, category: "Books", prompt: "Who wrote Frankenstein?", answers: ["Jane Austen", "Mary Shelley", "Emily Bronte", "George Eliot"], correct: 1 },
+      { rank: 0, category: "Chemistry", prompt: "Which element has atomic number 6?", answers: ["Carbon", "Oxygen", "Boron", "Nitrogen"], correct: 0 },
+      { rank: 0, category: "Games", prompt: "How many pieces does each player start with in chess?", answers: ["12", "14", "16", "18"], correct: 2 },
+      { rank: 0, category: "Space", prompt: "Which planet has the shortest year?", answers: ["Venus", "Mars", "Mercury", "Jupiter"], correct: 2 },
+      { rank: 0, category: "Geometry", prompt: "How many degrees are in a triangle's interior angles?", answers: ["90", "180", "270", "360"], correct: 1 },
+      { rank: 0, category: "Numbers", prompt: "What value does the Roman numeral XL represent?", answers: ["30", "40", "50", "60"], correct: 1 },
+      { rank: 0, category: "Web", prompt: "What does CSS stand for?", answers: ["Creative Style System", "Cascading Style Sheets", "Computer Sheet Syntax", "Color Style Source"], correct: 1 },
+      { rank: 0, category: "Nature", prompt: "What is the fastest land animal?", answers: ["Pronghorn", "Lion", "Cheetah", "Ostrich"], correct: 2 },
+      { rank: 0, category: "History", prompt: "Which country gifted the Statue of Liberty to the United States?", answers: ["France", "Spain", "Italy", "Canada"], correct: 0 },
+      { rank: 0, category: "Science", prompt: "At what Celsius temperature does water freeze?", answers: ["0", "10", "32", "100"], correct: 0 },
+      { rank: 0, category: "Nature", prompt: "What is the largest living mammal?", answers: ["African elephant", "Blue whale", "Giraffe", "Hippopotamus"], correct: 1 },
+      { rank: 0, category: "World", prompt: "What currency is used in Japan?", answers: ["Won", "Yuan", "Yen", "Ringgit"], correct: 2 },
+      { rank: 0, category: "Calendar", prompt: "How many days are in a leap year?", answers: ["364", "365", "366", "367"], correct: 2 },
+      { rank: 0, category: "Music", prompt: "Which instrument commonly has keys, pedals, and strings?", answers: ["Flute", "Piano", "Trumpet", "Drum"], correct: 1 },
+      { rank: 0, category: "Space", prompt: "Which planet is known as the Red Planet?", answers: ["Venus", "Mars", "Saturn", "Mercury"], correct: 1 },
+      { rank: 0, category: "Science", prompt: "What common substance has the formula H2O?", answers: ["Salt", "Oxygen", "Water", "Sugar"], correct: 2 },
+      { rank: 0, category: "Math", prompt: "What is 7 multiplied by 8?", answers: ["48", "54", "56", "64"], correct: 2 },
+      { rank: 0, category: "Books", prompt: "Who wrote Hamlet?", answers: ["Charles Dickens", "William Shakespeare", "Oscar Wilde", "John Milton"], correct: 1 },
+      { rank: 0, category: "World", prompt: "The pyramids of Giza are in which country?", answers: ["Mexico", "Egypt", "Peru", "Jordan"], correct: 1 },
+      { rank: 0, category: "Earth", prompt: "On which continent is the Sahara Desert?", answers: ["Asia", "Africa", "Australia", "South America"], correct: 1 },
+      { rank: 0, category: "Geometry", prompt: "How many sides does a hexagon have?", answers: ["5", "6", "7", "8"], correct: 1 },
+      { rank: 0, category: "Language", prompt: "What is the primary language of Brazil?", answers: ["Spanish", "Portuguese", "French", "Italian"], correct: 1 },
+      { rank: 0, category: "Nature", prompt: "What is the tallest living land animal?", answers: ["Elephant", "Camel", "Giraffe", "Moose"], correct: 2 },
+      { rank: 0, category: "Science", prompt: "What process changes a liquid into a gas?", answers: ["Freezing", "Condensation", "Evaporation", "Melting"], correct: 2 },
+      { rank: 0, category: "Calendar", prompt: "What is the first month of the year?", answers: ["January", "March", "June", "September"], correct: 0 },
+      { rank: 0, category: "Biology", prompt: "What color is chlorophyll typically?", answers: ["Red", "Green", "Blue", "Orange"], correct: 1 },
+      { rank: 1, category: "Chemistry", prompt: "Which element uses the symbol Na?", answers: ["Nitrogen", "Sodium", "Neon", "Nickel"], correct: 1 },
+      { rank: 1, category: "Biology", prompt: "What is the largest internal organ in the human body?", answers: ["Heart", "Liver", "Lung", "Kidney"], correct: 1 },
+      { rank: 1, category: "Numbers", prompt: "Which number follows 13 in the Fibonacci sequence?", answers: ["18", "20", "21", "26"], correct: 2 },
+      { rank: 1, category: "Web", prompt: "What does HTTP stand for?", answers: ["Hypertext Transfer Protocol", "High Transfer Text Process", "Hosted Terminal Transport Program", "Hyperlink Transit Tool Package"], correct: 0 },
+      { rank: 1, category: "Music", prompt: "Who composed The Four Seasons?", answers: ["Mozart", "Vivaldi", "Beethoven", "Bach"], correct: 1 },
+      { rank: 1, category: "World", prompt: "Reykjavik is the capital of which country?", answers: ["Norway", "Finland", "Iceland", "Denmark"], correct: 2 },
+      { rank: 1, category: "Biology", prompt: "What shape is commonly associated with DNA?", answers: ["Single spiral", "Double helix", "Flat ring", "Triple chain"], correct: 1 },
+      { rank: 1, category: "Math", prompt: "What is 15 percent of 200?", answers: ["15", "20", "30", "40"], correct: 2 },
+      { rank: 1, category: "Chemistry", prompt: "Which metal is liquid near room temperature?", answers: ["Iron", "Mercury", "Copper", "Aluminum"], correct: 1 },
+      { rank: 1, category: "Myth", prompt: "Which Greek god ruled the sea?", answers: ["Ares", "Apollo", "Poseidon", "Hermes"], correct: 2 },
+      { rank: 1, category: "Science", prompt: "What is the first element on the periodic table?", answers: ["Helium", "Hydrogen", "Carbon", "Lithium"], correct: 1 },
+      { rank: 1, category: "Biology", prompt: "How many bones are in a typical adult human body?", answers: ["186", "206", "226", "246"], correct: 1 },
+      { rank: 1, category: "Physics", prompt: "What is the SI unit of electrical resistance?", answers: ["Volt", "Watt", "Ohm", "Ampere"], correct: 2 },
+      { rank: 1, category: "Books", prompt: "Who wrote the novel 1984?", answers: ["George Orwell", "Aldous Huxley", "Ray Bradbury", "H. G. Wells"], correct: 0 },
+      { rank: 1, category: "Space", prompt: "How many natural moons does Mars have?", answers: ["0", "1", "2", "4"], correct: 2 },
+      { rank: 1, category: "Chemistry", prompt: "A pH value below 7 is generally what?", answers: ["Acidic", "Neutral", "Alkaline", "Radioactive"], correct: 0 },
+      { rank: 1, category: "Computing", prompt: "What is binary 1111 in decimal?", answers: ["12", "14", "15", "16"], correct: 2 },
+      { rank: 2, category: "History", prompt: "In what year was the Magna Carta sealed?", answers: ["1066", "1215", "1492", "1648"], correct: 1 },
+      { rank: 2, category: "Chemistry", prompt: "Which element uses the symbol W?", answers: ["Tungsten", "Tin", "Titanium", "Zinc"], correct: 0 },
+      { rank: 2, category: "Art", prompt: "Who painted Guernica?", answers: ["Salvador Dali", "Pablo Picasso", "Joan Miro", "Diego Rivera"], correct: 1 },
+      { rank: 2, category: "World", prompt: "What is the world's smallest sovereign state by area?", answers: ["Monaco", "San Marino", "Vatican City", "Liechtenstein"], correct: 2 },
+      { rank: 2, category: "Biology", prompt: "Which organelle produces most cellular ATP?", answers: ["Ribosome", "Mitochondrion", "Nucleus", "Golgi apparatus"], correct: 1 },
+      { rank: 2, category: "Numbers", prompt: "What is the next prime number after 47?", answers: ["49", "51", "53", "57"], correct: 2 },
+      { rank: 2, category: "Physics", prompt: "What is the SI unit of luminous intensity?", answers: ["Lumen", "Lux", "Candela", "Joule"], correct: 2 },
+      { rank: 2, category: "Geometry", prompt: "How many distinct Platonic solids are there?", answers: ["4", "5", "6", "8"], correct: 1 },
+      { rank: 2, category: "Chemistry", prompt: "Which element has atomic number 26?", answers: ["Cobalt", "Iron", "Nickel", "Copper"], correct: 1 },
+      { rank: 2, category: "Music", prompt: "Who composed The Rite of Spring?", answers: ["Igor Stravinsky", "Claude Debussy", "Gustav Mahler", "Erik Satie"], correct: 0 },
+      { rank: 2, category: "History", prompt: "Which volcano buried Pompeii in 79 CE?", answers: ["Etna", "Vesuvius", "Stromboli", "Olympus"], correct: 1 },
+      { rank: 2, category: "Math", prompt: "What is the base-10 logarithm of 1000?", answers: ["2", "3", "10", "100"], correct: 1 }
+    ]);
+
+    const DEFAULT_PREFERENCES = Object.freeze({ schemaVersion: 1, playStyle: "solo", mode: "standard", difficulty: "normal", muted: false, volume: 0.7, metronome: true, motion: "system" });
+    const GRADE_ORDER = Object.freeze({ D: 0, C: 1, B: 2, A: 3, S: 4 });
+
+    function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+    function makeRandom(seed) {
+      let value = seed >>> 0;
+      return () => {
+        value = (value + 0x6d2b79f5) >>> 0;
+        let result = value;
+        result = Math.imul(result ^ (result >>> 15), result | 1);
+        result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
+        return ((result ^ (result >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    function createInitialRoleSwapTimes(mode, random) {
+      const choose = (values) => values[Math.floor(random() * values.length)];
+      const times = [choose(FIRST_ROLE_SWAP_BEATS) * BEAT_MS];
+      if (mode === "standard") times.push(choose(SECOND_STANDARD_SWAP_BEATS) * BEAT_MS);
+      return times;
+    }
+    function extendEndlessRoleSwapTimes(times, reservationHorizon, random) {
+      const extended = [...times];
+      while (extended.length && extended[extended.length - 1] < reservationHorizon) {
+        const interval = ENDLESS_SWAP_INTERVAL_BEATS[Math.floor(random() * ENDLESS_SWAP_INTERVAL_BEATS.length)];
+        extended.push(extended[extended.length - 1] + interval * BEAT_MS);
+      }
+      return extended;
+    }
+    function pressureTier(mode, elapsed) { return mode === "endless" ? Math.max(0, Math.floor(elapsed / ENDLESS_TIER_MS)) : elapsed < 23500 ? 0 : elapsed < 49000 ? 1 : 2; }
+    function calculateGrade({ dodges, collisions, triviaCorrect, triviaWrong, focus }) {
+      const dodgeTotal = dodges + collisions;
+      const triviaTotal = triviaCorrect + triviaWrong;
+      const dodgeAccuracy = dodgeTotal ? dodges / dodgeTotal : 0;
+      const triviaAccuracy = triviaTotal ? triviaCorrect / triviaTotal : 0;
+      if (dodgeAccuracy >= 0.93 && triviaAccuracy >= 0.82 && focus >= 45) return "S";
+      if (dodgeAccuracy >= 0.82 && triviaAccuracy >= 0.65) return "A";
+      if (dodgeAccuracy >= 0.67 && triviaAccuracy >= 0.48) return "B";
+      if (dodgeAccuracy >= 0.48 || triviaAccuracy >= 0.4) return "C";
+      return "D";
+    }
+    function validatePreferences(value) {
+      const source = value && typeof value === "object" ? value : {};
+      return {
+        schemaVersion: 1,
+        playStyle: source.playStyle === "duo" ? "duo" : "solo",
+        mode: source.mode === "endless" ? "endless" : "standard",
+        difficulty: Object.hasOwn(DIFFICULTIES, source.difficulty) ? source.difficulty : "normal",
+        muted: source.muted === true,
+        volume: Number.isFinite(source.volume) ? clamp(source.volume, 0, 1) : 0.7,
+        metronome: source.metronome !== false,
+        motion: source.motion === "reduced" ? "reduced" : "system"
+      };
+    }
+    function recordKey(playStyle, mode, difficulty) { return `${playStyle}:${mode}:${difficulty}`; }
+    function mergeRecord(previous, result) {
+      const prior = previous && typeof previous === "object" ? previous : {};
+      const priorScore = Number.isFinite(prior.bestScore) ? prior.bestScore : 0;
+      const priorTime = Number.isFinite(prior.bestTime) ? prior.bestTime : 0;
+      const newBest = result.score > priorScore || (result.mode === "endless" && result.elapsed > priorTime);
+      const priorGrade = Object.hasOwn(GRADE_ORDER, prior.bestGrade) ? prior.bestGrade : "D";
+      return {
+        newBest,
+        previousBestScore: priorScore,
+        record: {
+          attempts: (Number.isFinite(prior.attempts) ? prior.attempts : 0) + 1,
+          completions: (Number.isFinite(prior.completions) ? prior.completions : 0) + (result.complete ? 1 : 0),
+          bestScore: Math.max(priorScore, result.score),
+          bestGrade: GRADE_ORDER[result.grade] > GRADE_ORDER[priorGrade] ? result.grade : priorGrade,
+          bestCombo: Math.max(Number.isFinite(prior.bestCombo) ? prior.bestCombo : 0, result.bestCombo),
+          bestDodgeAccuracy: Math.max(Number.isFinite(prior.bestDodgeAccuracy) ? prior.bestDodgeAccuracy : 0, result.dodgeAccuracy),
+          bestTriviaAccuracy: Math.max(Number.isFinite(prior.bestTriviaAccuracy) ? prior.bestTriviaAccuracy : 0, result.triviaAccuracy),
+          bestTime: Math.max(priorTime, result.elapsed),
+          highestTier: Math.max(Number.isFinite(prior.highestTier) ? prior.highestTier : 1, result.tier),
+          bestFinishingFocus: Math.max(Number.isFinite(prior.bestFinishingFocus) ? prior.bestFinishingFocus : 0, result.focus)
+        }
+      };
+    }
+    function resolveWaveComponentStates(states) {
+      if (states.some((state) => state === "pending")) return "pending";
+      if (states.some((state) => state === "hit" || state === "contacted")) return "miss";
+      return "cleared";
+    }
+
+    return Object.freeze({ GAME_VERSION, BPM, BEAT_MS, STANDARD_DURATION_MS, ENDLESS_TIER_MS, PHRASE_BEATS, FIRST_ARRIVAL_BEAT, STORAGE_KEY, MODES, DIFFICULTIES, WAVE_PHRASES, QUESTIONS, DEFAULT_PREFERENCES, clamp, makeRandom, createInitialRoleSwapTimes, extendEndlessRoleSwapTimes, pressureTier, calculateGrade, validatePreferences, recordKey, mergeRecord, resolveWaveComponentStates });
+  })();
+  // SPLITBEAT_CORE_END
+
+  const { BPM, BEAT_MS, STANDARD_DURATION_MS, ENDLESS_TIER_MS, PHRASE_BEATS, FIRST_ARRIVAL_BEAT, STORAGE_KEY, MODES, DIFFICULTIES, WAVE_PHRASES, QUESTIONS } = SplitBeatCore;
   const COUNTDOWN_MS = 3000;
   const QUESTION_FEEDBACK_MS = 700;
   const STARTING_FOCUS = 82;
@@ -1709,101 +2318,20 @@
   const TRAIL_INTERVAL_SECONDS = 1 / 34;
   const TRAIL_LIFETIME_SECONDS = 0.48;
   const BURST_LIFETIME_SECONDS = 0.56;
+  const TIMING_LINE_X = 0.18;
+  const WALL_TELEGRAPH_BEATS = 2;
+  const ROLE_SWAP_WARNING_BEATS = 2;
+  const ROLE_SWAP_GRACE_MS = 1400;
+  const WAVE_SCORE = Object.freeze({ single: 120, double: 180, wall: 220 });
+  const WAVE_SYNC = Object.freeze({ single: 7, double: 11, wall: 15 });
 
-  const MOVE_KEYS = {
-    w: "up",
-    a: "left",
-    s: "down",
-    d: "right",
-    arrowup: "up",
-    arrowleft: "left",
-    arrowdown: "down",
-    arrowright: "right"
-  };
-  const MOVE_CODES = {
-    KeyW: "up",
-    KeyA: "left",
-    KeyS: "down",
-    KeyD: "right",
-    ArrowUp: "up",
-    ArrowLeft: "left",
-    ArrowDown: "down",
-    ArrowRight: "right"
-  };
+  const MOVE_KEYS = { w: "up", a: "left", s: "down", d: "right", arrowup: "up", arrowleft: "left", arrowdown: "down", arrowright: "right" };
+  const MOVE_CODES = { KeyW: "up", KeyA: "left", KeyS: "down", KeyD: "right", ArrowUp: "up", ArrowLeft: "left", ArrowDown: "down", ArrowRight: "right" };
   const SHIP_ACCEL = 2900;
   const SHIP_MAX_SPEED = 470;
   const SHIP_COAST_TAU = 0.16;
-
   const ANSWER_KEYS = ["j", "k", "l", ";"];
   const ANSWER_CODES = { KeyJ: 0, KeyK: 1, KeyL: 2, Semicolon: 3 };
-
-  const DIFFICULTIES = {
-    easy: {
-      rank: 0,
-      label: "Easy",
-      crossMs: 3400,
-      spawnMs: 1500,
-      collidePenalty: 9,
-      wrongPenalty: 8,
-      timeoutPenalty: 9,
-      triviaGain: 7,
-      questionMs: 8800,
-      gapFactor: 3.4,
-      estimatedWaves: 47,
-      description: "Slow drift, sparse hazards, and 8.8-second trivia."
-    },
-    normal: {
-      rank: 1,
-      label: "Normal",
-      crossMs: 2800,
-      spawnMs: 1150,
-      collidePenalty: 11,
-      wrongPenalty: 10,
-      timeoutPenalty: 11,
-      triviaGain: 6,
-      questionMs: 7500,
-      gapFactor: 2.9,
-      estimatedWaves: 61,
-      description: "Steady scroll, layered hazards, and 7.5-second trivia."
-    },
-    hard: {
-      rank: 2,
-      label: "Hard",
-      crossMs: 2250,
-      spawnMs: 900,
-      collidePenalty: 13,
-      wrongPenalty: 12,
-      timeoutPenalty: 13,
-      triviaGain: 5,
-      questionMs: 6200,
-      gapFactor: 2.4,
-      estimatedWaves: 77,
-      description: "Fast scroll, hazard walls, and 6.2-second trivia."
-    }
-  };
-
-  const QUESTIONS = [
-    { category: "World", prompt: "What is the capital of Australia?", answers: ["Sydney", "Canberra", "Melbourne", "Perth"], correct: 1 },
-    { category: "Science", prompt: "Which chemical symbol represents gold?", answers: ["Ag", "Gd", "Au", "Go"], correct: 2 },
-    { category: "Space", prompt: "Which planet is the largest in our solar system?", answers: ["Saturn", "Jupiter", "Neptune", "Earth"], correct: 1 },
-    { category: "Art", prompt: "Who painted The Starry Night?", answers: ["Claude Monet", "Pablo Picasso", "Vincent van Gogh", "Edvard Munch"], correct: 2 },
-    { category: "Computing", prompt: "What is binary 1010 in decimal?", answers: ["8", "10", "12", "14"], correct: 1 },
-    { category: "History", prompt: "In what year did Apollo 11 land on the Moon?", answers: ["1965", "1967", "1969", "1971"], correct: 2 },
-    { category: "Biology", prompt: "Which organ pumps blood through the human body?", answers: ["Liver", "Lung", "Kidney", "Heart"], correct: 3 },
-    { category: "Math", prompt: "What is the smallest prime number?", answers: ["0", "1", "2", "3"], correct: 2 },
-    { category: "Earth", prompt: "Which is the largest ocean on Earth?", answers: ["Atlantic", "Indian", "Pacific", "Arctic"], correct: 2 },
-    { category: "Math", prompt: "What is the square root of 144?", answers: ["10", "11", "12", "14"], correct: 2 },
-    { category: "Science", prompt: "Which gas do plants absorb during photosynthesis?", answers: ["Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"], correct: 2 },
-    { category: "Books", prompt: "Who wrote Frankenstein?", answers: ["Jane Austen", "Mary Shelley", "Emily Bronte", "George Eliot"], correct: 1 },
-    { category: "Chemistry", prompt: "Which element has atomic number 6?", answers: ["Carbon", "Oxygen", "Boron", "Nitrogen"], correct: 0 },
-    { category: "Games", prompt: "How many pieces does each player start with in chess?", answers: ["12", "14", "16", "18"], correct: 2 },
-    { category: "Space", prompt: "Which planet has the shortest year?", answers: ["Venus", "Mars", "Mercury", "Jupiter"], correct: 2 },
-    { category: "Geometry", prompt: "How many degrees are in a triangle's interior angles?", answers: ["90", "180", "270", "360"], correct: 1 },
-    { category: "Numbers", prompt: "What value does the Roman numeral XL represent?", answers: ["30", "40", "50", "60"], correct: 1 },
-    { category: "Web", prompt: "What does CSS stand for?", answers: ["Creative Style System", "Cascading Style Sheets", "Computer Sheet Syntax", "Color Style Source"], correct: 1 },
-    { category: "Nature", prompt: "What is the fastest land animal?", answers: ["Pronghorn", "Lion", "Cheetah", "Ostrich"], correct: 2 },
-    { category: "History", prompt: "Which country gifted the Statue of Liberty to the United States?", answers: ["France", "Spain", "Italy", "Canada"], correct: 0 }
-  ];
 
   const byId = (id) => document.getElementById(id);
   const dom = {
@@ -1814,6 +2342,10 @@
     scoreValue: byId("scoreValue"),
     comboValue: byId("comboValue"),
     multiplierValue: byId("multiplierValue"),
+    syncValue: byId("syncValue"),
+    syncFill: byId("syncFill"),
+    syncTrack: document.querySelector(".sync-track"),
+    timeLabel: byId("timeLabel"),
     timeValue: byId("timeValue"),
     focusStat: byId("focusStat"),
     focusValue: byId("focusValue"),
@@ -1828,6 +2360,10 @@
     sectionChip: byId("sectionChip"),
     chartReadout: byId("chartReadout"),
     movementHint: byId("movementHint"),
+    pilotRoleLabel: byId("pilotRoleLabel"),
+    pilotRunStats: byId("pilotRunStats"),
+    operatorRoleLabel: byId("operatorRoleLabel"),
+    operatorRunStats: byId("operatorRunStats"),
     rhythmFeedback: byId("rhythmFeedback"),
     countdown: byId("countdown"),
     countdownValue: byId("countdownValue"),
@@ -1839,38 +2375,83 @@
     answerButtons: [...document.querySelectorAll(".answer-button")],
     triviaFeedback: byId("triviaFeedback"),
     dualBonus: byId("dualBonus"),
+    roleSwapBanner: byId("roleSwapBanner"),
+    roleSwapTitle: byId("roleSwapTitle"),
+    roleSwapCopy: byId("roleSwapCopy"),
     screenOverlay: byId("screenOverlay"),
     mainMenuScreen: byId("mainMenuScreen"),
+    duoReadyScreen: byId("duoReadyScreen"),
     pauseScreen: byId("pauseScreen"),
     resultsScreen: byId("resultsScreen"),
     playMenuPanel: byId("playMenuPanel"),
     howMenuPanel: byId("howMenuPanel"),
+    preferencesMenuPanel: byId("preferencesMenuPanel"),
     menuTabs: [...document.querySelectorAll("[data-menu-tab]")],
+    playStyleButtons: [...document.querySelectorAll("[data-play-style]")],
+    modeButtons: [...document.querySelectorAll("[data-mode]")],
     difficultyButtons: [...document.querySelectorAll("[data-difficulty]")],
-    difficultyDetails: byId("difficultyDetails"),
+    motionButtons: [...document.querySelectorAll("[data-motion]")],
+    menuEyebrow: byId("menuEyebrow"),
+    menuHeroCopy: byId("menuHeroCopy"),
+    menuModeRule: byId("menuModeRule"),
+    roundDetails: byId("roundDetails"),
+    recordPreview: byId("recordPreview"),
     startButton: byId("startButton"),
     howBackButton: byId("howBackButton"),
+    preferencesBackButton: byId("preferencesBackButton"),
+    menuSoundButton: byId("menuSoundButton"),
+    volumeControl: byId("volumeControl"),
+    volumeValue: byId("volumeValue"),
+    metronomeButton: byId("metronomeButton"),
+    pilotReadyCard: byId("pilotReadyCard"),
+    operatorReadyCard: byId("operatorReadyCard"),
+    pilotReadyButton: byId("pilotReadyButton"),
+    operatorReadyButton: byId("operatorReadyButton"),
+    duoReadyStatus: byId("duoReadyStatus"),
+    duoLaunchButton: byId("duoLaunchButton"),
+    duoBackButton: byId("duoBackButton"),
     resumeButton: byId("resumeButton"),
+    pauseSoundButton: byId("pauseSoundButton"),
+    pauseEffectsButton: byId("pauseEffectsButton"),
     pauseRestartButton: byId("pauseRestartButton"),
     pauseMenuButton: byId("pauseMenuButton"),
     restartButton: byId("restartButton"),
-    changeDifficultyButton: byId("changeDifficultyButton"),
+    changeSetupButton: byId("changeSetupButton"),
     resultsMenuButton: byId("resultsMenuButton"),
     resultReason: byId("resultReason"),
     resultScore: byId("resultScore"),
     resultGrade: byId("resultGrade"),
+    resultContext: byId("resultContext"),
     resultCopy: byId("resultCopy"),
+    resultBest: byId("resultBest"),
+    resultPilotOwner: byId("resultPilotOwner"),
+    resultPilotTitle: byId("resultPilotTitle"),
+    resultPilotMetric1Label: byId("resultPilotMetric1Label"),
+    resultPilotMetric2Label: byId("resultPilotMetric2Label"),
+    resultPilotMetric3Label: byId("resultPilotMetric3Label"),
+    resultDodgeAccuracy: byId("resultDodgeAccuracy"),
+    resultOperatorOwner: byId("resultOperatorOwner"),
+    resultOperatorTitle: byId("resultOperatorTitle"),
+    resultOperatorMetric1Label: byId("resultOperatorMetric1Label"),
+    resultOperatorMetric2Label: byId("resultOperatorMetric2Label"),
+    resultOperatorMetric3Label: byId("resultOperatorMetric3Label"),
+    resultTriviaAccuracy: byId("resultTriviaAccuracy"),
     resultBestCombo: byId("resultBestCombo"),
     resultHits: byId("resultHits"),
     resultMisses: byId("resultMisses"),
     resultCorrect: byId("resultCorrect"),
     resultWrong: byId("resultWrong"),
-    resultDual: byId("resultDual"),
+    resultSyncBanks: byId("resultSyncBanks"),
+    resultRunLabel: byId("resultRunLabel"),
+    resultRunValue: byId("resultRunValue"),
     liveRegion: byId("liveRegion")
   };
 
   let status = "menu";
+  let selectedPlayStyle = "solo";
+  let selectedMode = "standard";
   let selectedDifficulty = "normal";
+  let modeConfig = MODES.standard;
   let config = DIFFICULTIES.normal;
   let gameStartTime = 0;
   let lastElapsed = 0;
@@ -1885,18 +2466,34 @@
   let questionsSeen = 0;
   let currentQuestion = null;
   let muted = false;
+  let volume = 0.7;
+  let metronomeEnabled = true;
   let audioContext = null;
   let masterGain = null;
   const activeVoices = new Set();
   let animationFrameId = 0;
-  let reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let systemReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let motionPreference = "system";
+  let reducedMotion = systemReducedMotion;
   let focusFlashTimer = 0;
+  let rhythmFeedbackTimer = 0;
+  let dualBonusTimer = 0;
+  let roleSwapBannerTimer = 0;
+  let records = {};
 
   let roundSeed = 0;
-  let hazardRandom = Math.random;
+  let chartRandom = Math.random;
   let triviaRandom = Math.random;
+  let swapRandom = Math.random;
 
   const held = { up: false, down: false, left: false, right: false };
+  let duoReady = { pilot: false, operator: false };
+  let roleOwners = { pilot: "p1", operator: "p2" };
+  let playerStats = createPlayerStats();
+  let roleSwapTimes = [];
+  let roleSwapIndex = 0;
+  let roleSwapWarningShown = false;
+  let lastRoleStatsElapsed = 0;
 
   const stats = {
     score: 0,
@@ -1907,23 +2504,30 @@
     triviaCorrect: 0,
     triviaWrong: 0,
     triviaTimeouts: 0,
-    dualBonuses: 0,
+    sync: 0,
+    bestSync: 0,
+    syncBanks: 0,
+    syncScore: 0,
+    roleSwaps: 0,
     focus: STARTING_FOCUS
   };
 
   // ---- Evasion field state -------------------------------------------------
 
   let obstacles = [];
-  let nextSpawnAt = 0;
-  let lastSingleY = -1;
-  let lastGapY = -1;
-  let lastGapSpawnAt = -Infinity;
+  let scheduledWaves = [];
+  const activeWaves = new Map();
+  let chartNextBeat = FIRST_ARRIVAL_BEAT;
+  let lastPhraseId = null;
+  let currentPhraseLabel = "Opening drift";
+  let lastPressureTier = 0;
   let waveCounter = 0;
   const ship = { x: null, y: null, vx: 0, vy: 0 };
   let invulnerableUntil = -Infinity;
   let shakeUntil = 0;
   let hitFlashUntil = 0;
   let lastFrameTime = 0;
+  let lastRenderTime = 0;
   let trailAccumulator = 0;
   const trail = [];
   const bursts = [];
@@ -2041,21 +2645,15 @@
 
   function obstacleX(obstacle, elapsed) {
     const { width } = hazardSize();
-    const start = view.width + width;
-    const end = -width * 2;
-    const progress = (elapsed - obstacle.spawnTime) / config.crossMs;
-    return start + (end - start) * progress;
+    const startX = view.width + width;
+    const timingX = view.width * TIMING_LINE_X;
+    const approachMs = obstacle.approachBeats * BEAT_MS;
+    const speed = (startX - timingX) / approachMs;
+    return timingX - speed * (elapsed - obstacle.arrivalTime);
   }
 
   function makeRandom(seed) {
-    let value = seed >>> 0;
-    return () => {
-      value = (value + 0x6d2b79f5) >>> 0;
-      let result = value;
-      result = Math.imul(result ^ (result >>> 15), result | 1);
-      result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
-      return ((result ^ (result >>> 14)) >>> 0) / 4294967296;
-    };
+    return SplitBeatCore.makeRandom(seed);
   }
 
   function createRoundSeed() {
@@ -2070,118 +2668,173 @@
 
   function resetRoundRandomness() {
     roundSeed = createRoundSeed();
-    hazardRandom = makeRandom(roundSeed || 1);
+    chartRandom = makeRandom(roundSeed || 1);
     triviaRandom = makeRandom((roundSeed ^ 0x9e3779b9) >>> 0 || 1);
+    swapRandom = makeRandom((roundSeed ^ 0x85ebca6b) >>> 0 || 1);
   }
 
-  function randomBetween(min, max, random = hazardRandom) {
+  function randomBetween(min, max, random = chartRandom) {
     return min + random() * Math.max(0, max - min);
   }
 
-  // ---- Hazard spawner ------------------------------------------------------
+  // ---- Beat chart and wave scoring -----------------------------------------
 
-  function spawnWave(elapsed) {
+  function laneY(lane) {
+    const band = fieldBand();
+    const { height: hazardHeight } = hazardSize();
+    const margin = hazardHeight / 2 + 6;
+    return band.top + margin + (clamp(lane, 0, 4) / 4) * Math.max(0, band.bottom - band.top - margin * 2);
+  }
+
+  function mirrorEvent(event, mirrored) {
+    if (!mirrored) return event;
+    if (event.kind === "wall") return { ...event, gapLane: 4 - event.gapLane };
+    return { ...event, lanes: event.lanes.map((lane) => 4 - lane) };
+  }
+
+  function maxPhraseRating(elapsed) {
+    return SplitBeatCore.pressureTier(selectedMode, elapsed);
+  }
+
+  function effectiveEventLevel(tier) {
+    return Math.min(2, config.rank + (selectedMode === "endless" ? Math.floor(tier / 2) : 0));
+  }
+
+  function appendPhrase(startBeat) {
+    const startElapsed = startBeat * BEAT_MS;
+    const tier = SplitBeatCore.pressureTier(selectedMode, startElapsed);
+    const maxRating = Math.min(2, maxPhraseRating(startElapsed));
+    let eligible = WAVE_PHRASES.filter((phrase) => phrase.rating <= maxRating && phrase.id !== lastPhraseId);
+    if (!eligible.length) eligible = WAVE_PHRASES.filter((phrase) => phrase.rating <= maxRating);
+    const phrase = lastPhraseId === null
+      ? WAVE_PHRASES.find((candidate) => candidate.id === "drift-weave")
+      : eligible[Math.floor(chartRandom() * eligible.length)];
+    const mirrored = chartRandom() >= 0.5;
+    const level = effectiveEventLevel(tier);
+    const approachBeats = Math.max(3, config.approachBeats - (selectedMode === "endless" ? Math.floor(tier / 2) * 0.5 : 0));
+    const gapFactor = Math.max(2, config.gapFactor * (selectedMode === "endless" ? 1 - tier * 0.03 : 1));
+
+    for (const rawEvent of phrase.events) {
+      if (rawEvent.level > level) continue;
+      const event = mirrorEvent(rawEvent, mirrored);
+      const arrivalBeat = startBeat + event.beat;
+      const arrivalTime = arrivalBeat * BEAT_MS;
+      if (selectedMode === "standard" && arrivalTime >= STANDARD_DURATION_MS) continue;
+      if (selectedPlayStyle === "duo" && roleSwapTimes.some((swapTime) => Math.abs(swapTime - arrivalTime) < ROLE_SWAP_GRACE_MS)) continue;
+      scheduledWaves.push({
+        id: waveCounter++,
+        phraseId: phrase.id,
+        phraseLabel: phrase.label,
+        kind: event.kind,
+        lanes: event.lanes || null,
+        gapLane: Number.isFinite(event.gapLane) ? event.gapLane : null,
+        arrivalBeat,
+        arrivalTime,
+        spawnTime: arrivalTime - approachBeats * BEAT_MS,
+        approachBeats,
+        gapFactor,
+        pressureTier: tier
+      });
+    }
+
+    lastPhraseId = phrase.id;
+    chartNextBeat = startBeat + PHRASE_BEATS;
+  }
+
+  function ensureChartScheduled(elapsed) {
+    const horizon = elapsed + 36 * BEAT_MS;
+    if (selectedPlayStyle === "duo" && selectedMode === "endless") {
+      ensureEndlessRoleSwapsScheduled(elapsed + (36 + PHRASE_BEATS) * BEAT_MS);
+    }
+    while (chartNextBeat * BEAT_MS <= horizon) {
+      if (selectedMode === "standard" && chartNextBeat * BEAT_MS >= STANDARD_DURATION_MS) break;
+      appendPhrase(chartNextBeat);
+    }
+  }
+
+  function materializeWave(spec) {
     const band = fieldBand();
     const { height: hazardHeight } = hazardSize();
     const shipHeight = shipSize().halfHeight * 2;
-    const phase = elapsed < 10000 ? 0 : elapsed < 30000 ? 1 : elapsed < 55000 ? 2 : 3;
-    const wallBias = config.rank * 0.05;
-    let kind = "single";
-    const roll = hazardRandom();
-    if (phase >= 1 && roll < 0.3 + wallBias) kind = "double";
-    if (phase >= 2 && roll > 0.82 - wallBias) kind = "wall";
+    const components = [];
+    const push = (yCenter, height) => {
+      const obstacle = { ...spec, yCenter, height, state: "pending" };
+      obstacles.push(obstacle);
+      components.push(obstacle);
+    };
 
-    const margin = hazardHeight / 2 + 6;
-    const randY = () => randomBetween(band.top + margin, band.bottom - margin);
-    const waveId = waveCounter++;
-    const push = (yCenter, height) => obstacles.push({ yCenter, height, spawnTime: elapsed, waveId, kind, state: "pending" });
-
-    if (kind === "single") {
-      const candidates = Array.from({ length: 4 }, randY);
-      const y = lastSingleY < 0
-        ? candidates[0]
-        : candidates.reduce((best, candidate) => (
-          Math.abs(candidate - lastSingleY) > Math.abs(best - lastSingleY) ? candidate : best
-        ));
-      lastSingleY = y;
-      push(y, hazardHeight);
-    } else if (kind === "double") {
-      const first = randY();
-      const second = Array.from({ length: 8 }, randY).reduce((best, candidate) => (
-        Math.abs(candidate - first) > Math.abs(best - first) ? candidate : best
-      ));
-      push(first, hazardHeight);
-      if (Math.abs(first - second) >= hazardHeight + shipHeight * 2.2) push(second, hazardHeight);
-    } else {
-      const gapHeight = shipHeight * config.gapFactor;
-      const low = band.top + gapHeight / 2 + 8;
-      const high = band.bottom - gapHeight / 2 - 8;
-      let gapY = randomBetween(low, high);
-      if (lastGapY >= 0) {
-        const secondsSinceWall = Math.max(config.spawnMs / 1000, (elapsed - lastGapSpawnAt) / 1000);
-        const reachableShift = Math.max(gapHeight * 0.7, SHIP_MAX_SPEED * secondsSinceWall * 0.58);
-        gapY = clamp(gapY, lastGapY - reachableShift, lastGapY + reachableShift);
-        gapY = clamp(gapY, low, high);
-      }
-      lastGapY = gapY;
-      lastGapSpawnAt = elapsed;
+    if (spec.kind === "wall") {
+      const gapHeight = shipHeight * spec.gapFactor;
+      const gapY = clamp(laneY(spec.gapLane), band.top + gapHeight / 2 + 8, band.bottom - gapHeight / 2 - 8);
       const topHeight = gapY - gapHeight / 2 - band.top;
       const bottomHeight = band.bottom - (gapY + gapHeight / 2);
       if (topHeight > 10) push(band.top + topHeight / 2, topHeight);
       if (bottomHeight > 10) push(gapY + gapHeight / 2 + bottomHeight / 2, bottomHeight);
+    } else {
+      for (const lane of spec.lanes) push(laneY(lane), hazardHeight);
     }
 
-    const jitter = 0.85 + hazardRandom() * 0.35;
-    const breather = kind === "wall" ? 1.35 : 1;
-    nextSpawnAt = elapsed + config.spawnMs * jitter * breather;
+    activeWaves.set(spec.id, { ...spec, state: "pending", components, telegraphed: false });
+    currentPhraseLabel = spec.phraseLabel;
+    dom.chartReadout.textContent = `${spec.phraseLabel} · beat ${Math.floor(spec.arrivalBeat)}`;
   }
 
-  function updateObstacles(elapsed, previousElapsed) {
-    let catchUpWaves = 0;
-    while (elapsed >= nextSpawnAt && nextSpawnAt < RUN_DURATION_MS - config.crossMs * 0.4 && catchUpWaves < 2) {
-      spawnWave(nextSpawnAt);
-      catchUpWaves += 1;
+  function spawnScheduledWaves(elapsed) {
+    while (scheduledWaves.length && scheduledWaves[0].spawnTime <= elapsed) {
+      materializeWave(scheduledWaves.shift());
     }
-    if (elapsed >= nextSpawnAt && catchUpWaves === 2) {
-      nextSpawnAt = elapsed + config.spawnMs;
-    }
-    if (ship.x === null) return;
+  }
 
+  function componentIntersectsShip(component, elapsed, previousElapsed) {
     const { width: hazardWidth } = hazardSize();
     const shipDims = shipSize();
-
-    for (const obstacle of obstacles) {
-      if (obstacle.state !== "pending") continue;
-      const x = obstacleX(obstacle, elapsed);
-      const priorTime = Math.max(obstacle.spawnTime, previousElapsed);
-      const previousX = obstacleX(obstacle, priorTime);
-      const obstacleLeft = Math.min(previousX, x) - hazardWidth / 2;
-      const obstacleRight = Math.max(previousX, x) + hazardWidth / 2;
-      const shipLeft = ship.x - shipDims.length * 0.32;
-      const shipRight = ship.x + shipDims.length * 0.32;
-      const overlapX = obstacleRight >= shipLeft && obstacleLeft <= shipRight;
-
-      if (overlapX && Math.abs(ship.y - obstacle.yCenter) < obstacle.height / 2 + shipDims.halfHeight * 0.72) {
-        obstacle.state = elapsed >= invulnerableUntil ? "hit" : "contacted";
-        if (elapsed >= invulnerableUntil) {
-          registerCollision(obstacle, elapsed);
-          if (status !== "playing") return;
-        }
-      } else if (x + hazardWidth / 2 < ship.x - shipDims.length / 2) {
-        obstacle.state = "cleared";
-        registerDodge(elapsed);
-      }
-    }
-
-    obstacles = obstacles.filter((obstacle) => elapsed - obstacle.spawnTime < config.crossMs * 1.2);
+    const x = obstacleX(component, elapsed);
+    const previousX = obstacleX(component, previousElapsed);
+    const obstacleLeft = Math.min(previousX, x) - hazardWidth / 2;
+    const obstacleRight = Math.max(previousX, x) + hazardWidth / 2;
+    const shipLeft = ship.x - shipDims.length * 0.32;
+    const shipRight = ship.x + shipDims.length * 0.32;
+    return obstacleRight >= shipLeft
+      && obstacleLeft <= shipRight
+      && Math.abs(ship.y - component.yCenter) < component.height / 2 + shipDims.halfHeight * 0.72;
   }
 
-  function registerDodge(elapsed) {
+  function waveHasPassedShip(wave, elapsed) {
+    const { width } = hazardSize();
+    return obstacleX(wave.components[0], elapsed) + width / 2 < ship.x - shipSize().length / 2;
+  }
+
+  function endlessScoreMultiplier(tier) {
+    return 1 + Math.min(1, tier * 0.1);
+  }
+
+  function gainSync(amount) {
+    stats.sync = clamp(stats.sync + amount, 0, 100);
+    stats.bestSync = Math.max(stats.bestSync, stats.sync);
+  }
+
+  function breakSync() {
+    stats.sync = 0;
+  }
+
+  function bankSync() {
+    const converted = stats.sync;
+    const score = Math.floor(converted * 10);
+    const focus = Math.min(5, Math.floor(converted / 20));
+    stats.sync = 0;
+    stats.syncScore += score;
+    if (converted >= 25) stats.syncBanks += 1;
+    return { converted, score, focus };
+  }
+
+  function registerDodge(wave, elapsed) {
     stats.dodges += 1;
     stats.combo += 1;
     stats.bestCombo = Math.max(stats.bestCombo, stats.combo);
-    stats.score += 120 * currentMultiplier();
-    stats.focus = clamp(stats.focus + 0.18, 0, 100);
+    stats.score += Math.round(WAVE_SCORE[wave.kind] * currentMultiplier() * endlessScoreMultiplier(wave.pressureTier));
+    gainSync(WAVE_SYNC[wave.kind]);
+    const pilot = playerStats[roleOwners.pilot].pilot;
+    pilot.dodges += 1;
     if (stats.combo > 0 && stats.combo % 10 === 0) {
       showRhythmFeedback(`${stats.combo} chain`, "great");
       playChainSound();
@@ -2189,16 +2842,53 @@
     updateHud(elapsed);
   }
 
-  function registerCollision(obstacle, elapsed) {
+  function resolveWaveHit(wave, hitComponent, elapsed) {
+    wave.state = "hit";
+    wave.components.forEach((component) => { component.state = component === hitComponent ? "hit" : "contacted"; });
     stats.collisions += 1;
     stats.combo = 0;
-    invulnerableUntil = elapsed + COLLISION_GRACE_MS;
-    shakeUntil = elapsed + 230;
-    hitFlashUntil = elapsed + 300;
-    spawnBurst(obstacle);
-    showRhythmFeedback("Hit", "miss");
-    playMissSound();
-    changeFocus(-config.collidePenalty);
+    breakSync();
+    playerStats[roleOwners.pilot].pilot.collisions += 1;
+    if (elapsed >= invulnerableUntil) {
+      invulnerableUntil = elapsed + COLLISION_GRACE_MS;
+      shakeUntil = elapsed + 230;
+      hitFlashUntil = elapsed + 300;
+      spawnBurst(hitComponent);
+      showRhythmFeedback("Hit", "miss");
+      playMissSound();
+      changeFocus(-config.collidePenalty);
+    } else {
+      showRhythmFeedback("Contact", "miss");
+      updateHud(elapsed);
+    }
+  }
+
+  function resolveWaveClear(wave, elapsed) {
+    wave.state = "cleared";
+    wave.components.forEach((component) => { component.state = "cleared"; });
+    registerDodge(wave, elapsed);
+  }
+
+  function updateObstacles(elapsed, previousElapsed) {
+    ensureChartScheduled(elapsed);
+    spawnScheduledWaves(elapsed);
+    if (ship.x === null) return;
+    for (const wave of activeWaves.values()) {
+      if (wave.state !== "pending") continue;
+      const hitComponent = wave.components.find((component) => componentIntersectsShip(component, elapsed, previousElapsed));
+      if (hitComponent) {
+        resolveWaveHit(wave, hitComponent, elapsed);
+        if (status !== "playing") return;
+      } else if (waveHasPassedShip(wave, elapsed)) {
+        resolveWaveClear(wave, elapsed);
+      }
+    }
+
+    const { width } = hazardSize();
+    obstacles = obstacles.filter((obstacle) => obstacleX(obstacle, elapsed) > -width * 2.5);
+    for (const [id, wave] of activeWaves) {
+      if (wave.components.every((component) => !obstacles.includes(component))) activeWaves.delete(id);
+    }
   }
 
   function spawnBurst(obstacle) {
@@ -2222,12 +2912,16 @@
 
   function resetFieldState() {
     obstacles = [];
+    scheduledWaves = [];
+    activeWaves.clear();
     bursts.length = 0;
     trail.length = 0;
-    nextSpawnAt = 1400;
-    lastSingleY = -1;
-    lastGapY = -1;
-    lastGapSpawnAt = -Infinity;
+    chartNextBeat = FIRST_ARRIVAL_BEAT;
+    lastPhraseId = null;
+    currentPhraseLabel = "Opening drift";
+    roleSwapTimes = [];
+    roleSwapIndex = 0;
+    roleSwapWarningShown = false;
     waveCounter = 0;
     ship.x = null;
     ship.y = null;
@@ -2343,8 +3037,10 @@
 
     drawStars(ctx, w, h, scroll);
     drawBounds(ctx, w);
+    drawTimingLine(ctx);
 
     if (inRound) {
+      drawWallTelegraphs(ctx, elapsed);
       drawObstacles(ctx, elapsed);
       drawTrail(ctx);
       drawShip(ctx, elapsed);
@@ -2385,6 +3081,53 @@
       ctx.moveTo(0, edge);
       ctx.lineTo(w, edge);
       ctx.stroke();
+    }
+  }
+
+  function drawTimingLine(ctx) {
+    const band = fieldBand();
+    const x = view.width * TIMING_LINE_X;
+    ctx.save();
+    ctx.strokeStyle = "rgba(49, 230, 255, 0.16)";
+    ctx.setLineDash([4, 8]);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, band.top);
+    ctx.lineTo(x, band.bottom);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawWallTelegraphs(ctx, elapsed) {
+    const timingX = view.width * TIMING_LINE_X;
+    for (const wave of activeWaves.values()) {
+      if (wave.kind !== "wall" || wave.state !== "pending") continue;
+      const remaining = wave.arrivalTime - elapsed;
+      if (remaining <= 0 || remaining > WALL_TELEGRAPH_BEATS * BEAT_MS) continue;
+      if (!wave.telegraphed && status === "playing") {
+        wave.telegraphed = true;
+        showRhythmFeedback(`Gate · ${Math.max(1, Math.ceil(remaining / BEAT_MS))} beats`, "good");
+        playTone(330, 0.08, "triangle", 0.018);
+      }
+
+      const sorted = [...wave.components].sort((a, b) => a.yCenter - b.yCenter);
+      if (sorted.length < 2) continue;
+      const gapTop = sorted[0].yCenter + sorted[0].height / 2;
+      const gapBottom = sorted[1].yCenter - sorted[1].height / 2;
+      const alpha = reducedMotion ? 0.48 : 0.28 + 0.22 * Math.sin(elapsed * 0.018);
+      ctx.save();
+      ctx.fillStyle = `rgba(255, 224, 91, ${alpha * 0.16})`;
+      ctx.fillRect(0, gapTop, timingX, gapBottom - gapTop);
+      ctx.strokeStyle = `rgba(255, 224, 91, ${alpha + 0.28})`;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([7, 6]);
+      ctx.beginPath();
+      ctx.moveTo(timingX - 22, gapTop);
+      ctx.lineTo(timingX + 22, gapTop);
+      ctx.moveTo(timingX - 22, gapBottom);
+      ctx.lineTo(timingX + 22, gapBottom);
+      ctx.stroke();
+      ctx.restore();
     }
   }
 
@@ -2532,6 +3275,11 @@
 
   // ---- Shared helpers (HUD, focus, screens) --------------------------------
 
+  function createPlayerStats() {
+    const roleStats = () => ({ activeMs: 0, dodges: 0, collisions: 0, correct: 0, wrong: 0, timeouts: 0 });
+    return { p1: { pilot: roleStats(), operator: roleStats() }, p2: { pilot: roleStats(), operator: roleStats() } };
+  }
+
   function resetStats() {
     stats.score = 0;
     stats.combo = 0;
@@ -2541,8 +3289,15 @@
     stats.triviaCorrect = 0;
     stats.triviaWrong = 0;
     stats.triviaTimeouts = 0;
-    stats.dualBonuses = 0;
+    stats.sync = 0;
+    stats.bestSync = 0;
+    stats.syncBanks = 0;
+    stats.syncScore = 0;
+    stats.roleSwaps = 0;
     stats.focus = STARTING_FOCUS;
+    playerStats = createPlayerStats();
+    roleOwners = { pilot: "p1", operator: "p2" };
+    lastRoleStatsElapsed = 0;
   }
 
   function currentMultiplier() {
@@ -2559,7 +3314,14 @@
     return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
   }
 
+  function formatElapsed(milliseconds) {
+    const seconds = Math.max(0, Math.floor(milliseconds / 1000));
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+  }
+
   function sectionForElapsed(elapsed) {
+    if (selectedMode === "endless") return `Tier ${SplitBeatCore.pressureTier("endless", elapsed) + 1}`;
     if (elapsed < 23500) return "Opening drift";
     if (elapsed < 49000) return "Crossfire";
     return "Overdrive";
@@ -2574,20 +3336,64 @@
   }
 
   function updateHud(elapsed = lastElapsed) {
-    const safeElapsed = clamp(elapsed, 0, RUN_DURATION_MS);
+    const safeElapsed = Math.max(0, elapsed);
     const roundedFocus = Math.round(stats.focus);
     setTextIfChanged(dom.scoreValue, String(Math.floor(stats.score)).padStart(7, "0"));
     setTextIfChanged(dom.comboValue, String(stats.combo));
     setTextIfChanged(dom.multiplierValue, `x${currentMultiplier()}`);
+    setTextIfChanged(dom.syncValue, `Sync ${Math.round(stats.sync)}%`);
+    setStyleIfChanged(dom.syncFill, "width", `${stats.sync}%`);
+    if (dom.syncTrack.getAttribute("aria-valuenow") !== String(Math.round(stats.sync))) {
+      dom.syncTrack.setAttribute("aria-valuenow", String(Math.round(stats.sync)));
+    }
     setTextIfChanged(dom.focusValue, `${roundedFocus}%`);
     setStyleIfChanged(dom.focusFill, "width", `${stats.focus}%`);
     if (dom.focusTrack.getAttribute("aria-valuenow") !== String(roundedFocus)) {
       dom.focusTrack.setAttribute("aria-valuenow", String(roundedFocus));
     }
-    setTextIfChanged(dom.timeValue, formatTime(RUN_DURATION_MS - safeElapsed));
-    setStyleIfChanged(dom.songProgressFill, "transform", `scaleX(${safeElapsed / RUN_DURATION_MS})`);
+    if (selectedMode === "endless") {
+      setTextIfChanged(dom.timeLabel, "Survival");
+      setTextIfChanged(dom.timeValue, formatElapsed(safeElapsed));
+      setStyleIfChanged(dom.songProgressFill, "transform", `scaleX(${(safeElapsed % ENDLESS_TIER_MS) / ENDLESS_TIER_MS})`);
+    } else {
+      setTextIfChanged(dom.timeLabel, "Time");
+      setTextIfChanged(dom.timeValue, formatTime(STANDARD_DURATION_MS - clamp(safeElapsed, 0, STANDARD_DURATION_MS)));
+      setStyleIfChanged(dom.songProgressFill, "transform", `scaleX(${clamp(safeElapsed / STANDARD_DURATION_MS, 0, 1)})`);
+    }
     setTextIfChanged(dom.sectionChip, sectionForElapsed(safeElapsed));
+    updateRoleHud();
     document.body.classList.toggle("low-focus", roundedFocus <= 25);
+  }
+
+  function playerName(id) {
+    return id === "p1" ? "Player 1" : "Player 2";
+  }
+
+  function accuracy(correct, total) {
+    return total ? Math.round((correct / total) * 100) : 0;
+  }
+
+  function updatePlayerRoleTime(elapsed) {
+    const delta = Math.max(0, elapsed - lastRoleStatsElapsed);
+    if (selectedPlayStyle === "duo" && delta <= 1000) {
+      playerStats[roleOwners.pilot].pilot.activeMs += delta;
+      playerStats[roleOwners.operator].operator.activeMs += delta;
+    }
+    lastRoleStatsElapsed = elapsed;
+  }
+
+  function updateRoleHud() {
+    const dodgeTotal = stats.dodges + stats.collisions;
+    const triviaTotal = stats.triviaCorrect + stats.triviaWrong;
+    if (selectedPlayStyle === "duo") {
+      dom.pilotRoleLabel.textContent = `${playerName(roleOwners.pilot)} · Pilot`;
+      dom.operatorRoleLabel.textContent = `${playerName(roleOwners.operator)} · Operator / J K L ;`;
+    } else {
+      dom.pilotRoleLabel.textContent = "Flight channel";
+      dom.operatorRoleLabel.textContent = "Trivia channel / J K L ;";
+    }
+    dom.pilotRunStats.textContent = `${stats.dodges} clear · ${stats.collisions} hit · ${accuracy(stats.dodges, dodgeTotal)}%`;
+    dom.operatorRunStats.textContent = `${stats.triviaCorrect} correct · ${stats.triviaWrong} wrong · ${accuracy(stats.triviaCorrect, triviaTotal)}%`;
   }
 
   function flashFocus(kind) {
@@ -2607,21 +3413,38 @@
   }
 
   function showRhythmFeedback(label, tone) {
+    window.clearTimeout(rhythmFeedbackTimer);
     dom.rhythmFeedback.textContent = label;
     dom.rhythmFeedback.className = `rhythm-feedback ${tone}`;
     void dom.rhythmFeedback.offsetWidth;
     dom.rhythmFeedback.classList.add("show");
+    rhythmFeedbackTimer = window.setTimeout(() => dom.rhythmFeedback.classList.remove("show"), 520);
   }
 
   function showDualBonus() {
+    window.clearTimeout(dualBonusTimer);
     dom.dualBonus.classList.remove("show");
     void dom.dualBonus.offsetWidth;
     dom.dualBonus.classList.add("show");
+    dualBonusTimer = window.setTimeout(() => dom.dualBonus.classList.remove("show"), 1000);
+  }
+
+  function showRoleSwapBanner(kind, title, copy) {
+    window.clearTimeout(roleSwapBannerTimer);
+    dom.roleSwapTitle.textContent = title;
+    dom.roleSwapCopy.textContent = copy;
+    dom.roleSwapBanner.classList.remove("show-warning", "show-swap");
+    void dom.roleSwapBanner.offsetWidth;
+    dom.roleSwapBanner.classList.add(kind === "warning" ? "show-warning" : "show-swap");
+    roleSwapBannerTimer = window.setTimeout(() => {
+      dom.roleSwapBanner.classList.remove("show-warning", "show-swap");
+    }, kind === "warning" ? 1100 : 1550);
   }
 
   function setOverlayScreen(screen) {
     const overlayActive = screen !== null;
     dom.mainMenuScreen.hidden = screen !== "menu";
+    dom.duoReadyScreen.hidden = screen !== "duo";
     dom.pauseScreen.hidden = screen !== "pause";
     dom.resultsScreen.hidden = screen !== "results";
     dom.screenOverlay.classList.toggle("is-hidden", !overlayActive);
@@ -2634,22 +3457,248 @@
   function setMenuTab(tabName) {
     const isPlay = tabName === "play";
     dom.playMenuPanel.hidden = !isPlay;
-    dom.howMenuPanel.hidden = isPlay;
+    dom.howMenuPanel.hidden = tabName !== "how";
+    dom.preferencesMenuPanel.hidden = tabName !== "preferences";
     dom.menuTabs.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.menuTab === tabName)));
-    if (isPlay) window.setTimeout(() => dom.startButton.focus(), 0);
+    if (isPlay) window.setTimeout(() => dom.playStyleButtons.find((button) => button.dataset.playStyle === selectedPlayStyle)?.focus(), 0);
+  }
+
+  function selectionAllowed() {
+    return status === "menu" || status === "gameOver";
+  }
+
+  function setPlayStyle(name) {
+    if (!selectionAllowed() || !["solo", "duo"].includes(name)) return;
+    selectedPlayStyle = name;
+    renderSetup();
+    updateRoleHud();
+    persistData();
+  }
+
+  function setMode(name) {
+    if (!selectionAllowed() || !MODES[name]) return;
+    selectedMode = name;
+    modeConfig = MODES[name];
+    renderSetup();
+    updateHud(0);
+    persistData();
   }
 
   function setDifficulty(name) {
-    if (!DIFFICULTIES[name] || status === "playing" || status === "countdown") return;
+    if (!DIFFICULTIES[name] || !selectionAllowed()) return;
     selectedDifficulty = name;
     config = DIFFICULTIES[name];
-    dom.difficultyButtons.forEach((button) => {
-      const selected = button.dataset.difficulty === name;
+    renderSetup();
+    persistData();
+  }
+
+  function setSelectedButtons(buttons, key, value) {
+    buttons.forEach((button) => {
+      const selected = button.dataset[key] === value;
       button.classList.toggle("is-selected", selected);
       button.setAttribute("aria-pressed", String(selected));
     });
-    dom.difficultyDetails.textContent = config.description;
-    dom.chartReadout.textContent = `About ${config.estimatedWaves} hazard waves`;
+  }
+
+  function currentRecordKey() {
+    return SplitBeatCore.recordKey(selectedPlayStyle, selectedMode, selectedDifficulty);
+  }
+
+  function renderSetup() {
+    modeConfig = MODES[selectedMode];
+    config = DIFFICULTIES[selectedDifficulty];
+    setSelectedButtons(dom.playStyleButtons, "playStyle", selectedPlayStyle);
+    setSelectedButtons(dom.modeButtons, "mode", selectedMode);
+    dom.difficultyButtons.forEach((button) => {
+      const selected = button.dataset.difficulty === selectedDifficulty;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+    const duo = selectedPlayStyle === "duo";
+    const endless = selectedMode === "endless";
+    dom.menuEyebrow.textContent = duo ? "Two players. Two roles. One signal." : "One brain. Two jobs.";
+    dom.menuHeroCopy.innerHTML = duo
+      ? "The <em>Pilot</em> flies. The <em>Operator</em> answers. Stay ready, because the signal will swap your roles."
+      : "Dodge the field with your <em>left hand</em>. Answer trivia with your <em>right</em>, both on one screen.";
+    dom.menuModeRule.textContent = endless ? "Survive escalating pressure until shared Focus reaches zero." : "Protect Focus until the 78-second Standard Signal ends.";
+    dom.roundDetails.textContent = `${modeConfig.label} · ${config.label} · ${duo ? "Couch Duo with random role swaps" : "Solo"}. ${config.description}`;
+    dom.startButton.textContent = duo ? "Set up Couch Duo" : `Start ${endless ? "endless" : "solo"} signal`;
+    const record = records[currentRecordKey()];
+    dom.recordPreview.textContent = record
+      ? `Best ${String(Math.floor(record.bestScore || 0)).padStart(7, "0")} · Grade ${record.bestGrade || "D"}${endless ? ` · ${formatElapsed(record.bestTime || 0)}` : ` · ${record.completions || 0} complete`}`
+      : "No record yet. Set the first signal.";
+    dom.chartReadout.textContent = `About ${config.estimatedWaves} beat-authored waves`;
+  }
+
+  function applyMotionPreference() {
+    reducedMotion = systemReducedMotion || motionPreference === "reduced";
+    document.body.classList.toggle("reduce-motion", reducedMotion);
+    if (reducedMotion) {
+      trail.length = 0;
+      bursts.length = 0;
+      trailAccumulator = 0;
+    }
+    setSelectedButtons(dom.motionButtons, "motion", motionPreference);
+    dom.pauseEffectsButton.textContent = reducedMotion ? "Motion reduced" : "Use reduced motion";
+  }
+
+  function setMotionPreference(value) {
+    motionPreference = value === "reduced" ? "reduced" : "system";
+    applyMotionPreference();
+    persistData();
+  }
+
+  function syncSoundControls() {
+    const label = muted ? "Sound off" : "Sound on";
+    for (const button of [dom.muteButton, dom.menuSoundButton, dom.pauseSoundButton]) {
+      button.textContent = label;
+      button.classList.toggle("is-muted", muted);
+      button.setAttribute("aria-pressed", String(muted));
+    }
+    dom.muteButton.setAttribute("aria-label", muted ? "Turn sound on" : "Turn sound off");
+    dom.metronomeButton.textContent = metronomeEnabled ? "Metronome on" : "Metronome off";
+    dom.metronomeButton.setAttribute("aria-pressed", String(metronomeEnabled));
+    dom.volumeControl.value = String(Math.round(volume * 100));
+    dom.volumeValue.textContent = `${Math.round(volume * 100)}%`;
+  }
+
+  function loadPersistentData() {
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null");
+      const preferences = SplitBeatCore.validatePreferences(parsed?.preferences);
+      selectedPlayStyle = preferences.playStyle;
+      selectedMode = preferences.mode;
+      selectedDifficulty = preferences.difficulty;
+      muted = preferences.muted;
+      volume = preferences.volume;
+      metronomeEnabled = preferences.metronome;
+      motionPreference = preferences.motion;
+      records = parsed?.records && typeof parsed.records === "object" && !Array.isArray(parsed.records) ? parsed.records : {};
+    } catch (error) {
+      const preferences = SplitBeatCore.DEFAULT_PREFERENCES;
+      selectedPlayStyle = preferences.playStyle;
+      selectedMode = preferences.mode;
+      selectedDifficulty = preferences.difficulty;
+      muted = preferences.muted;
+      volume = preferences.volume;
+      metronomeEnabled = preferences.metronome;
+      motionPreference = preferences.motion;
+      records = {};
+    }
+    modeConfig = MODES[selectedMode];
+    config = DIFFICULTIES[selectedDifficulty];
+  }
+
+  function persistData() {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        preferences: { schemaVersion: 1, playStyle: selectedPlayStyle, mode: selectedMode, difficulty: selectedDifficulty, muted, volume, metronome: metronomeEnabled, motion: motionPreference },
+        records
+      }));
+    } catch (error) {
+      // Storage can be unavailable in private or embedded browsing contexts.
+    }
+  }
+
+  function resetDuoReady() {
+    duoReady = { pilot: false, operator: false };
+    for (const [role, card, button] of [["pilot", dom.pilotReadyCard, dom.pilotReadyButton], ["operator", dom.operatorReadyCard, dom.operatorReadyButton]]) {
+      card.classList.remove("is-ready");
+      button.setAttribute("aria-pressed", "false");
+      button.textContent = role === "pilot" ? "Pilot ready" : "Operator ready";
+    }
+    dom.duoLaunchButton.disabled = true;
+    dom.duoReadyStatus.textContent = "Each player presses one of their role keys, or uses the ready button.";
+  }
+
+  function showDuoReady() {
+    stopActiveVoices();
+    clearHeldKeys();
+    resetDuoReady();
+    status = "duoReady";
+    setOverlayScreen("duo");
+    dom.duoReadyScreen.focus();
+    dom.liveRegion.textContent = "Couch Duo briefing. Player 1 is Pilot. Player 2 is Operator.";
+  }
+
+  function setDuoRoleReady(role) {
+    if (status !== "duoReady" || !["pilot", "operator"].includes(role)) return;
+    duoReady[role] = true;
+    const card = role === "pilot" ? dom.pilotReadyCard : dom.operatorReadyCard;
+    const button = role === "pilot" ? dom.pilotReadyButton : dom.operatorReadyButton;
+    card.classList.add("is-ready");
+    button.setAttribute("aria-pressed", "true");
+    button.textContent = role === "pilot" ? "Pilot ready ✓" : "Operator ready ✓";
+    const bothReady = duoReady.pilot && duoReady.operator;
+    dom.duoLaunchButton.disabled = !bothReady;
+    dom.duoReadyStatus.textContent = bothReady ? "Crew linked. Launch when both players are settled." : `${role === "pilot" ? "Pilot" : "Operator"} ready. Waiting for the other player.`;
+    dom.liveRegion.textContent = dom.duoReadyStatus.textContent;
+    if (bothReady) dom.duoLaunchButton.focus();
+  }
+
+  function requestRoundStart() {
+    if (selectedPlayStyle === "duo") showDuoReady();
+    else startRound();
+  }
+
+  function launchDuo() {
+    if (status !== "duoReady" || !duoReady.pilot || !duoReady.operator) return;
+    startRound();
+  }
+
+  function prepareRoleSwaps() {
+    roleSwapTimes = [];
+    roleSwapIndex = 0;
+    roleSwapWarningShown = false;
+    if (selectedPlayStyle !== "duo") return;
+    roleSwapTimes = SplitBeatCore.createInitialRoleSwapTimes(selectedMode, swapRandom);
+  }
+
+  function scheduleNextEndlessSwap() {
+    if (selectedMode !== "endless" || !roleSwapTimes.length) return;
+    roleSwapTimes = SplitBeatCore.extendEndlessRoleSwapTimes(roleSwapTimes, roleSwapTimes[roleSwapTimes.length - 1] + 1, swapRandom);
+  }
+
+  function ensureEndlessRoleSwapsScheduled(reservationHorizon) {
+    if (selectedMode !== "endless" || selectedPlayStyle !== "duo" || !roleSwapTimes.length) return;
+    roleSwapTimes = SplitBeatCore.extendEndlessRoleSwapTimes(roleSwapTimes, reservationHorizon, swapRandom);
+  }
+
+  function executeRoleSwap(elapsed) {
+    updatePlayerRoleTime(elapsed);
+    roleOwners = { pilot: roleOwners.operator, operator: roleOwners.pilot };
+    stats.roleSwaps += 1;
+    clearHeldKeys();
+    invulnerableUntil = Math.max(invulnerableUntil, elapsed + ROLE_SWAP_GRACE_MS);
+    if (currentQuestion) {
+      if (currentQuestion.resolved) currentQuestion.resolveAt += ROLE_SWAP_GRACE_MS;
+      else currentQuestion.deadline += ROLE_SWAP_GRACE_MS;
+    }
+    showRoleSwapBanner("swap", "Swap now", `${playerName(roleOwners.pilot)} to Pilot · ${playerName(roleOwners.operator)} to Operator`);
+    dom.liveRegion.textContent = `Roles swapped. ${playerName(roleOwners.pilot)} is now Pilot. ${playerName(roleOwners.operator)} is now Operator.`;
+    lastRoleStatsElapsed = elapsed;
+    roleSwapIndex += 1;
+    roleSwapWarningShown = false;
+    if (selectedMode === "endless" && roleSwapIndex === roleSwapTimes.length) scheduleNextEndlessSwap();
+    updateHud(elapsed);
+  }
+
+  function updateRoleSwaps(elapsed) {
+    if (selectedPlayStyle !== "duo" || roleSwapIndex >= roleSwapTimes.length) return false;
+    const target = roleSwapTimes[roleSwapIndex];
+    const warningAt = target - ROLE_SWAP_WARNING_BEATS * BEAT_MS;
+    if (!roleSwapWarningShown && elapsed >= warningAt) {
+      roleSwapWarningShown = true;
+      showRoleSwapBanner("warning", "Role swap in 2 beats", `${playerName(roleOwners.pilot)} to Operator · ${playerName(roleOwners.operator)} to Pilot`);
+      dom.liveRegion.textContent = "Role swap in two beats.";
+      playTone(440, 0.08, "square", 0.022);
+      playTone(660, 0.08, "square", 0.02, BEAT_MS / 1000);
+    }
+    if (elapsed >= target) {
+      executeRoleSwap(elapsed);
+      return true;
+    }
+    return false;
   }
 
   function clearHeldKeys() {
@@ -2691,12 +3740,20 @@
     dom.pauseButton.disabled = true;
     dom.gameStatus.textContent = "Attention link ready";
     dom.countdown.classList.remove("show");
+    dom.roleSwapBanner.classList.remove("show-warning", "show-swap");
+    renderSetup();
+    syncSoundControls();
+    applyMotionPreference();
     setMenuTab("play");
     setOverlayScreen("menu");
+    dom.liveRegion.textContent = "SplitBeat main menu.";
   }
 
   function shuffleQuestionOrder() {
-    questionOrder = QUESTIONS.map((_, index) => index);
+    questionOrder = QUESTIONS
+      .map((question, index) => ({ question, index }))
+      .filter(({ question }) => question.rank <= config.rank)
+      .map(({ index }) => index);
     for (let index = questionOrder.length - 1; index > 0; index -= 1) {
       const target = Math.floor(triviaRandom() * (index + 1));
       [questionOrder[index], questionOrder[target]] = [questionOrder[target], questionOrder[index]];
@@ -2708,11 +3765,14 @@
     if (questionCursor >= questionOrder.length) shuffleQuestionOrder();
     const questionIndex = questionOrder[questionCursor++];
     const question = QUESTIONS[questionIndex];
+    const tier = SplitBeatCore.pressureTier(selectedMode, elapsed);
+    const durationMs = selectedMode === "endless" ? Math.max(4200, config.questionMs - tier * 250) : config.questionMs;
     questionsSeen += 1;
     currentQuestion = {
       question,
       startedAt: elapsed,
-      deadline: elapsed + config.questionMs,
+      durationMs,
+      deadline: elapsed + durationMs,
       resolved: false,
       resolveAt: Infinity
     };
@@ -2720,7 +3780,7 @@
     dom.triviaPanel.classList.remove("urgent", "is-correct", "is-wrong");
     dom.questionIndex.textContent = `Question ${String(questionsSeen).padStart(2, "0")} / ${question.category}`;
     dom.questionCopy.textContent = question.prompt;
-    dom.questionClock.textContent = (config.questionMs / 1000).toFixed(1);
+    dom.questionClock.textContent = (durationMs / 1000).toFixed(1);
     dom.questionTimerFill.style.transform = "scaleX(1)";
     dom.answerButtons.forEach((button, index) => {
       button.className = "answer-button";
@@ -2757,26 +3817,28 @@
 
     if (outcome === "correct") {
       stats.triviaCorrect += 1;
-      let award = 750;
-      let focusGain = config.triviaGain;
-      const dual = stats.combo > 10;
-      if (dual) {
-        award += 500;
-        focusGain += 2;
-        stats.dualBonuses += 1;
+      playerStats[roleOwners.operator].operator.correct += 1;
+      const syncBank = bankSync();
+      const award = 750 + syncBank.score;
+      const focusGain = config.triviaGain + syncBank.focus;
+      if (syncBank.converted >= 25) {
+        dom.dualBonus.textContent = `Sync ${Math.round(syncBank.converted)}% · +${syncBank.score}`;
         showDualBonus();
       }
       stats.score += award;
       dom.triviaPanel.classList.add("is-correct");
-      setTriviaFeedback(dual ? "Dual focus locked" : "Answer locked", dual ? "+1250" : "+750", "correct");
-      dom.liveRegion.textContent = dual ? "Correct. Dual Focus bonus." : "Correct answer.";
+      setTriviaFeedback(syncBank.converted >= 25 ? "Shared Sync banked" : "Answer locked", `+${award}`, "correct");
+      dom.liveRegion.textContent = syncBank.converted >= 25 ? `Correct. ${Math.round(syncBank.converted)} percent Sync banked.` : "Correct answer.";
       changeFocus(focusGain);
-      playCorrectSound(dual);
+      playCorrectSound(syncBank.converted >= 25);
     } else {
       stats.triviaWrong += 1;
+      playerStats[roleOwners.operator].operator.wrong += 1;
+      breakSync();
       dom.triviaPanel.classList.add("is-wrong");
       if (outcome === "timeout") {
         stats.triviaTimeouts += 1;
+        playerStats[roleOwners.operator].operator.timeouts += 1;
         setTriviaFeedback("Clock expired", `-${config.timeoutPenalty} focus`, "wrong");
         dom.liveRegion.textContent = "Question timed out.";
         changeFocus(-config.timeoutPenalty);
@@ -2810,8 +3872,8 @@
       return;
     }
 
-    const ratio = clamp(remaining / config.questionMs, 0, 1);
-    dom.questionClock.textContent = (remaining / 1000).toFixed(1);
+    const ratio = clamp(remaining / currentQuestion.durationMs, 0, 1);
+    setTextIfChanged(dom.questionClock, (remaining / 1000).toFixed(1));
     dom.questionTimerFill.style.transform = `scaleX(${ratio})`;
     dom.triviaPanel.classList.toggle("urgent", remaining <= 2400);
   }
@@ -2819,7 +3881,7 @@
   function handleAnswer(index) {
     if (status !== "playing" || !currentQuestion || currentQuestion.resolved) return;
     const elapsed = performance.now() - gameStartTime;
-    if (elapsed >= RUN_DURATION_MS) return;
+    if (selectedMode === "standard" && elapsed >= STANDARD_DURATION_MS) return;
     if (elapsed >= currentQuestion.deadline) {
       resolveQuestion("timeout", -1, elapsed);
       return;
@@ -2834,12 +3896,15 @@
 
     stopActiveVoices();
     clearHeldKeys();
+    modeConfig = MODES[selectedMode];
+    config = DIFFICULTIES[selectedDifficulty];
     resetFieldState();
     resetStats();
-    config = DIFFICULTIES[selectedDifficulty];
     resetRoundRandomness();
+    prepareRoleSwaps();
     lastElapsed = 0;
     pausedElapsed = 0;
+    lastPressureTier = 0;
     lastBeatIndex = -1;
     lastCountdownNumber = null;
     questionsSeen = 0;
@@ -2853,8 +3918,8 @@
     dom.pauseButton.disabled = true;
     dom.countdown.classList.add("show");
     dom.countdownValue.textContent = "3";
-    dom.gameStatus.textContent = `${config.label} link arming`;
-    dom.chartReadout.textContent = `About ${config.estimatedWaves} hazard waves`;
+    dom.gameStatus.textContent = `${modeConfig.label} · ${config.label} · arming`;
+    dom.chartReadout.textContent = `Beat chart seeded ${roundSeed}`;
     updateHud(0);
     dom.liveRegion.textContent = "Round starting. Three.";
     unlockAudio();
@@ -2875,9 +3940,11 @@
       splitFlashUntil = lastElapsed + 560;
       dom.countdownValue.textContent = "SPLIT";
       dom.pauseButton.disabled = false;
-      dom.gameStatus.textContent = `${config.label} link live`;
+      dom.gameStatus.textContent = `${modeConfig.label} · ${config.label} · live`;
       setAnswersEnabled(true);
-      dom.liveRegion.textContent = "Split. Round live.";
+      dom.liveRegion.textContent = currentQuestion
+        ? `Split. Round live. Question ${questionsSeen}. ${currentQuestion.question.prompt} Answer with J, K, L, or semicolon.`
+        : "Split. Round live.";
       playSplitSound();
     }
   }
@@ -2886,20 +3953,35 @@
     const beatIndex = Math.floor(elapsed / BEAT_MS);
     if (beatIndex === lastBeatIndex) return;
     lastBeatIndex = beatIndex;
-    playMetronomeBeat(beatIndex % 4 === 0);
+    if (metronomeEnabled) playMetronomeBeat(beatIndex % 4 === 0);
+  }
+
+  function updatePressureTier(elapsed, roleSwapped = false) {
+    if (selectedMode !== "endless") return;
+    const tier = SplitBeatCore.pressureTier("endless", elapsed);
+    if (tier === lastPressureTier) return;
+    lastPressureTier = tier;
+    showRhythmFeedback(`Tier ${tier + 1}`, "great");
+    const announcement = `Pressure tier ${tier + 1}.`;
+    dom.liveRegion.textContent = roleSwapped ? `${dom.liveRegion.textContent} ${announcement}` : announcement;
+    playChainSound();
   }
 
   function updatePlaying(now, previousElapsed) {
     const elapsed = Math.max(0, now - gameStartTime);
-    if (elapsed >= RUN_DURATION_MS) {
-      lastElapsed = RUN_DURATION_MS;
+    if (selectedMode === "standard" && elapsed >= STANDARD_DURATION_MS) {
+      lastElapsed = STANDARD_DURATION_MS;
       dom.countdown.classList.remove("show");
-      updateHud(RUN_DURATION_MS);
+      updatePlayerRoleTime(STANDARD_DURATION_MS);
+      updateHud(STANDARD_DURATION_MS);
       finishGame("complete");
       return;
     }
 
     lastElapsed = elapsed;
+    updatePlayerRoleTime(elapsed);
+    const roleSwapped = updateRoleSwaps(elapsed);
+    updatePressureTier(elapsed, roleSwapped);
     updateObstacles(elapsed, previousElapsed);
     if (status !== "playing") return;
     updateTrivia(elapsed);
@@ -2946,27 +4028,61 @@
     } else {
       gameStartTime = now - pausedElapsed;
       lastElapsed = pausedElapsed;
+      lastRoleStatsElapsed = pausedElapsed;
       lastBeatIndex = Math.floor(pausedElapsed / BEAT_MS);
       status = "playing";
       setAnswersEnabled(true);
       dom.pauseButton.disabled = false;
-      dom.gameStatus.textContent = `${config.label} link live`;
+      dom.gameStatus.textContent = `${modeConfig.label} · ${config.label} · live`;
       dom.liveRegion.textContent = "Round resumed.";
     }
     setOverlayScreen(null);
+    if (status === "playing" && selectedPlayStyle === "duo" && roleSwapWarningShown && roleSwapIndex < roleSwapTimes.length) {
+      const beats = Math.max(1, Math.ceil((roleSwapTimes[roleSwapIndex] - lastElapsed) / BEAT_MS));
+      showRoleSwapBanner("warning", `Role swap in ${beats} ${beats === 1 ? "beat" : "beats"}`, `${playerName(roleOwners.pilot)} to Operator · ${playerName(roleOwners.operator)} to Pilot`);
+    }
     unlockAudio();
   }
 
   function calculateGrade() {
-    const dodgeTotal = stats.dodges + stats.collisions;
-    const triviaTotal = stats.triviaCorrect + stats.triviaWrong;
-    const dodgeAccuracy = dodgeTotal ? stats.dodges / dodgeTotal : 0;
-    const triviaAccuracy = triviaTotal ? stats.triviaCorrect / triviaTotal : 0;
-    if (dodgeAccuracy >= 0.93 && triviaAccuracy >= 0.82 && stats.focus >= 45) return "S";
-    if (dodgeAccuracy >= 0.82 && triviaAccuracy >= 0.65) return "A";
-    if (dodgeAccuracy >= 0.67 && triviaAccuracy >= 0.48) return "B";
-    if (dodgeAccuracy >= 0.48 || triviaAccuracy >= 0.4) return "C";
-    return "D";
+    return SplitBeatCore.calculateGrade(stats);
+  }
+
+  function renderSoloResults(dodgeAccuracy, triviaAccuracy) {
+    dom.resultPilotOwner.textContent = "Flight channel";
+    dom.resultPilotTitle.textContent = "Pilot report";
+    dom.resultPilotMetric1Label.textContent = "Accuracy";
+    dom.resultPilotMetric2Label.textContent = "Clears";
+    dom.resultPilotMetric3Label.textContent = "Hits";
+    dom.resultDodgeAccuracy.textContent = `${dodgeAccuracy}%`;
+    dom.resultHits.textContent = String(stats.dodges);
+    dom.resultMisses.textContent = String(stats.collisions);
+    dom.resultOperatorOwner.textContent = "Trivia channel";
+    dom.resultOperatorTitle.textContent = "Operator report";
+    dom.resultOperatorMetric1Label.textContent = "Accuracy";
+    dom.resultOperatorMetric2Label.textContent = "Correct";
+    dom.resultOperatorMetric3Label.textContent = "Wrong";
+    dom.resultTriviaAccuracy.textContent = `${triviaAccuracy}%`;
+    dom.resultCorrect.textContent = String(stats.triviaCorrect);
+    dom.resultWrong.textContent = String(stats.triviaWrong);
+  }
+
+  function renderDuoResults() {
+    const renderPlayer = (playerId, owner, title, labels, values) => {
+      owner.textContent = `${playerName(playerId)} · Swapped crew`;
+      title.textContent = playerName(playerId);
+      labels[0].textContent = "Flight";
+      labels[1].textContent = "Trivia";
+      labels[2].textContent = "Role split";
+      const data = playerStats[playerId];
+      const flightAccuracy = accuracy(data.pilot.dodges, data.pilot.dodges + data.pilot.collisions);
+      const triviaAccuracy = accuracy(data.operator.correct, data.operator.correct + data.operator.wrong);
+      values[0].textContent = data.pilot.dodges + data.pilot.collisions ? `${flightAccuracy}%` : "N/A";
+      values[1].textContent = data.operator.correct + data.operator.wrong ? `${triviaAccuracy}%` : "N/A";
+      values[2].textContent = `P ${formatElapsed(data.pilot.activeMs)} · O ${formatElapsed(data.operator.activeMs)}`;
+    };
+    renderPlayer("p1", dom.resultPilotOwner, dom.resultPilotTitle, [dom.resultPilotMetric1Label, dom.resultPilotMetric2Label, dom.resultPilotMetric3Label], [dom.resultDodgeAccuracy, dom.resultHits, dom.resultMisses]);
+    renderPlayer("p2", dom.resultOperatorOwner, dom.resultOperatorTitle, [dom.resultOperatorMetric1Label, dom.resultOperatorMetric2Label, dom.resultOperatorMetric3Label], [dom.resultTriviaAccuracy, dom.resultCorrect, dom.resultWrong]);
   }
 
   function finishGame(reason) {
@@ -2977,27 +4093,45 @@
     dom.countdown.classList.remove("show");
     dom.pauseButton.disabled = true;
     dom.triviaPanel.classList.remove("urgent");
+    updatePlayerRoleTime(lastElapsed);
 
     const dodgeTotal = stats.dodges + stats.collisions;
     const triviaTotal = stats.triviaCorrect + stats.triviaWrong;
     const dodgeAccuracy = dodgeTotal ? Math.round((stats.dodges / dodgeTotal) * 100) : 0;
     const triviaAccuracy = triviaTotal ? Math.round((stats.triviaCorrect / triviaTotal) * 100) : 0;
     const complete = reason === "complete";
-    lastElapsed = clamp(lastElapsed, 0, RUN_DURATION_MS);
+    if (selectedMode === "standard") lastElapsed = clamp(lastElapsed, 0, STANDARD_DURATION_MS);
+    const grade = calculateGrade();
+    const tier = SplitBeatCore.pressureTier(selectedMode, lastElapsed) + 1;
+    const previousRecord = records[currentRecordKey()];
+    const merged = SplitBeatCore.mergeRecord(previousRecord, { mode: selectedMode, score: Math.floor(stats.score), complete, grade, bestCombo: stats.bestCombo, dodgeAccuracy, triviaAccuracy, elapsed: lastElapsed, tier, focus: stats.focus });
+    records[currentRecordKey()] = merged.record;
+    persistData();
 
-    dom.resultReason.textContent = complete ? "Signal complete" : "Focus depleted";
+    dom.resultReason.textContent = complete ? "Signal complete" : selectedMode === "endless" ? `Signal lost · Tier ${tier}` : "Focus depleted";
     dom.resultScore.textContent = String(Math.floor(stats.score)).padStart(7, "0");
-    dom.resultGrade.textContent = calculateGrade();
+    dom.resultGrade.textContent = grade;
+    dom.resultContext.textContent = `${modeConfig.label} · ${config.label} · ${selectedPlayStyle === "duo" ? `Couch Duo · ${stats.roleSwaps} swaps` : "Solo"} · Seed ${roundSeed}`;
     dom.resultCopy.textContent = complete
       ? `You held both channels to the end with ${dodgeAccuracy}% dodge accuracy and ${triviaAccuracy}% trivia accuracy.`
-      : `The attention link collapsed at ${formatTime(lastElapsed)} elapsed. Dodge accuracy was ${dodgeAccuracy}% and trivia accuracy was ${triviaAccuracy}%.`;
+      : `${selectedMode === "endless" ? `The team reached Tier ${tier}` : "The attention link collapsed"} at ${formatElapsed(lastElapsed)} with ${dodgeAccuracy}% flight accuracy and ${triviaAccuracy}% trivia accuracy.`;
+    dom.resultBest.textContent = merged.newBest
+      ? previousRecord ? `New personal best. Previous score: ${String(Math.floor(merged.previousBestScore)).padStart(7, "0")}.` : "First result recorded for this setup."
+      : `${Math.max(0, merged.record.bestScore - Math.floor(stats.score))} points short of your best.`;
     dom.resultBestCombo.textContent = String(stats.bestCombo);
-    dom.resultHits.textContent = String(stats.dodges);
-    dom.resultMisses.textContent = String(stats.collisions);
-    dom.resultCorrect.textContent = String(stats.triviaCorrect);
-    dom.resultWrong.textContent = String(stats.triviaWrong);
-    dom.resultDual.textContent = String(stats.dualBonuses);
+    dom.resultSyncBanks.textContent = String(stats.syncBanks);
+    if (selectedMode === "endless") {
+      dom.resultRunLabel.textContent = "Survival / Tier";
+      dom.resultRunValue.textContent = `${formatElapsed(lastElapsed)} · T${tier}`;
+    } else {
+      dom.resultRunLabel.textContent = "Finishing Focus";
+      dom.resultRunValue.textContent = `${Math.round(stats.focus)}%`;
+    }
+    if (selectedPlayStyle === "duo") renderDuoResults();
+    else renderSoloResults(dodgeAccuracy, triviaAccuracy);
     dom.gameStatus.textContent = complete ? "Signal complete" : "Focus signal lost";
+    dom.restartButton.textContent = selectedPlayStyle === "duo" ? "Ready team again" : "Play again";
+    renderSetup();
     updateHud(lastElapsed);
     setOverlayScreen("results");
     dom.restartButton.focus();
@@ -3011,16 +4145,27 @@
 
   function toggleMute() {
     muted = !muted;
-    dom.muteButton.textContent = muted ? "Sound off" : "Sound on";
-    dom.muteButton.classList.toggle("is-muted", muted);
-    dom.muteButton.setAttribute("aria-pressed", String(muted));
-    dom.muteButton.setAttribute("aria-label", muted ? "Turn sound on" : "Turn sound off");
+    syncSoundControls();
     if (masterGain && audioContext) {
       masterGain.gain.cancelScheduledValues(audioContext.currentTime);
-      masterGain.gain.setValueAtTime(muted ? 0 : 1, audioContext.currentTime);
+      masterGain.gain.setValueAtTime(muted ? 0 : volume, audioContext.currentTime);
     }
     if (muted) stopActiveVoices();
     if (!muted) unlockAudio();
+    persistData();
+  }
+
+  function setVolume(value) {
+    volume = clamp(Number(value) / 100, 0, 1);
+    if (masterGain && audioContext) masterGain.gain.setValueAtTime(muted ? 0 : volume, audioContext.currentTime);
+    syncSoundControls();
+    persistData();
+  }
+
+  function toggleMetronome() {
+    metronomeEnabled = !metronomeEnabled;
+    syncSoundControls();
+    persistData();
   }
 
   function stopActiveVoices() {
@@ -3038,7 +4183,7 @@
         if (!AudioContextClass) return;
         audioContext = new AudioContextClass();
         masterGain = audioContext.createGain();
-        masterGain.gain.value = muted ? 0 : 1;
+        masterGain.gain.value = muted ? 0 : volume;
         masterGain.connect(audioContext.destination);
       }
       if (audioContext.state !== "running") await audioContext.resume();
@@ -3120,7 +4265,7 @@
   }
 
   function activeOverlayCard() {
-    return [dom.mainMenuScreen, dom.pauseScreen, dom.resultsScreen].find((screen) => !screen.hidden) || null;
+    return [dom.mainMenuScreen, dom.duoReadyScreen, dom.pauseScreen, dom.resultsScreen].find((screen) => !screen.hidden) || null;
   }
 
   function trapOverlayFocus(event) {
@@ -3150,6 +4295,31 @@
     if (trapOverlayFocus(event)) return;
 
     const direction = MOVE_CODES[event.code] || MOVE_KEYS[key];
+    const answerIndex = ANSWER_CODES[event.code] ?? ANSWER_KEYS.indexOf(key);
+
+    if (status === "duoReady") {
+      if (event.repeat) return;
+      if (["KeyW", "KeyA", "KeyS", "KeyD"].includes(event.code)) {
+        event.preventDefault();
+        setDuoRoleReady("pilot");
+        return;
+      }
+      if (answerIndex >= 0) {
+        event.preventDefault();
+        setDuoRoleReady("operator");
+        return;
+      }
+      if (key === "escape") {
+        event.preventDefault();
+        showMainMenu();
+        return;
+      }
+      if ((key === "enter" || key === " ") && duoReady.pilot && duoReady.operator && !isInteractiveTarget(event.target)) {
+        event.preventDefault();
+        launchDuo();
+      }
+      return;
+    }
 
     if (direction) {
       if (status === "playing" || status === "countdown") {
@@ -3160,7 +4330,6 @@
       return;
     }
 
-    const answerIndex = ANSWER_CODES[event.code] ?? ANSWER_KEYS.indexOf(key);
     if (answerIndex >= 0) {
       if (status === "playing") {
         event.preventDefault();
@@ -3180,7 +4349,7 @@
 
     if ((key === "enter" || key === " ") && status === "menu" && !dom.playMenuPanel.hidden && !isInteractiveTarget(event.target)) {
       event.preventDefault();
-      startRound();
+      requestRoundStart();
     }
   }
 
@@ -3195,42 +4364,73 @@
   }
 
   function gameLoop(now) {
-    const rawFrameMs = lastFrameTime ? now - lastFrameTime : 16;
-    if ((status === "playing" || status === "countdown") && rawFrameMs > MAX_ACTIVE_FRAME_GAP_MS) {
-      const countdownRemaining = status === "countdown" ? Math.max(0, gameStartTime - lastFrameTime) : null;
-      pauseGame(countdownRemaining);
-    }
+    try {
+      const rawFrameMs = lastFrameTime ? now - lastFrameTime : 16;
+      if ((status === "playing" || status === "countdown") && rawFrameMs > MAX_ACTIVE_FRAME_GAP_MS) {
+        const countdownRemaining = status === "countdown" ? Math.max(0, gameStartTime - lastFrameTime) : null;
+        pauseGame(countdownRemaining);
+      }
 
-    const frameSeconds = clamp(rawFrameMs / 1000, 0, 0.05);
-    const previousElapsed = lastElapsed;
-    if (status === "countdown") updateCountdown(now);
-    if (status === "countdown") updateShip(0);
-    if (status === "playing") updateShip(frameSeconds);
-    if (status === "playing") updatePlaying(now, previousElapsed);
-    if (status === "playing") updateEffects(frameSeconds);
-    renderField(now);
-    lastFrameTime = now;
-    animationFrameId = requestAnimationFrame(gameLoop);
+      const frameSeconds = clamp(rawFrameMs / 1000, 0, 0.05);
+      const previousElapsed = lastElapsed;
+      if (status === "countdown") updateCountdown(now);
+      if (status === "countdown") updateShip(0);
+      if (status === "playing") updateShip(frameSeconds);
+      if (status === "playing") updatePlaying(now, previousElapsed);
+      if (status === "playing") updateEffects(frameSeconds);
+      const active = status === "playing" || status === "countdown";
+      if (active || now - lastRenderTime >= 66) {
+        renderField(now);
+        lastRenderTime = now;
+      }
+      lastFrameTime = now;
+      animationFrameId = requestAnimationFrame(gameLoop);
+    } catch (error) {
+      console.error("SplitBeat stopped after an unexpected runtime error.", error);
+      status = "error";
+      clearHeldKeys();
+      setAnswersEnabled(false);
+      dom.pauseButton.disabled = true;
+      dom.trackError.textContent = "The signal stopped after an unexpected browser error. Reload SplitBeat to try again.";
+      dom.trackError.classList.add("show");
+      dom.liveRegion.textContent = "SplitBeat stopped after an unexpected browser error.";
+    }
   }
 
   dom.menuTabs.forEach((button) => button.addEventListener("click", () => setMenuTab(button.dataset.menuTab)));
   dom.howBackButton.addEventListener("click", () => setMenuTab("play"));
+  dom.preferencesBackButton.addEventListener("click", () => setMenuTab("play"));
+  dom.playStyleButtons.forEach((button) => button.addEventListener("click", () => setPlayStyle(button.dataset.playStyle)));
+  dom.modeButtons.forEach((button) => button.addEventListener("click", () => setMode(button.dataset.mode)));
   dom.difficultyButtons.forEach((button) => button.addEventListener("click", () => setDifficulty(button.dataset.difficulty)));
-  dom.startButton.addEventListener("click", startRound);
+  dom.motionButtons.forEach((button) => button.addEventListener("click", () => setMotionPreference(button.dataset.motion)));
+  dom.startButton.addEventListener("click", requestRoundStart);
+  dom.pilotReadyButton.addEventListener("click", () => setDuoRoleReady("pilot"));
+  dom.operatorReadyButton.addEventListener("click", () => setDuoRoleReady("operator"));
+  dom.duoLaunchButton.addEventListener("click", launchDuo);
+  dom.duoBackButton.addEventListener("click", showMainMenu);
   dom.pauseButton.addEventListener("click", pauseGame);
   dom.resumeButton.addEventListener("click", resumeGame);
+  dom.pauseSoundButton.addEventListener("click", toggleMute);
+  dom.pauseEffectsButton.addEventListener("click", () => setMotionPreference(motionPreference === "reduced" ? "system" : "reduced"));
   dom.pauseRestartButton.addEventListener("click", startRound);
   dom.pauseMenuButton.addEventListener("click", showMainMenu);
-  dom.restartButton.addEventListener("click", startRound);
-  dom.changeDifficultyButton.addEventListener("click", showMainMenu);
+  dom.restartButton.addEventListener("click", requestRoundStart);
+  dom.changeSetupButton.addEventListener("click", showMainMenu);
   dom.resultsMenuButton.addEventListener("click", showMainMenu);
   dom.muteButton.addEventListener("click", toggleMute);
+  dom.menuSoundButton.addEventListener("click", toggleMute);
+  dom.volumeControl.addEventListener("input", () => setVolume(dom.volumeControl.value));
+  dom.metronomeButton.addEventListener("click", toggleMetronome);
   dom.answerButtons.forEach((button, index) => button.addEventListener("click", () => handleAnswer(index)));
   window.addEventListener("keydown", handleKeyDown);
   window.addEventListener("keyup", handleKeyUp);
   window.addEventListener("blur", () => {
     if (status === "playing" || status === "countdown") pauseGame();
-    else clearHeldKeys();
+    else {
+      clearHeldKeys();
+      if (status === "duoReady") resetDuoReady();
+    }
   });
   document.addEventListener("visibilitychange", () => {
     if (document.hidden && (status === "playing" || status === "countdown")) pauseGame();
@@ -3238,12 +4438,8 @@
 
   const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   const updateMotionPreference = (event) => {
-    reducedMotion = event.matches;
-    if (reducedMotion) {
-      trail.length = 0;
-      bursts.length = 0;
-      trailAccumulator = 0;
-    }
+    systemReducedMotion = event.matches;
+    applyMotionPreference();
   };
   if (motionQuery.addEventListener) motionQuery.addEventListener("change", updateMotionPreference);
   else motionQuery.addListener(updateMotionPreference);
@@ -3264,20 +4460,33 @@
   window.SplitBeat = Object.freeze({
     getSnapshot: () => ({
       status,
+      version: SplitBeatCore.GAME_VERSION,
+      playStyle: selectedPlayStyle,
+      mode: selectedMode,
       difficulty: selectedDifficulty,
       seed: roundSeed,
       elapsed: lastElapsed,
+      pressureTier: SplitBeatCore.pressureTier(selectedMode, lastElapsed) + 1,
       score: stats.score,
       combo: stats.combo,
       bestCombo: stats.bestCombo,
+      sync: stats.sync,
+      syncBanks: stats.syncBanks,
+      roleSwaps: stats.roleSwaps,
       dodges: stats.dodges,
       collisions: stats.collisions,
       triviaCorrect: stats.triviaCorrect,
       triviaWrong: stats.triviaWrong,
       focus: stats.focus,
       muted,
+      volume,
+      metronomeEnabled,
       audioState: audioContext?.state || "idle",
       reducedMotion,
+      roleOwners: { ...roleOwners },
+      nextRoleSwapAt: roleSwapTimes[roleSwapIndex] ?? null,
+      roleSwapWarningShown,
+      playerStats: JSON.parse(JSON.stringify(playerStats)),
       viewport: {
         width: Math.round(view.width),
         height: Math.round(view.height),
@@ -3287,23 +4496,43 @@
       shipY: ship.y === null ? null : Math.round(ship.y),
       obstacleCount: obstacles.length,
       obstacles: obstacles.map((obstacle) => ({
-        wave: obstacle.waveId,
+        wave: obstacle.id,
         kind: obstacle.kind,
         state: obstacle.state,
+        arrivalBeat: obstacle.arrivalBeat,
         x: Math.round(obstacleX(obstacle, lastElapsed)),
         y: Math.round(obstacle.yCenter),
         height: Math.round(obstacle.height)
       })),
-      nextSpawnAt: Math.round(nextSpawnAt),
+      scheduledWaveCount: scheduledWaves.length,
+      nextArrivalBeat: scheduledWaves[0]?.arrivalBeat ?? null,
+      activeWaves: [...activeWaves.values()].map((wave) => ({ id: wave.id, kind: wave.kind, state: wave.state, phrase: wave.phraseId, arrivalBeat: wave.arrivalBeat })),
       trailCount: trail.length,
       burstCount: bursts.length,
       questionDeadline: currentQuestion ? Math.round(currentQuestion.deadline) : null,
-      questionCount: QUESTIONS.length
-    })
+      questionCount: QUESTIONS.length,
+      phraseCount: WAVE_PHRASES.length
+    }),
+    runDiagnostics: () => ({
+      duplicateIds: [...document.querySelectorAll("[id]")].map((element) => element.id).filter((id, index, ids) => ids.indexOf(id) !== index),
+      missingDomBindings: Object.entries(dom).filter(([, value]) => value === null).map(([key]) => key),
+      questionCount: QUESTIONS.length,
+      phraseCount: WAVE_PHRASES.length,
+      recordKey: currentRecordKey()
+    }),
+    qa: new URLSearchParams(window.location.search).get("qa") === "1" ? Object.freeze({
+      select: ({ playStyle = selectedPlayStyle, mode = selectedMode, difficulty = selectedDifficulty } = {}) => { setPlayStyle(playStyle); setMode(mode); setDifficulty(difficulty); },
+      start: requestRoundStart,
+      setFocus: (value) => { stats.focus = clamp(Number(value), 0, 100); updateHud(); },
+      finish: () => { if (status === "playing") finishGame(selectedMode === "standard" ? "complete" : "focus"); }
+    }) : null
   });
 
+  loadPersistentData();
   initField();
-  setDifficulty("normal");
+  syncSoundControls();
+  applyMotionPreference();
+  renderSetup();
   showMainMenu();
   updateLayoutSupport(layoutQuery);
   animationFrameId = requestAnimationFrame(gameLoop);
