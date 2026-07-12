@@ -1,0 +1,4542 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#050711">
+  <meta name="description" content="Fly and think at the same time in a beat-driven solo or couch co-op attention game.">
+  <title>SplitBeat V4 - Dual Attention Evasion</title>
+  <style>
+    :root {
+      --ink: #f7f8ff;
+      --muted: #8990aa;
+      --dim: #505872;
+      --void: #03040b;
+      --panel: #090c18;
+      --panel-2: #0d1122;
+      --line: rgba(159, 173, 255, 0.16);
+      --cyan: #31e6ff;
+      --pink: #ff4fd8;
+      --yellow: #ffe05b;
+      --green: #76ff93;
+      --danger: #ff315d;
+      --focus: #56f7c2;
+      --radius: 22px;
+      --ease: cubic-bezier(.2, .8, .2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-width: 0;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--void);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(49, 230, 255, 0.11), transparent 30%),
+        radial-gradient(circle at 84% 78%, rgba(255, 79, 216, 0.10), transparent 34%),
+        linear-gradient(145deg, #080b17 0%, #02030a 58%, #07040d 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      pointer-events: none;
+      opacity: 0.22;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 3px,
+        rgba(255, 255, 255, 0.018) 4px
+      );
+      mix-blend-mode: screen;
+    }
+
+    button {
+      color: inherit;
+      font: inherit;
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .app-frame {
+      position: relative;
+      width: min(1580px, calc(100vw - 30px));
+      height: min(960px, calc(100dvh - 30px));
+      min-height: 620px;
+      display: grid;
+      grid-template-rows: 106px minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid rgba(160, 177, 255, 0.18);
+      border-radius: 26px;
+      background: rgba(5, 7, 16, 0.92);
+      box-shadow:
+        0 42px 110px rgba(0, 0, 0, 0.62),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+      isolation: isolate;
+    }
+
+    .app-frame::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 50;
+      pointer-events: none;
+      border-radius: inherit;
+      box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.5);
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: minmax(170px, 0.8fr) minmax(100px, 0.55fr) minmax(290px, 1.45fr) minmax(108px, 0.55fr) auto;
+      gap: 10px;
+      align-items: stretch;
+      padding: 13px 15px 17px;
+      background: linear-gradient(180deg, rgba(15, 19, 38, 0.98), rgba(7, 9, 20, 0.96));
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand-lockup,
+    .hud-stat,
+    .focus-stat,
+    .hud-actions {
+      min-width: 0;
+      border: 1px solid rgba(166, 181, 255, 0.12);
+      background: rgba(255, 255, 255, 0.025);
+      border-radius: 14px;
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 10px 14px;
+    }
+
+    .brand-glyph {
+      width: 37px;
+      height: 37px;
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px;
+      padding: 6px;
+      border: 1px solid rgba(49, 230, 255, 0.42);
+      border-radius: 10px;
+      box-shadow: 0 0 22px rgba(49, 230, 255, 0.14);
+    }
+
+    .brand-glyph span {
+      border-radius: 2px;
+      background: var(--cyan);
+      box-shadow: 0 0 9px currentColor;
+    }
+
+    .brand-glyph span:nth-child(2),
+    .brand-glyph span:nth-child(3) {
+      color: var(--pink);
+      background: var(--pink);
+    }
+
+    .brand-name {
+      margin: 0;
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: clamp(21px, 2vw, 29px);
+      font-weight: 900;
+      line-height: 0.88;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+    }
+
+    .brand-name span {
+      color: var(--pink);
+    }
+
+    .brand-subtitle {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .hud-stat {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 9px 13px;
+    }
+
+    .hud-label,
+    .focus-label-row,
+    .panel-kicker,
+    .question-meta,
+    .menu-kicker,
+    .eyebrow {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .hud-value {
+      margin-top: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: clamp(20px, 2vw, 28px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.05em;
+      white-space: nowrap;
+    }
+
+    .hud-value small {
+      margin-left: 5px;
+      color: var(--cyan);
+      font-size: 11px;
+      letter-spacing: 0.02em;
+    }
+
+    .hud-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .sync-number {
+      color: var(--yellow);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+    }
+
+    .sync-track {
+      height: 4px;
+      margin-top: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .sync-fill {
+      width: 0;
+      height: 100%;
+      transform-origin: left;
+      background: linear-gradient(90deg, var(--cyan), var(--yellow), var(--pink));
+      box-shadow: 0 0 12px rgba(255, 224, 91, 0.34);
+      transition: width 160ms var(--ease);
+    }
+
+    .focus-stat {
+      display: grid;
+      align-content: center;
+      gap: 8px;
+      padding: 9px 14px;
+    }
+
+    .focus-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .focus-number {
+      color: var(--ink);
+      font-size: 12px;
+      letter-spacing: 0;
+    }
+
+    .focus-track {
+      position: relative;
+      height: 13px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      background:
+        repeating-linear-gradient(90deg, transparent 0 9%, rgba(255, 255, 255, 0.08) 9.5% 10%),
+        #03050d;
+      box-shadow: inset 0 2px 7px rgba(0, 0, 0, 0.8);
+    }
+
+    .focus-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 82%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--pink), var(--yellow) 43%, var(--focus));
+      box-shadow: 0 0 16px rgba(86, 247, 194, 0.65);
+      transition: width 180ms var(--ease), filter 180ms ease;
+    }
+
+    .focus-stat.gain .focus-fill {
+      animation: focusGain 420ms ease;
+    }
+
+    .focus-stat.loss .focus-fill {
+      animation: focusLoss 420ms ease;
+    }
+
+    .low-focus .focus-stat {
+      border-color: rgba(255, 49, 93, 0.58);
+      background: rgba(255, 49, 93, 0.065);
+      box-shadow: inset 0 0 22px rgba(255, 49, 93, 0.08);
+    }
+
+    .low-focus .focus-number {
+      color: #ff9bb0;
+    }
+
+    .low-focus .focus-fill {
+      background: linear-gradient(90deg, #ff315d, #ff6f88);
+      box-shadow: 0 0 18px rgba(255, 49, 93, 0.65);
+    }
+
+    .hud-actions {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      padding: 8px;
+    }
+
+    .utility-button {
+      min-width: 70px;
+      height: 45px;
+      padding: 0 11px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.035);
+      color: #b9bfd4;
+      cursor: pointer;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: 160ms ease;
+    }
+
+    .utility-button:hover:not(:disabled) {
+      border-color: rgba(49, 230, 255, 0.55);
+      color: var(--ink);
+      background: rgba(49, 230, 255, 0.08);
+    }
+
+    .utility-button:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    .utility-button.is-muted {
+      color: #ff879f;
+      border-color: rgba(255, 49, 93, 0.32);
+    }
+
+    .song-progress {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .song-progress-fill {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--pink));
+      box-shadow: 0 0 13px rgba(49, 230, 255, 0.7);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 80ms linear;
+    }
+
+    .split-stage {
+      position: relative;
+      z-index: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      background: #050711;
+    }
+
+    .rhythm-zone,
+    .trivia-zone {
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .rhythm-zone {
+      position: relative;
+      display: grid;
+      grid-template-rows: 49px minmax(0, 1fr) 38px;
+      overflow: hidden;
+      background: #040612;
+    }
+
+    .panel-topline {
+      position: relative;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 19px;
+      border-bottom: 1px solid rgba(159, 173, 255, 0.09);
+      background: linear-gradient(180deg, rgba(12, 16, 31, 0.95), rgba(7, 9, 20, 0.75));
+    }
+
+    .panel-title {
+      margin-left: 8px;
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .panel-title::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 9px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 11px var(--cyan);
+    }
+
+    .section-chip,
+    .difficulty-chip {
+      padding: 6px 9px;
+      border: 1px solid rgba(49, 230, 255, 0.18);
+      border-radius: 999px;
+      color: #a8ecf5;
+      background: rgba(49, 230, 255, 0.055);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .role-readout {
+      display: block;
+      margin-top: 4px;
+      color: rgba(207, 216, 244, 0.7);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .track-viewport {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(35, 58, 103, 0.28), transparent 40%),
+        #03050c;
+      isolation: isolate;
+    }
+
+    #webglMount,
+    #webglMount canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #webglMount canvas {
+      pointer-events: none;
+    }
+
+    .track-vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(1, 2, 7, 0.62), transparent 13%, transparent 90%, rgba(1, 2, 7, 0.34)),
+        linear-gradient(180deg, rgba(1, 2, 8, 0.33), transparent 34%, rgba(0, 0, 0, 0.14) 72%, rgba(0, 0, 0, 0.58));
+    }
+
+    .rhythm-feedback {
+      position: absolute;
+      z-index: 6;
+      left: 50%;
+      bottom: 42%;
+      transform: translate(-50%, 10px) scale(0.94);
+      opacity: 0;
+      color: var(--ink);
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: clamp(25px, 4vw, 50px);
+      letter-spacing: 0.09em;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow: 0 0 18px currentColor;
+      pointer-events: none;
+    }
+
+    .rhythm-feedback.show {
+      animation: judgment 470ms var(--ease);
+    }
+
+    .rhythm-feedback.perfect { color: var(--cyan); }
+    .rhythm-feedback.great { color: var(--green); }
+    .rhythm-feedback.good { color: var(--yellow); }
+    .rhythm-feedback.miss { color: var(--danger); }
+
+    .countdown {
+      position: absolute;
+      inset: 0;
+      z-index: 12;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle, rgba(6, 10, 24, 0.1), rgba(3, 4, 11, 0.56));
+    }
+
+    .countdown.show {
+      opacity: 1;
+    }
+
+    .countdown-value {
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: clamp(95px, 18vw, 230px);
+      letter-spacing: 0.03em;
+      line-height: 0.8;
+      color: var(--ink);
+      text-shadow: 0 0 40px rgba(49, 230, 255, 0.45), 8px 8px 0 rgba(255, 79, 216, 0.32);
+      animation: countdownPop 800ms var(--ease) infinite;
+    }
+
+    .track-error {
+      position: absolute;
+      inset: 0;
+      z-index: 15;
+      display: none;
+      place-items: center;
+      padding: 30px;
+      color: #ff9bac;
+      background: #060711;
+      text-align: center;
+    }
+
+    .track-error.show {
+      display: grid;
+    }
+
+    .rhythm-operator-strip {
+      position: relative;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      color: #687088;
+      background: #070914;
+      border-top: 1px solid rgba(159, 173, 255, 0.09);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .rhythm-operator-strip strong {
+      color: #c7cbe0;
+    }
+
+    .rhythm-operator-strip span {
+      transition: color 120ms ease, text-shadow 120ms ease;
+    }
+
+    .rhythm-operator-strip span.is-active {
+      color: var(--cyan);
+      text-shadow: 0 0 12px rgba(49, 230, 255, 0.55);
+    }
+
+    .trivia-zone {
+      position: absolute;
+      z-index: 7;
+      top: 49px;
+      bottom: 38px;
+      left: 50%;
+      width: min(900px, 96%);
+      transform: translateX(-50%);
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+      gap: clamp(9px, 1.4vh, 15px);
+      padding: clamp(12px, 1.8vh, 20px) clamp(14px, 1.6vw, 22px) clamp(40px, 6vh, 56px);
+      overflow: hidden;
+      pointer-events: none;
+      background: transparent;
+      transition: box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .trivia-zone .trivia-feedback { grid-row: 5; }
+    .trivia-zone .answer-grid { grid-row: 6; }
+
+    .trivia-zone::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      pointer-events: none;
+      border: 1px solid transparent;
+      border-radius: 18px;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .trivia-zone.urgent::before {
+      border-color: rgba(255, 49, 93, 0.72);
+      box-shadow: inset 0 0 42px rgba(255, 49, 93, 0.14);
+      animation: urgentPulse 600ms ease-in-out infinite alternate;
+    }
+
+    .trivia-zone.is-correct {
+      background: radial-gradient(circle at 50% 82%, rgba(118, 255, 147, 0.12), transparent 52%);
+    }
+
+    .trivia-zone.is-wrong {
+      background: radial-gradient(circle at 50% 82%, rgba(255, 49, 93, 0.14), transparent 52%);
+    }
+
+    .question-head {
+      width: min(540px, 100%);
+      justify-self: center;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px;
+      text-shadow: 0 2px 10px rgba(2, 4, 12, 0.95);
+    }
+
+    .trivia-zone .question-timer-track {
+      width: min(540px, 100%);
+      justify-self: center;
+    }
+
+    .question-meta strong {
+      display: block;
+      margin-top: 6px;
+      color: var(--ink);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    .question-clock {
+      color: var(--cyan);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: clamp(25px, 3vw, 38px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.06em;
+    }
+
+    .urgent .question-clock {
+      color: var(--danger);
+      text-shadow: 0 0 13px rgba(255, 49, 93, 0.55);
+    }
+
+    .question-timer-track {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.055);
+      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .question-timer-fill {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--pink), var(--cyan));
+      box-shadow: 0 0 13px rgba(49, 230, 255, 0.5);
+      transform: scaleX(1);
+      transform-origin: left;
+      transition: background 180ms ease, transform 80ms linear;
+    }
+
+    .urgent .question-timer-fill {
+      background: var(--danger);
+      box-shadow: 0 0 15px rgba(255, 49, 93, 0.65);
+    }
+
+    .question-copy {
+      align-self: start;
+      justify-self: center;
+      margin: 0;
+      max-width: 24ch;
+      font-family: "Arial Narrow", "Helvetica Neue", sans-serif;
+      font-size: clamp(22px, 2.6vw, 36px);
+      font-stretch: condensed;
+      font-weight: 850;
+      line-height: 1.05;
+      letter-spacing: -0.035em;
+      text-align: center;
+      text-wrap: balance;
+      text-shadow: 0 2px 12px rgba(2, 4, 12, 0.95), 0 0 26px rgba(2, 4, 12, 0.85);
+    }
+
+    .answer-grid {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(9px, 1.2vw, 15px);
+    }
+
+    .answer-button {
+      position: relative;
+      min-width: 0;
+      min-height: 64px;
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: clamp(9px, 1vw, 14px);
+      overflow: hidden;
+      pointer-events: auto;
+      border: 1px solid rgba(164, 177, 231, 0.28);
+      border-radius: 14px;
+      color: #d9dcef;
+      background: linear-gradient(145deg, rgba(24, 29, 55, 0.72), rgba(12, 15, 31, 0.82));
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      cursor: pointer;
+      text-align: left;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.19);
+      transition: transform 140ms var(--ease), border-color 140ms ease, background 140ms ease, opacity 140ms ease;
+    }
+
+    .answer-button::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 2px;
+      opacity: 0;
+      background: var(--cyan);
+      transition: opacity 140ms ease;
+    }
+
+    .answer-button:hover:not(:disabled) {
+      z-index: 1;
+      transform: translateY(-3px);
+      border-color: rgba(49, 230, 255, 0.6);
+      background: linear-gradient(145deg, rgba(28, 45, 70, 0.92), rgba(12, 18, 38, 0.96));
+    }
+
+    .answer-button:hover:not(:disabled)::after {
+      opacity: 1;
+    }
+
+    .answer-button.is-key-active:not(:disabled) {
+      transform: translateY(1px) scale(0.985);
+      border-color: rgba(49, 230, 255, 0.9);
+      background: linear-gradient(145deg, rgba(32, 59, 86, 0.96), rgba(13, 23, 45, 0.98));
+      box-shadow: 0 0 26px rgba(49, 230, 255, 0.14), inset 0 0 0 1px rgba(49, 230, 255, 0.2);
+    }
+
+    .answer-button.is-key-active:not(:disabled)::after {
+      opacity: 1;
+    }
+
+    .answer-button:disabled {
+      cursor: default;
+    }
+
+    .answer-button.dimmed {
+      opacity: 0.37;
+    }
+
+    .answer-button.correct {
+      border-color: rgba(118, 255, 147, 0.82);
+      color: #eaffef;
+      background: linear-gradient(145deg, rgba(33, 95, 68, 0.75), rgba(12, 31, 29, 0.96));
+      box-shadow: 0 0 27px rgba(118, 255, 147, 0.12);
+      animation: answerCorrect 440ms var(--ease);
+    }
+
+    .answer-button.wrong {
+      border-color: rgba(255, 49, 93, 0.88);
+      color: #ffe8ed;
+      background: linear-gradient(145deg, rgba(101, 29, 51, 0.78), rgba(36, 12, 27, 0.96));
+      animation: answerWrong 360ms ease;
+    }
+
+    .answer-number {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      color: var(--cyan);
+      background: rgba(0, 0, 0, 0.22);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .answer-text {
+      min-width: 0;
+      font-size: clamp(12px, 1.1vw, 16px);
+      font-weight: 730;
+      line-height: 1.18;
+      overflow-wrap: anywhere;
+    }
+
+    .trivia-feedback {
+      justify-self: center;
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 0 16px;
+      border: 1px solid rgba(164, 177, 231, 0.14);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(2, 4, 11, 0.62);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .trivia-feedback strong {
+      color: var(--ink);
+    }
+
+    .trivia-feedback.correct strong { color: var(--green); }
+    .trivia-feedback.wrong strong { color: var(--danger); }
+
+    .dual-bonus {
+      position: absolute;
+      z-index: 30;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8) rotate(-2deg);
+      opacity: 0;
+      pointer-events: none;
+      padding: 13px 18px;
+      border: 1px solid var(--yellow);
+      border-radius: 9px;
+      color: var(--yellow);
+      background: rgba(17, 11, 27, 0.92);
+      box-shadow: 0 0 34px rgba(255, 224, 91, 0.22);
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: clamp(18px, 2vw, 29px);
+      letter-spacing: 0.07em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .dual-bonus.show {
+      animation: dualBonus 950ms var(--ease);
+    }
+
+    .screen-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      place-items: center;
+      padding: 26px;
+      background: rgba(2, 3, 9, 0.7);
+      backdrop-filter: blur(11px) saturate(0.72);
+      -webkit-backdrop-filter: blur(11px) saturate(0.72);
+      transition: opacity 220ms ease, visibility 220ms ease;
+    }
+
+    .screen-overlay.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .menu-card {
+      width: min(820px, calc(100% - 20px));
+      max-height: min(760px, calc(100dvh - 70px));
+      overflow: auto;
+      border: 1px solid rgba(164, 177, 231, 0.22);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(49, 230, 255, 0.08), transparent 35%),
+        linear-gradient(145deg, rgba(18, 23, 46, 0.98), rgba(7, 9, 20, 0.99));
+      box-shadow: 0 35px 100px rgba(0, 0, 0, 0.67), inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+      animation: menuEnter 260ms var(--ease) both;
+    }
+
+    .menu-card.compact {
+      width: min(620px, calc(100% - 20px));
+    }
+
+    .menu-card.results-card {
+      width: min(780px, calc(100% - 20px));
+    }
+
+    .menu-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 22px 27px;
+      border-bottom: 1px solid rgba(164, 177, 231, 0.12);
+    }
+
+    .menu-logo {
+      margin: 0;
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: clamp(32px, 5vw, 57px);
+      letter-spacing: 0.055em;
+      line-height: 0.86;
+      text-transform: uppercase;
+    }
+
+    .menu-logo span {
+      color: var(--pink);
+      text-shadow: 0 0 25px rgba(255, 79, 216, 0.25);
+    }
+
+    .menu-tabs {
+      display: flex;
+      gap: 5px;
+      padding: 4px;
+      border: 1px solid rgba(164, 177, 231, 0.12);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    .menu-tab {
+      padding: 9px 13px;
+      border: 0;
+      border-radius: 7px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .menu-tab[aria-pressed="true"] {
+      color: var(--ink);
+      background: rgba(49, 230, 255, 0.11);
+      box-shadow: inset 0 0 0 1px rgba(49, 230, 255, 0.25);
+    }
+
+    .menu-body {
+      padding: clamp(24px, 3vw, 38px);
+    }
+
+    .play-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: clamp(24px, 4vw, 46px);
+      align-items: start;
+    }
+
+    .hero-copy {
+      margin: 10px 0 24px;
+      font-family: "Arial Narrow", "Helvetica Neue", sans-serif;
+      font-size: clamp(27px, 4.2vw, 45px);
+      font-weight: 850;
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+      text-wrap: balance;
+    }
+
+    .hero-copy em {
+      color: var(--cyan);
+      font-style: normal;
+    }
+
+    .mechanic-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .mechanic-list li {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 11px;
+      align-items: center;
+      color: #aeb4ca;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .mechanic-number {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(49, 230, 255, 0.27);
+      border-radius: 8px;
+      color: var(--cyan);
+      background: rgba(49, 230, 255, 0.06);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .menu-controls {
+      display: grid;
+      gap: 18px;
+      padding: 19px;
+      border: 1px solid rgba(164, 177, 231, 0.13);
+      border-radius: 15px;
+      background: rgba(2, 4, 11, 0.27);
+    }
+
+    .difficulty-picker,
+    .option-picker {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .option-picker.two {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .difficulty-button,
+    .option-button {
+      min-width: 0;
+      padding: 10px 5px;
+      border: 1px solid rgba(164, 177, 231, 0.14);
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.025);
+      cursor: pointer;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .difficulty-button.is-selected,
+    .option-button.is-selected {
+      border-color: rgba(255, 79, 216, 0.5);
+      color: var(--ink);
+      background: rgba(255, 79, 216, 0.11);
+      box-shadow: 0 0 20px rgba(255, 79, 216, 0.08);
+    }
+
+    .setup-section {
+      display: grid;
+      gap: 8px;
+    }
+
+    .round-details,
+    .record-preview {
+      margin: 0;
+      color: #8d95ae;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .record-preview {
+      min-height: 32px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255, 224, 91, 0.14);
+      border-radius: 8px;
+      color: #c8cde0;
+      background: rgba(255, 224, 91, 0.035);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .menu-version-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .menu-version-link:hover {
+      color: var(--cyan);
+    }
+
+    .preferences-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .preference-card {
+      display: grid;
+      gap: 13px;
+      min-height: 135px;
+      padding: 18px;
+      border: 1px solid rgba(164, 177, 231, 0.13);
+      border-radius: 14px;
+      background: rgba(2, 4, 11, 0.24);
+    }
+
+    .preference-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .preference-card .secondary-button {
+      min-height: 42px;
+    }
+
+    .volume-control {
+      width: 100%;
+      accent-color: var(--cyan);
+    }
+
+    .duo-ready-grid,
+    .result-role-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .duo-role-card,
+    .result-role-card {
+      display: grid;
+      gap: 10px;
+      padding: 20px;
+      border: 1px solid rgba(164, 177, 231, 0.14);
+      border-radius: 15px;
+      background: rgba(2, 4, 11, 0.3);
+      text-align: left;
+    }
+
+    .duo-role-card.is-ready {
+      border-color: rgba(118, 255, 147, 0.42);
+      background: rgba(118, 255, 147, 0.055);
+      box-shadow: 0 0 24px rgba(118, 255, 147, 0.07);
+    }
+
+    .duo-role-card h3,
+    .result-role-card h3 {
+      margin: 0;
+      font-family: "Arial Narrow", "Helvetica Neue", sans-serif;
+      font-size: 23px;
+      letter-spacing: -0.02em;
+    }
+
+    .duo-role-card p,
+    .result-role-card p {
+      margin: 0;
+      color: #9098b0;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .duo-ready-status,
+    .result-best {
+      margin: 16px 0;
+      color: #c7cde0;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .duo-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 4px;
+    }
+
+    .duo-actions .primary-button {
+      grid-column: 1 / -1;
+    }
+
+    .primary-button:disabled,
+    .secondary-button:disabled {
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+      opacity: 0.42;
+      transform: none;
+    }
+
+    .role-swap-banner {
+      position: absolute;
+      z-index: 38;
+      top: 51%;
+      left: 50%;
+      min-width: min(520px, calc(100% - 60px));
+      padding: 18px 24px;
+      border: 1px solid rgba(255, 224, 91, 0.72);
+      border-radius: 14px;
+      opacity: 0;
+      color: var(--ink);
+      background: rgba(10, 8, 20, 0.94);
+      box-shadow: 0 0 55px rgba(255, 224, 91, 0.22);
+      pointer-events: none;
+      text-align: center;
+      transform: translate(-50%, -50%) scale(0.88);
+    }
+
+    .role-swap-banner strong,
+    .role-swap-banner span {
+      display: block;
+    }
+
+    .role-swap-banner strong {
+      color: var(--yellow);
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: clamp(28px, 4vw, 52px);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .role-swap-banner span {
+      margin-top: 5px;
+      color: #d0d5e6;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .role-swap-banner.show-warning {
+      animation: swapWarning 1050ms var(--ease) both;
+    }
+
+    .role-swap-banner.show-swap {
+      animation: swapNow 1500ms var(--ease) both;
+    }
+
+    .difficulty-details {
+      min-height: 44px;
+      color: #838ba4;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .primary-button,
+    .secondary-button,
+    .text-button {
+      border: 0;
+      cursor: pointer;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: transform 140ms var(--ease), filter 140ms ease, border-color 140ms ease;
+    }
+
+    .primary-button {
+      min-height: 54px;
+      padding: 0 20px;
+      border-radius: 10px;
+      color: #050712;
+      background: linear-gradient(90deg, var(--cyan), #8cf3ff);
+      box-shadow: 0 11px 27px rgba(49, 230, 255, 0.19);
+    }
+
+    .primary-button:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+    }
+
+    .secondary-button {
+      min-height: 51px;
+      padding: 0 18px;
+      border: 1px solid rgba(164, 177, 231, 0.18);
+      border-radius: 10px;
+      color: #c0c5d8;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .secondary-button:hover {
+      border-color: rgba(49, 230, 255, 0.44);
+      color: var(--ink);
+    }
+
+    .button-stack {
+      display: grid;
+      gap: 9px;
+    }
+
+    .key-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .menu-key {
+      min-width: 32px;
+      height: 31px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.19);
+      border-radius: 7px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.045);
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.48);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 13px;
+    }
+
+    .how-card {
+      min-height: 180px;
+      padding: 20px;
+      border: 1px solid rgba(164, 177, 231, 0.12);
+      border-radius: 14px;
+      background: rgba(2, 4, 11, 0.24);
+    }
+
+    .how-card strong {
+      display: block;
+      margin: 13px 0 8px;
+      font-size: 15px;
+    }
+
+    .how-card p,
+    .pause-copy,
+    .result-copy {
+      margin: 0;
+      color: #8f96ad;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .menu-center {
+      padding: clamp(29px, 5vw, 55px);
+      text-align: center;
+    }
+
+    .menu-center .menu-logo {
+      margin: 11px 0 19px;
+    }
+
+    .pause-copy,
+    .result-copy {
+      max-width: 48ch;
+      margin: 0 auto 25px;
+    }
+
+    .pause-actions,
+    .result-actions {
+      width: min(360px, 100%);
+      display: grid;
+      gap: 9px;
+      margin: 0 auto;
+    }
+
+    .result-topline {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 23px;
+      text-align: left;
+    }
+
+    .result-score {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: clamp(38px, 7vw, 72px);
+      font-weight: 950;
+      line-height: 0.88;
+      letter-spacing: -0.07em;
+    }
+
+    .result-grade {
+      width: 91px;
+      height: 91px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 224, 91, 0.52);
+      border-radius: 21px;
+      color: var(--yellow);
+      background: rgba(255, 224, 91, 0.055);
+      box-shadow: 0 0 29px rgba(255, 224, 91, 0.12);
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: 58px;
+    }
+
+    .result-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+      margin-bottom: 25px;
+    }
+
+    .result-context {
+      margin: -12px 0 16px;
+      color: var(--cyan);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .result-role-grid {
+      margin-bottom: 12px;
+    }
+
+    .role-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .role-metric {
+      padding-top: 9px;
+      border-top: 1px solid rgba(164, 177, 231, 0.1);
+    }
+
+    .role-metric span,
+    .role-metric strong {
+      display: block;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .role-metric span {
+      color: var(--muted);
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .role-metric strong {
+      margin-top: 4px;
+      font-size: 16px;
+    }
+
+    .result-stat {
+      padding: 14px;
+      border: 1px solid rgba(164, 177, 231, 0.11);
+      border-radius: 11px;
+      background: rgba(2, 4, 11, 0.25);
+      text-align: left;
+    }
+
+    .result-stat span {
+      display: block;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .result-stat strong {
+      display: block;
+      margin-top: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 19px;
+    }
+
+    .result-actions {
+      grid-template-columns: 1fr 1fr;
+      width: 100%;
+    }
+
+    .result-actions .primary-button {
+      grid-column: 1 / -1;
+    }
+
+    .mobile-warning {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: none;
+      place-items: center;
+      padding: 28px;
+      color: var(--ink);
+      background: #050711;
+      text-align: center;
+    }
+
+    .mobile-warning-card {
+      max-width: 420px;
+      padding: 31px;
+      border: 1px solid rgba(49, 230, 255, 0.3);
+      border-radius: 20px;
+      background: #0b0f20;
+    }
+
+    .mobile-warning h2 {
+      margin: 12px 0;
+      font-family: Impact, "Arial Narrow", sans-serif;
+      font-size: 38px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .mobile-warning p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    body.layout-blocked .app-frame {
+      visibility: hidden;
+    }
+
+    @keyframes menuEnter {
+      from { opacity: 0; transform: translateY(10px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes judgment {
+      0% { opacity: 0; transform: translate(-50%, 12px) scale(0.83); }
+      22% { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+      68% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -17px) scale(0.96); }
+    }
+
+    @keyframes dualBonus {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.72) rotate(-4deg); }
+      22% { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(1deg); }
+      70% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+      100% { opacity: 0; transform: translate(-50%, -70%) scale(0.96); }
+    }
+
+    @keyframes swapWarning {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.88); }
+      20%, 78% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
+    }
+
+    @keyframes swapNow {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(1.24) rotate(-2deg); }
+      18%, 76% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+      100% { opacity: 0; transform: translate(-50%, -62%) scale(0.96); }
+    }
+
+    @keyframes countdownPop {
+      0% { opacity: 0; transform: scale(1.28); }
+      18% { opacity: 1; transform: scale(1); }
+      78% { opacity: 1; transform: scale(0.94); }
+      100% { opacity: 0; transform: scale(0.78); }
+    }
+
+    @keyframes urgentPulse {
+      from { opacity: 0.68; }
+      to { opacity: 1; }
+    }
+
+    @keyframes answerCorrect {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.025); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes answerWrong {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-3px); }
+    }
+
+    @keyframes focusGain {
+      50% { filter: brightness(1.7); }
+    }
+
+    @keyframes focusLoss {
+      35% { filter: saturate(1.8) brightness(1.35); }
+    }
+
+    @media (max-width: 1160px) {
+      .app-frame {
+        width: calc(100vw - 16px);
+        height: calc(100dvh - 16px);
+        grid-template-rows: 94px minmax(0, 1fr);
+      }
+
+      .topbar {
+        grid-template-columns: minmax(145px, .7fr) minmax(90px, .45fr) minmax(230px, 1.2fr) minmax(92px, .45fr) auto;
+        padding: 9px 10px 13px;
+        gap: 7px;
+      }
+
+      .brand-glyph,
+      .brand-subtitle {
+        display: none;
+      }
+
+      .brand-lockup,
+      .hud-stat,
+      .focus-stat {
+        padding: 8px 10px;
+      }
+
+      .answer-button {
+        grid-template-columns: 26px minmax(0, 1fr);
+        gap: 8px;
+        padding: 9px;
+      }
+
+      .answer-number {
+        width: 26px;
+        height: 26px;
+      }
+    }
+
+    @media (max-height: 720px) {
+      .app-frame {
+        min-height: 0;
+        grid-template-rows: 82px minmax(0, 1fr);
+      }
+
+      .topbar {
+        padding: 7px 9px 11px;
+      }
+
+      .hud-stat,
+      .focus-stat,
+      .brand-lockup {
+        border-radius: 10px;
+      }
+
+      .brand-subtitle,
+      .rhythm-operator-strip {
+        display: none;
+      }
+
+      .rhythm-zone {
+        grid-template-rows: 42px minmax(0, 1fr);
+      }
+
+      .trivia-zone {
+        top: 42px;
+        bottom: 0;
+        gap: 8px;
+        padding: 10px 14px 34px;
+      }
+
+      .question-copy {
+        font-size: clamp(19px, 2.6vw, 28px);
+      }
+
+      .answer-button {
+        min-height: 52px;
+      }
+
+      .trivia-feedback {
+        min-height: 30px;
+      }
+
+      .menu-header {
+        padding: 16px 22px;
+      }
+
+      .menu-body {
+        padding: 20px 28px;
+      }
+
+      .hero-copy {
+        margin-bottom: 15px;
+        font-size: 30px;
+      }
+
+      .mechanic-list {
+        gap: 6px;
+      }
+
+      .menu-controls {
+        gap: 12px;
+        padding: 15px;
+      }
+
+      .results-card .menu-body {
+        padding: 15px 22px;
+      }
+
+      .results-card .result-topline {
+        margin-bottom: 10px;
+      }
+
+      .results-card .menu-logo {
+        margin: 7px 0 10px !important;
+        font-size: 38px;
+      }
+
+      .results-card .result-score {
+        font-size: 43px;
+      }
+
+      .results-card .result-grade {
+        width: 66px;
+        height: 66px;
+        border-radius: 16px;
+        font-size: 42px;
+      }
+
+      .results-card .result-copy {
+        margin-bottom: 12px;
+        line-height: 1.4;
+      }
+
+      .results-card .result-stats {
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+
+      .results-card .result-role-card {
+        gap: 6px;
+        padding: 10px 12px;
+      }
+
+      .results-card .result-role-card h3 {
+        font-size: 18px;
+      }
+
+      .results-card .result-best,
+      .results-card .result-context {
+        margin-bottom: 8px;
+      }
+
+      .results-card .result-stat {
+        padding: 8px 11px;
+      }
+
+      .results-card .result-stat strong {
+        margin-top: 3px;
+        font-size: 16px;
+      }
+
+      .results-card .primary-button,
+      .results-card .secondary-button {
+        min-height: 43px;
+      }
+    }
+
+    @media (max-width: 899px), (orientation: portrait) {
+      .mobile-warning {
+        display: grid;
+      }
+    }
+
+    body.reduce-motion *,
+    body.reduce-motion *::before,
+    body.reduce-motion *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+
+    body.reduce-motion .role-swap-banner.show-warning,
+    body.reduce-motion .role-swap-banner.show-swap {
+      animation: none !important;
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+
+    body.reduce-motion .countdown-value {
+      animation: none !important;
+      opacity: 1;
+      transform: none;
+    }
+
+    body.reduce-motion .rhythm-feedback.show,
+    body.reduce-motion .dual-bonus.show {
+      animation: none !important;
+      opacity: 1;
+    }
+
+    body.reduce-motion .rhythm-feedback.show {
+      transform: translate(-50%, 0) scale(1);
+    }
+
+    body.reduce-motion .dual-bonus.show {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+
+      .role-swap-banner.show-warning,
+      .role-swap-banner.show-swap {
+        animation: none !important;
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+
+      .countdown-value {
+        animation: none !important;
+        opacity: 1;
+        transform: none;
+      }
+
+      .rhythm-feedback.show,
+      .dual-bonus.show {
+        animation: none !important;
+        opacity: 1;
+      }
+
+      .rhythm-feedback.show {
+        transform: translate(-50%, 0) scale(1);
+      }
+
+      .dual-bonus.show {
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-warning" id="mobileWarning" role="alert">
+    <div class="mobile-warning-card">
+      <span class="eyebrow">Desktop input required</span>
+      <h2>Two hands. One screen.</h2>
+      <p>SplitBeat needs a physical keyboard. Use a landscape screen at least 900 pixels wide to play the intended divided-attention game.</p>
+    </div>
+  </div>
+
+  <div class="app-frame" id="appFrame" tabindex="-1">
+    <header class="topbar" id="topbar">
+      <div class="brand-lockup">
+        <div class="brand-glyph" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div>
+          <h1 class="brand-name">Split<span>Beat</span></h1>
+          <span class="brand-subtitle" id="gameStatus">Attention link ready</span>
+        </div>
+      </div>
+
+      <div class="hud-stat">
+        <span class="hud-label">Score</span>
+        <span class="hud-value" id="scoreValue">0000000</span>
+      </div>
+
+      <div class="focus-stat" id="focusStat">
+        <div class="focus-label-row">
+          <span>Focus</span>
+          <span class="focus-number" id="focusValue">82%</span>
+        </div>
+        <div class="focus-track" role="progressbar" aria-label="Focus" aria-valuemin="0" aria-valuemax="100" aria-valuenow="82">
+          <div class="focus-fill" id="focusFill"></div>
+        </div>
+      </div>
+
+      <div class="hud-stat">
+        <div class="hud-label-row"><span class="hud-label">Combo</span><span class="sync-number" id="syncValue">Sync 0%</span></div>
+        <span class="hud-value"><span id="comboValue">0</span><small id="multiplierValue">x1</small></span>
+        <div class="sync-track" role="progressbar" aria-label="Shared Sync" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="sync-fill" id="syncFill"></div></div>
+      </div>
+
+      <div class="hud-actions">
+        <div class="hud-stat" style="border:0; background:transparent; padding:0 5px; min-width:72px;">
+          <span class="hud-label" id="timeLabel">Time</span>
+          <span class="hud-value" id="timeValue">1:18</span>
+        </div>
+        <button class="utility-button" id="pauseButton" type="button" disabled>Pause</button>
+        <button class="utility-button" id="muteButton" type="button" aria-pressed="false" aria-label="Turn sound off">Sound on</button>
+      </div>
+
+      <div class="song-progress" aria-hidden="true"><div class="song-progress-fill" id="songProgressFill"></div></div>
+    </header>
+
+    <main class="split-stage" id="splitStage">
+      <section class="rhythm-zone" aria-labelledby="rhythmTitle">
+        <div class="panel-topline">
+          <div><span class="panel-kicker" id="pilotRoleLabel">Flight channel</span><span class="panel-title" id="rhythmTitle">Evasion field</span><span class="role-readout" id="pilotRunStats">Pilot link ready</span></div>
+          <span class="section-chip" id="sectionChip">Opening drift</span>
+        </div>
+
+        <div class="track-viewport" aria-label="Open side-scrolling evasion field. Hold W, A, S, and D to fly the ship and dodge incoming hazards.">
+          <div id="webglMount"></div>
+          <div class="track-vignette" aria-hidden="true"></div>
+          <div class="rhythm-feedback" id="rhythmFeedback" aria-hidden="true">Hit</div>
+          <div class="countdown" id="countdown" aria-hidden="true"><div class="countdown-value" id="countdownValue">3</div></div>
+          <div class="track-error" id="trackError">This browser could not start the evasion field. SplitBeat requires canvas rendering.</div>
+        </div>
+
+        <div class="rhythm-operator-strip">
+          <span id="movementHint"><strong>W A S D</strong> fly the ship</span>
+          <span><strong>J K L ;</strong> answers</span>
+          <span><strong>Esc</strong> pause</span>
+          <span id="chartReadout">Hazard waves inbound</span>
+        </div>
+      </section>
+
+      <section class="trivia-zone" id="triviaPanel" aria-labelledby="questionCopy">
+        <div class="question-head">
+          <div class="question-meta">
+            <span id="operatorRoleLabel">Trivia channel / J K L ;</span>
+            <strong id="questionIndex">Question standby</strong>
+            <span class="role-readout" id="operatorRunStats">Operator link ready</span>
+          </div>
+          <div class="question-clock" id="questionClock">--.-</div>
+        </div>
+
+        <div class="question-timer-track" aria-hidden="true"><div class="question-timer-fill" id="questionTimerFill"></div></div>
+
+        <h2 class="question-copy" id="questionCopy">Start a round to load the first question.</h2>
+
+        <div class="answer-grid" id="answerGrid">
+          <button class="answer-button" type="button" data-answer="0" disabled><span class="answer-number">J</span><span class="answer-text">Awaiting link</span></button>
+          <button class="answer-button" type="button" data-answer="1" disabled><span class="answer-number">K</span><span class="answer-text">Awaiting link</span></button>
+          <button class="answer-button" type="button" data-answer="2" disabled><span class="answer-number">L</span><span class="answer-text">Awaiting link</span></button>
+          <button class="answer-button" type="button" data-answer="3" disabled><span class="answer-number">;</span><span class="answer-text">Awaiting link</span></button>
+        </div>
+
+        <div class="trivia-feedback" id="triviaFeedback"><span>Answer with J K L ;</span><strong>Focus online</strong></div>
+      </section>
+    </main>
+
+    <div class="dual-bonus" id="dualBonus" aria-hidden="true">Sync banked</div>
+    <div class="role-swap-banner" id="roleSwapBanner" aria-hidden="true"><strong id="roleSwapTitle">Role swap</strong><span id="roleSwapCopy">Player 1 to Operator · Player 2 to Pilot</span></div>
+
+    <div class="screen-overlay" id="screenOverlay">
+      <section class="menu-card" id="mainMenuScreen" role="dialog" aria-modal="true" aria-label="SplitBeat main menu">
+        <header class="menu-header">
+          <div>
+            <span class="menu-kicker"><a class="menu-version-link" href="https://wearemeatbags.github.io/">We Are Meatbags · Version 4</a></span>
+            <h2 class="menu-logo">Split<span>Beat</span></h2>
+          </div>
+          <nav class="menu-tabs" aria-label="Main menu">
+            <button class="menu-tab" type="button" data-menu-tab="play" aria-pressed="true">Play</button>
+            <button class="menu-tab" type="button" data-menu-tab="how" aria-pressed="false">How to play</button>
+            <button class="menu-tab" type="button" data-menu-tab="preferences" aria-pressed="false">Preferences</button>
+          </nav>
+        </header>
+
+        <div class="menu-body" id="playMenuPanel">
+          <div class="play-layout">
+            <div>
+              <span class="eyebrow" id="menuEyebrow">One brain. Two jobs.</span>
+              <p class="hero-copy" id="menuHeroCopy">Dodge the field with your <em>left hand</em>. Answer trivia with your <em>right</em>, both on one screen.</p>
+              <ol class="mechanic-list">
+                <li><span class="mechanic-number">01</span><span>Beat-authored hazard phrases make every approach readable and musical.</span></li>
+                <li><span class="mechanic-number">02</span><span>Pilot clears build Sync. Correct answers bank it into score and Focus.</span></li>
+                <li><span class="mechanic-number">03</span><span id="menuModeRule">Protect Focus until the 78-second Standard Signal ends.</span></li>
+              </ol>
+            </div>
+
+            <div class="menu-controls">
+              <div class="setup-section">
+                <span class="eyebrow">Play style</span>
+                <div class="option-picker two" role="group" aria-label="Play style">
+                  <button class="option-button is-selected" type="button" data-play-style="solo" aria-pressed="true">Solo</button>
+                  <button class="option-button" type="button" data-play-style="duo" aria-pressed="false">Couch Duo</button>
+                </div>
+              </div>
+              <div class="setup-section">
+                <span class="eyebrow">Signal</span>
+                <div class="option-picker two" role="group" aria-label="Signal mode">
+                  <button class="option-button is-selected" type="button" data-mode="standard" aria-pressed="true">Standard</button>
+                  <button class="option-button" type="button" data-mode="endless" aria-pressed="false">Endless</button>
+                </div>
+              </div>
+              <div class="setup-section">
+                <span class="eyebrow">Difficulty</span>
+                <div class="difficulty-picker" role="group" aria-label="Difficulty">
+                  <button class="difficulty-button" type="button" data-difficulty="easy" aria-pressed="false">Easy</button>
+                  <button class="difficulty-button is-selected" type="button" data-difficulty="normal" aria-pressed="true">Normal</button>
+                  <button class="difficulty-button" type="button" data-difficulty="hard" aria-pressed="false">Hard</button>
+                </div>
+              </div>
+              <p class="round-details" id="roundDetails">Standard Signal · Normal · 78 seconds</p>
+              <p class="record-preview" id="recordPreview" aria-live="polite">No record yet. Set the first signal.</p>
+              <button class="primary-button" id="startButton" type="button">Start solo signal</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-body" id="howMenuPanel" hidden>
+          <div class="how-grid">
+            <article class="how-card"><span class="mechanic-number">01</span><strong>Fly on the beat</strong><p>Hold W, A, S, and D to thrust. Incoming walls and patterns reach the timing line on the music.</p></article>
+            <article class="how-card"><span class="mechanic-number">02</span><strong>Bank shared Sync</strong><p>Every clean wave builds Sync. A correct J, K, L, or ; answer converts it into score and Focus.</p></article>
+            <article class="how-card"><span class="mechanic-number">03</span><strong>Link a crew</strong><p>Couch Duo assigns a Pilot and Operator, confirms both players, then surprises the team with role swaps.</p></article>
+          </div>
+          <button class="primary-button" id="howBackButton" type="button" style="width:100%; margin-top:20px">Back to play</button>
+        </div>
+
+        <div class="menu-body" id="preferencesMenuPanel" hidden>
+          <div class="preferences-grid">
+            <article class="preference-card"><span class="eyebrow">Sound</span><p>Toggle all generated music and feedback.</p><button class="secondary-button" id="menuSoundButton" type="button" aria-pressed="false">Sound on</button></article>
+            <article class="preference-card"><label class="eyebrow" for="volumeControl">Volume <span id="volumeValue">70%</span></label><p>Set the master game volume.</p><input class="volume-control" id="volumeControl" type="range" min="0" max="100" step="5" value="70"></article>
+            <article class="preference-card"><span class="eyebrow">Metronome</span><p>Keep or remove the low beat pulse. Gameplay remains beat-locked.</p><button class="secondary-button" id="metronomeButton" type="button" aria-pressed="true">Metronome on</button></article>
+            <article class="preference-card"><span class="eyebrow">Motion</span><p>System follows your device preference. Reduced removes shake and particles.</p><div class="option-picker two" role="group" aria-label="Motion preference"><button class="option-button is-selected" type="button" data-motion="system" aria-pressed="true">System</button><button class="option-button" type="button" data-motion="reduced" aria-pressed="false">Reduced</button></div></article>
+          </div>
+          <button class="primary-button" id="preferencesBackButton" type="button" style="width:100%; margin-top:20px">Back to play</button>
+        </div>
+      </section>
+
+      <section class="menu-card compact" id="duoReadyScreen" role="dialog" aria-modal="true" aria-labelledby="duoReadyTitle" tabindex="-1" hidden>
+        <div class="menu-body">
+          <span class="menu-kicker">Couch Duo briefing</span>
+          <h2 class="menu-logo" id="duoReadyTitle" style="margin:10px 0 22px">Link <span>Your Crew</span></h2>
+          <div class="duo-ready-grid">
+            <article class="duo-role-card" id="pilotReadyCard"><span class="eyebrow">Player 1</span><h3>Pilot</h3><p>Fly the ship and build shared Sync.</p><div class="key-row"><span class="menu-key">W</span><span class="menu-key">A</span><span class="menu-key">S</span><span class="menu-key">D</span></div><button class="secondary-button" id="pilotReadyButton" type="button" aria-pressed="false">Pilot ready</button></article>
+            <article class="duo-role-card" id="operatorReadyCard"><span class="eyebrow">Player 2</span><h3>Operator</h3><p>Answer signals and bank shared Sync.</p><div class="key-row"><span class="menu-key">J</span><span class="menu-key">K</span><span class="menu-key">L</span><span class="menu-key">;</span></div><button class="secondary-button" id="operatorReadyButton" type="button" aria-pressed="false">Operator ready</button></article>
+          </div>
+          <p class="duo-ready-status" id="duoReadyStatus" aria-live="polite">Each player presses one of their role keys, or uses the ready button.</p>
+          <div class="duo-actions"><button class="primary-button" id="duoLaunchButton" type="button" disabled>Launch Duo signal</button><button class="secondary-button" id="duoBackButton" type="button">Back to setup</button></div>
+        </div>
+      </section>
+
+      <section class="menu-card compact" id="pauseScreen" role="dialog" aria-modal="true" aria-label="Paused" hidden>
+        <div class="menu-center">
+          <span class="menu-kicker">Attention link suspended</span>
+          <h2 class="menu-logo">Paused</h2>
+          <p class="pause-copy">The round, chart, trivia clock, and role-swap clock are frozen.</p>
+          <div class="pause-actions">
+            <button class="primary-button" id="resumeButton" type="button">Resume</button>
+            <button class="secondary-button" id="pauseSoundButton" type="button">Sound on</button>
+            <button class="secondary-button" id="pauseEffectsButton" type="button">Use reduced motion</button>
+            <button class="secondary-button" id="pauseRestartButton" type="button">Restart round</button>
+            <button class="secondary-button" id="pauseMenuButton" type="button">Main menu</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="menu-card results-card" id="resultsScreen" role="dialog" aria-modal="true" aria-label="Round results" hidden>
+        <div class="menu-body">
+          <div class="result-topline">
+            <div>
+              <span class="menu-kicker" id="resultReason">Signal complete</span>
+              <h2 class="menu-logo" style="margin:10px 0 20px">Round <span>Report</span></h2>
+              <div class="result-score" id="resultScore">0000000</div>
+            </div>
+            <div class="result-grade" id="resultGrade">A</div>
+          </div>
+          <p class="result-context" id="resultContext">Standard Signal · Normal · Solo</p>
+          <p class="result-copy" id="resultCopy" style="text-align:left; margin-left:0">You held both channels to the end.</p>
+          <p class="result-best" id="resultBest" aria-live="polite">First result recorded.</p>
+          <div class="result-role-grid">
+            <article class="result-role-card"><span class="eyebrow" id="resultPilotOwner">Flight channel</span><h3 id="resultPilotTitle">Pilot report</h3><div class="role-metrics"><div class="role-metric"><span id="resultPilotMetric1Label">Accuracy</span><strong id="resultDodgeAccuracy">0%</strong></div><div class="role-metric"><span id="resultPilotMetric2Label">Clears</span><strong id="resultHits">0</strong></div><div class="role-metric"><span id="resultPilotMetric3Label">Hits</span><strong id="resultMisses">0</strong></div></div></article>
+            <article class="result-role-card"><span class="eyebrow" id="resultOperatorOwner">Trivia channel</span><h3 id="resultOperatorTitle">Operator report</h3><div class="role-metrics"><div class="role-metric"><span id="resultOperatorMetric1Label">Accuracy</span><strong id="resultTriviaAccuracy">0%</strong></div><div class="role-metric"><span id="resultOperatorMetric2Label">Correct</span><strong id="resultCorrect">0</strong></div><div class="role-metric"><span id="resultOperatorMetric3Label">Wrong</span><strong id="resultWrong">0</strong></div></div></article>
+          </div>
+          <div class="result-stats">
+            <div class="result-stat"><span>Best combo</span><strong id="resultBestCombo">0</strong></div>
+            <div class="result-stat"><span>Sync banks</span><strong id="resultSyncBanks">0</strong></div>
+            <div class="result-stat"><span id="resultRunLabel">Finishing Focus</span><strong id="resultRunValue">0%</strong></div>
+          </div>
+          <div class="result-actions">
+            <button class="primary-button" id="restartButton" type="button">Play again</button>
+            <button class="secondary-button" id="changeSetupButton" type="button">Change setup</button>
+            <button class="secondary-button" id="resultsMenuButton" type="button">Main menu</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="sr-only" id="liveRegion" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+(() => {
+  "use strict";
+
+  // SPLITBEAT_CORE_START
+  const SplitBeatCore = (() => {
+    const GAME_VERSION = 4;
+    const BPM = 112;
+    const BEAT_MS = 60000 / BPM;
+    const STANDARD_DURATION_MS = 78000;
+    const ENDLESS_TIER_MS = 30000;
+    const PHRASE_BEATS = 12;
+    const FIRST_ARRIVAL_BEAT = 8;
+    const STORAGE_KEY = "splitbeat.v4";
+    const FIRST_ROLE_SWAP_BEATS = Object.freeze([44, 56, 68]);
+    const SECOND_STANDARD_SWAP_BEATS = Object.freeze([92, 104, 116]);
+    const ENDLESS_SWAP_INTERVAL_BEATS = Object.freeze([48, 60, 72, 84]);
+
+    const MODES = Object.freeze({
+      standard: { label: "Standard Signal", durationMs: STANDARD_DURATION_MS, endless: false },
+      endless: { label: "Endless Signal", durationMs: Infinity, endless: true }
+    });
+
+    const DIFFICULTIES = Object.freeze({
+      easy: { rank: 0, label: "Easy", approachBeats: 6, collidePenalty: 9, wrongPenalty: 8, timeoutPenalty: 9, triviaGain: 7, questionMs: 8800, gapFactor: 3.4, estimatedWaves: 46, description: "Wide approaches, four events per phrase, and 8.8-second trivia." },
+      normal: { rank: 1, label: "Normal", approachBeats: 5, collidePenalty: 11, wrongPenalty: 10, timeoutPenalty: 11, triviaGain: 6, questionMs: 7500, gapFactor: 2.9, estimatedWaves: 69, description: "Layered six-event phrases, readable gates, and 7.5-second trivia." },
+      hard: { rank: 2, label: "Hard", approachBeats: 4, collidePenalty: 13, wrongPenalty: 12, timeoutPenalty: 13, triviaGain: 5, questionMs: 6200, gapFactor: 2.4, estimatedWaves: 92, description: "Dense half-beat phrases, tighter gates, and 6.2-second trivia." }
+    });
+
+    const EVENT_BEATS = [0, 1.5, 3, 4.5, 6, 7.5, 9, 10.5];
+    const EVENT_LEVELS = [0, 1, 0, 2, 0, 1, 0, 2];
+    const PHRASE_DEFINITIONS = [
+      { id: "drift-weave", label: "Drift weave", rating: 0, codes: ["S2", "S0", "S4", "S1", "S1", "S4", "S3", "S0"] },
+      { id: "rising-signal", label: "Rising signal", rating: 0, codes: ["S4", "S4", "S3", "S3", "S2", "S2", "S1", "S0"] },
+      { id: "echo-pairs", label: "Echo pairs", rating: 0, codes: ["S1", "S1", "S1", "S4", "S3", "S3", "S3", "S0"] },
+      { id: "split-center", label: "Split center", rating: 1, codes: ["D04", "S2", "S0", "S4", "D13", "S2", "S4", "S0"] },
+      { id: "switchback-gate", label: "Switchback gate", rating: 1, codes: ["W1", "S4", "S3", "S0", "S2", "D04", "W3", "S0"] },
+      { id: "orbital-cross", label: "Orbital cross", rating: 1, codes: ["S0", "D14", "S4", "S2", "D03", "S2", "S1", "D04"] },
+      { id: "crossfire", label: "Crossfire", rating: 2, codes: ["W2", "D04", "S0", "S4", "D13", "S2", "W1", "S4"] },
+      { id: "overdrive", label: "Overdrive", rating: 2, codes: ["D04", "S2", "W3", "S0", "D13", "S4", "W1", "S2"] }
+    ];
+
+    function parseWaveCode(code) {
+      if (/^S[0-4]$/.test(code)) return { kind: "single", lanes: [Number(code[1])] };
+      if (/^D[0-4]{2}$/.test(code)) return { kind: "double", lanes: [Number(code[1]), Number(code[2])] };
+      if (/^W[0-4]$/.test(code)) return { kind: "wall", gapLane: Number(code[1]) };
+      throw new Error(`Invalid wave code: ${code}`);
+    }
+
+    const WAVE_PHRASES = Object.freeze(PHRASE_DEFINITIONS.map((phrase) => Object.freeze({
+      id: phrase.id,
+      label: phrase.label,
+      rating: phrase.rating,
+      events: Object.freeze(phrase.codes.map((code, index) => Object.freeze({
+        beat: EVENT_BEATS[index],
+        level: EVENT_LEVELS[index],
+        ...parseWaveCode(code)
+      })))
+    })));
+
+    const QUESTIONS = Object.freeze([
+      { rank: 0, category: "World", prompt: "What is the capital of Australia?", answers: ["Sydney", "Canberra", "Melbourne", "Perth"], correct: 1 },
+      { rank: 0, category: "Science", prompt: "Which chemical symbol represents gold?", answers: ["Ag", "Gd", "Au", "Go"], correct: 2 },
+      { rank: 0, category: "Space", prompt: "Which planet is the largest in our solar system?", answers: ["Saturn", "Jupiter", "Neptune", "Earth"], correct: 1 },
+      { rank: 0, category: "Art", prompt: "Who painted The Starry Night?", answers: ["Claude Monet", "Pablo Picasso", "Vincent van Gogh", "Edvard Munch"], correct: 2 },
+      { rank: 1, category: "Computing", prompt: "What is binary 1010 in decimal?", answers: ["8", "10", "12", "14"], correct: 1 },
+      { rank: 0, category: "History", prompt: "In what year did Apollo 11 land on the Moon?", answers: ["1965", "1967", "1969", "1971"], correct: 2 },
+      { rank: 0, category: "Biology", prompt: "Which organ pumps blood through the human body?", answers: ["Liver", "Lung", "Kidney", "Heart"], correct: 3 },
+      { rank: 0, category: "Math", prompt: "What is the smallest prime number?", answers: ["0", "1", "2", "3"], correct: 2 },
+      { rank: 0, category: "Earth", prompt: "Which is the largest ocean on Earth?", answers: ["Atlantic", "Indian", "Pacific", "Arctic"], correct: 2 },
+      { rank: 0, category: "Math", prompt: "What is the square root of 144?", answers: ["10", "11", "12", "14"], correct: 2 },
+      { rank: 0, category: "Science", prompt: "Which gas do plants absorb during photosynthesis?", answers: ["Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"], correct: 2 },
+      { rank: 0, category: "Books", prompt: "Who wrote Frankenstein?", answers: ["Jane Austen", "Mary Shelley", "Emily Bronte", "George Eliot"], correct: 1 },
+      { rank: 0, category: "Chemistry", prompt: "Which element has atomic number 6?", answers: ["Carbon", "Oxygen", "Boron", "Nitrogen"], correct: 0 },
+      { rank: 0, category: "Games", prompt: "How many pieces does each player start with in chess?", answers: ["12", "14", "16", "18"], correct: 2 },
+      { rank: 0, category: "Space", prompt: "Which planet has the shortest year?", answers: ["Venus", "Mars", "Mercury", "Jupiter"], correct: 2 },
+      { rank: 0, category: "Geometry", prompt: "How many degrees are in a triangle's interior angles?", answers: ["90", "180", "270", "360"], correct: 1 },
+      { rank: 0, category: "Numbers", prompt: "What value does the Roman numeral XL represent?", answers: ["30", "40", "50", "60"], correct: 1 },
+      { rank: 0, category: "Web", prompt: "What does CSS stand for?", answers: ["Creative Style System", "Cascading Style Sheets", "Computer Sheet Syntax", "Color Style Source"], correct: 1 },
+      { rank: 0, category: "Nature", prompt: "What is the fastest land animal?", answers: ["Pronghorn", "Lion", "Cheetah", "Ostrich"], correct: 2 },
+      { rank: 0, category: "History", prompt: "Which country gifted the Statue of Liberty to the United States?", answers: ["France", "Spain", "Italy", "Canada"], correct: 0 },
+      { rank: 0, category: "Science", prompt: "At what Celsius temperature does water freeze?", answers: ["0", "10", "32", "100"], correct: 0 },
+      { rank: 0, category: "Nature", prompt: "What is the largest living mammal?", answers: ["African elephant", "Blue whale", "Giraffe", "Hippopotamus"], correct: 1 },
+      { rank: 0, category: "World", prompt: "What currency is used in Japan?", answers: ["Won", "Yuan", "Yen", "Ringgit"], correct: 2 },
+      { rank: 0, category: "Calendar", prompt: "How many days are in a leap year?", answers: ["364", "365", "366", "367"], correct: 2 },
+      { rank: 0, category: "Music", prompt: "Which instrument commonly has keys, pedals, and strings?", answers: ["Flute", "Piano", "Trumpet", "Drum"], correct: 1 },
+      { rank: 0, category: "Space", prompt: "Which planet is known as the Red Planet?", answers: ["Venus", "Mars", "Saturn", "Mercury"], correct: 1 },
+      { rank: 0, category: "Science", prompt: "What common substance has the formula H2O?", answers: ["Salt", "Oxygen", "Water", "Sugar"], correct: 2 },
+      { rank: 0, category: "Math", prompt: "What is 7 multiplied by 8?", answers: ["48", "54", "56", "64"], correct: 2 },
+      { rank: 0, category: "Books", prompt: "Who wrote Hamlet?", answers: ["Charles Dickens", "William Shakespeare", "Oscar Wilde", "John Milton"], correct: 1 },
+      { rank: 0, category: "World", prompt: "The pyramids of Giza are in which country?", answers: ["Mexico", "Egypt", "Peru", "Jordan"], correct: 1 },
+      { rank: 0, category: "Earth", prompt: "On which continent is the Sahara Desert?", answers: ["Asia", "Africa", "Australia", "South America"], correct: 1 },
+      { rank: 0, category: "Geometry", prompt: "How many sides does a hexagon have?", answers: ["5", "6", "7", "8"], correct: 1 },
+      { rank: 0, category: "Language", prompt: "What is the primary language of Brazil?", answers: ["Spanish", "Portuguese", "French", "Italian"], correct: 1 },
+      { rank: 0, category: "Nature", prompt: "What is the tallest living land animal?", answers: ["Elephant", "Camel", "Giraffe", "Moose"], correct: 2 },
+      { rank: 0, category: "Science", prompt: "What process changes a liquid into a gas?", answers: ["Freezing", "Condensation", "Evaporation", "Melting"], correct: 2 },
+      { rank: 0, category: "Calendar", prompt: "What is the first month of the year?", answers: ["January", "March", "June", "September"], correct: 0 },
+      { rank: 0, category: "Biology", prompt: "What color is chlorophyll typically?", answers: ["Red", "Green", "Blue", "Orange"], correct: 1 },
+      { rank: 1, category: "Chemistry", prompt: "Which element uses the symbol Na?", answers: ["Nitrogen", "Sodium", "Neon", "Nickel"], correct: 1 },
+      { rank: 1, category: "Biology", prompt: "What is the largest internal organ in the human body?", answers: ["Heart", "Liver", "Lung", "Kidney"], correct: 1 },
+      { rank: 1, category: "Numbers", prompt: "Which number follows 13 in the Fibonacci sequence?", answers: ["18", "20", "21", "26"], correct: 2 },
+      { rank: 1, category: "Web", prompt: "What does HTTP stand for?", answers: ["Hypertext Transfer Protocol", "High Transfer Text Process", "Hosted Terminal Transport Program", "Hyperlink Transit Tool Package"], correct: 0 },
+      { rank: 1, category: "Music", prompt: "Who composed The Four Seasons?", answers: ["Mozart", "Vivaldi", "Beethoven", "Bach"], correct: 1 },
+      { rank: 1, category: "World", prompt: "Reykjavik is the capital of which country?", answers: ["Norway", "Finland", "Iceland", "Denmark"], correct: 2 },
+      { rank: 1, category: "Biology", prompt: "What shape is commonly associated with DNA?", answers: ["Single spiral", "Double helix", "Flat ring", "Triple chain"], correct: 1 },
+      { rank: 1, category: "Math", prompt: "What is 15 percent of 200?", answers: ["15", "20", "30", "40"], correct: 2 },
+      { rank: 1, category: "Chemistry", prompt: "Which metal is liquid near room temperature?", answers: ["Iron", "Mercury", "Copper", "Aluminum"], correct: 1 },
+      { rank: 1, category: "Myth", prompt: "Which Greek god ruled the sea?", answers: ["Ares", "Apollo", "Poseidon", "Hermes"], correct: 2 },
+      { rank: 1, category: "Science", prompt: "What is the first element on the periodic table?", answers: ["Helium", "Hydrogen", "Carbon", "Lithium"], correct: 1 },
+      { rank: 1, category: "Biology", prompt: "How many bones are in a typical adult human body?", answers: ["186", "206", "226", "246"], correct: 1 },
+      { rank: 1, category: "Physics", prompt: "What is the SI unit of electrical resistance?", answers: ["Volt", "Watt", "Ohm", "Ampere"], correct: 2 },
+      { rank: 1, category: "Books", prompt: "Who wrote the novel 1984?", answers: ["George Orwell", "Aldous Huxley", "Ray Bradbury", "H. G. Wells"], correct: 0 },
+      { rank: 1, category: "Space", prompt: "How many natural moons does Mars have?", answers: ["0", "1", "2", "4"], correct: 2 },
+      { rank: 1, category: "Chemistry", prompt: "A pH value below 7 is generally what?", answers: ["Acidic", "Neutral", "Alkaline", "Radioactive"], correct: 0 },
+      { rank: 1, category: "Computing", prompt: "What is binary 1111 in decimal?", answers: ["12", "14", "15", "16"], correct: 2 },
+      { rank: 2, category: "History", prompt: "In what year was the Magna Carta sealed?", answers: ["1066", "1215", "1492", "1648"], correct: 1 },
+      { rank: 2, category: "Chemistry", prompt: "Which element uses the symbol W?", answers: ["Tungsten", "Tin", "Titanium", "Zinc"], correct: 0 },
+      { rank: 2, category: "Art", prompt: "Who painted Guernica?", answers: ["Salvador Dali", "Pablo Picasso", "Joan Miro", "Diego Rivera"], correct: 1 },
+      { rank: 2, category: "World", prompt: "What is the world's smallest sovereign state by area?", answers: ["Monaco", "San Marino", "Vatican City", "Liechtenstein"], correct: 2 },
+      { rank: 2, category: "Biology", prompt: "Which organelle produces most cellular ATP?", answers: ["Ribosome", "Mitochondrion", "Nucleus", "Golgi apparatus"], correct: 1 },
+      { rank: 2, category: "Numbers", prompt: "What is the next prime number after 47?", answers: ["49", "51", "53", "57"], correct: 2 },
+      { rank: 2, category: "Physics", prompt: "What is the SI unit of luminous intensity?", answers: ["Lumen", "Lux", "Candela", "Joule"], correct: 2 },
+      { rank: 2, category: "Geometry", prompt: "How many distinct Platonic solids are there?", answers: ["4", "5", "6", "8"], correct: 1 },
+      { rank: 2, category: "Chemistry", prompt: "Which element has atomic number 26?", answers: ["Cobalt", "Iron", "Nickel", "Copper"], correct: 1 },
+      { rank: 2, category: "Music", prompt: "Who composed The Rite of Spring?", answers: ["Igor Stravinsky", "Claude Debussy", "Gustav Mahler", "Erik Satie"], correct: 0 },
+      { rank: 2, category: "History", prompt: "Which volcano buried Pompeii in 79 CE?", answers: ["Etna", "Vesuvius", "Stromboli", "Olympus"], correct: 1 },
+      { rank: 2, category: "Math", prompt: "What is the base-10 logarithm of 1000?", answers: ["2", "3", "10", "100"], correct: 1 }
+    ]);
+
+    const DEFAULT_PREFERENCES = Object.freeze({ schemaVersion: 1, playStyle: "solo", mode: "standard", difficulty: "normal", muted: false, volume: 0.7, metronome: true, motion: "system" });
+    const GRADE_ORDER = Object.freeze({ D: 0, C: 1, B: 2, A: 3, S: 4 });
+
+    function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+    function makeRandom(seed) {
+      let value = seed >>> 0;
+      return () => {
+        value = (value + 0x6d2b79f5) >>> 0;
+        let result = value;
+        result = Math.imul(result ^ (result >>> 15), result | 1);
+        result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
+        return ((result ^ (result >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    function createInitialRoleSwapTimes(mode, random) {
+      const choose = (values) => values[Math.floor(random() * values.length)];
+      const times = [choose(FIRST_ROLE_SWAP_BEATS) * BEAT_MS];
+      if (mode === "standard") times.push(choose(SECOND_STANDARD_SWAP_BEATS) * BEAT_MS);
+      return times;
+    }
+    function extendEndlessRoleSwapTimes(times, reservationHorizon, random) {
+      const extended = [...times];
+      while (extended.length && extended[extended.length - 1] < reservationHorizon) {
+        const interval = ENDLESS_SWAP_INTERVAL_BEATS[Math.floor(random() * ENDLESS_SWAP_INTERVAL_BEATS.length)];
+        extended.push(extended[extended.length - 1] + interval * BEAT_MS);
+      }
+      return extended;
+    }
+    function pressureTier(mode, elapsed) { return mode === "endless" ? Math.max(0, Math.floor(elapsed / ENDLESS_TIER_MS)) : elapsed < 23500 ? 0 : elapsed < 49000 ? 1 : 2; }
+    function calculateGrade({ dodges, collisions, triviaCorrect, triviaWrong, focus }) {
+      const dodgeTotal = dodges + collisions;
+      const triviaTotal = triviaCorrect + triviaWrong;
+      const dodgeAccuracy = dodgeTotal ? dodges / dodgeTotal : 0;
+      const triviaAccuracy = triviaTotal ? triviaCorrect / triviaTotal : 0;
+      if (dodgeAccuracy >= 0.93 && triviaAccuracy >= 0.82 && focus >= 45) return "S";
+      if (dodgeAccuracy >= 0.82 && triviaAccuracy >= 0.65) return "A";
+      if (dodgeAccuracy >= 0.67 && triviaAccuracy >= 0.48) return "B";
+      if (dodgeAccuracy >= 0.48 || triviaAccuracy >= 0.4) return "C";
+      return "D";
+    }
+    function validatePreferences(value) {
+      const source = value && typeof value === "object" ? value : {};
+      return {
+        schemaVersion: 1,
+        playStyle: source.playStyle === "duo" ? "duo" : "solo",
+        mode: source.mode === "endless" ? "endless" : "standard",
+        difficulty: Object.hasOwn(DIFFICULTIES, source.difficulty) ? source.difficulty : "normal",
+        muted: source.muted === true,
+        volume: Number.isFinite(source.volume) ? clamp(source.volume, 0, 1) : 0.7,
+        metronome: source.metronome !== false,
+        motion: source.motion === "reduced" ? "reduced" : "system"
+      };
+    }
+    function recordKey(playStyle, mode, difficulty) { return `${playStyle}:${mode}:${difficulty}`; }
+    function mergeRecord(previous, result) {
+      const prior = previous && typeof previous === "object" ? previous : {};
+      const priorScore = Number.isFinite(prior.bestScore) ? prior.bestScore : 0;
+      const priorTime = Number.isFinite(prior.bestTime) ? prior.bestTime : 0;
+      const newBest = result.score > priorScore || (result.mode === "endless" && result.elapsed > priorTime);
+      const priorGrade = Object.hasOwn(GRADE_ORDER, prior.bestGrade) ? prior.bestGrade : "D";
+      return {
+        newBest,
+        previousBestScore: priorScore,
+        record: {
+          attempts: (Number.isFinite(prior.attempts) ? prior.attempts : 0) + 1,
+          completions: (Number.isFinite(prior.completions) ? prior.completions : 0) + (result.complete ? 1 : 0),
+          bestScore: Math.max(priorScore, result.score),
+          bestGrade: GRADE_ORDER[result.grade] > GRADE_ORDER[priorGrade] ? result.grade : priorGrade,
+          bestCombo: Math.max(Number.isFinite(prior.bestCombo) ? prior.bestCombo : 0, result.bestCombo),
+          bestDodgeAccuracy: Math.max(Number.isFinite(prior.bestDodgeAccuracy) ? prior.bestDodgeAccuracy : 0, result.dodgeAccuracy),
+          bestTriviaAccuracy: Math.max(Number.isFinite(prior.bestTriviaAccuracy) ? prior.bestTriviaAccuracy : 0, result.triviaAccuracy),
+          bestTime: Math.max(priorTime, result.elapsed),
+          highestTier: Math.max(Number.isFinite(prior.highestTier) ? prior.highestTier : 1, result.tier),
+          bestFinishingFocus: Math.max(Number.isFinite(prior.bestFinishingFocus) ? prior.bestFinishingFocus : 0, result.focus)
+        }
+      };
+    }
+    function resolveWaveComponentStates(states) {
+      if (states.some((state) => state === "pending")) return "pending";
+      if (states.some((state) => state === "hit" || state === "contacted")) return "miss";
+      return "cleared";
+    }
+
+    return Object.freeze({ GAME_VERSION, BPM, BEAT_MS, STANDARD_DURATION_MS, ENDLESS_TIER_MS, PHRASE_BEATS, FIRST_ARRIVAL_BEAT, STORAGE_KEY, MODES, DIFFICULTIES, WAVE_PHRASES, QUESTIONS, DEFAULT_PREFERENCES, clamp, makeRandom, createInitialRoleSwapTimes, extendEndlessRoleSwapTimes, pressureTier, calculateGrade, validatePreferences, recordKey, mergeRecord, resolveWaveComponentStates });
+  })();
+  // SPLITBEAT_CORE_END
+
+  const { BPM, BEAT_MS, STANDARD_DURATION_MS, ENDLESS_TIER_MS, PHRASE_BEATS, FIRST_ARRIVAL_BEAT, STORAGE_KEY, MODES, DIFFICULTIES, WAVE_PHRASES, QUESTIONS } = SplitBeatCore;
+  const COUNTDOWN_MS = 3000;
+  const QUESTION_FEEDBACK_MS = 700;
+  const STARTING_FOCUS = 82;
+  const COLLISION_GRACE_MS = 900;
+  const MAX_ACTIVE_FRAME_GAP_MS = 450;
+  const TRAIL_INTERVAL_SECONDS = 1 / 34;
+  const TRAIL_LIFETIME_SECONDS = 0.48;
+  const BURST_LIFETIME_SECONDS = 0.56;
+  const TIMING_LINE_X = 0.18;
+  const WALL_TELEGRAPH_BEATS = 2;
+  const ROLE_SWAP_WARNING_BEATS = 2;
+  const ROLE_SWAP_GRACE_MS = 1400;
+  const WAVE_SCORE = Object.freeze({ single: 120, double: 180, wall: 220 });
+  const WAVE_SYNC = Object.freeze({ single: 7, double: 11, wall: 15 });
+
+  const MOVE_KEYS = { w: "up", a: "left", s: "down", d: "right", arrowup: "up", arrowleft: "left", arrowdown: "down", arrowright: "right" };
+  const MOVE_CODES = { KeyW: "up", KeyA: "left", KeyS: "down", KeyD: "right", ArrowUp: "up", ArrowLeft: "left", ArrowDown: "down", ArrowRight: "right" };
+  const SHIP_ACCEL = 2900;
+  const SHIP_MAX_SPEED = 470;
+  const SHIP_COAST_TAU = 0.16;
+  const ANSWER_KEYS = ["j", "k", "l", ";"];
+  const ANSWER_CODES = { KeyJ: 0, KeyK: 1, KeyL: 2, Semicolon: 3 };
+
+  const byId = (id) => document.getElementById(id);
+  const dom = {
+    appFrame: byId("appFrame"),
+    topbar: byId("topbar"),
+    splitStage: byId("splitStage"),
+    mobileWarning: byId("mobileWarning"),
+    scoreValue: byId("scoreValue"),
+    comboValue: byId("comboValue"),
+    multiplierValue: byId("multiplierValue"),
+    syncValue: byId("syncValue"),
+    syncFill: byId("syncFill"),
+    syncTrack: document.querySelector(".sync-track"),
+    timeLabel: byId("timeLabel"),
+    timeValue: byId("timeValue"),
+    focusStat: byId("focusStat"),
+    focusValue: byId("focusValue"),
+    focusFill: byId("focusFill"),
+    focusTrack: document.querySelector(".focus-track"),
+    gameStatus: byId("gameStatus"),
+    songProgressFill: byId("songProgressFill"),
+    pauseButton: byId("pauseButton"),
+    muteButton: byId("muteButton"),
+    fieldMount: byId("webglMount"),
+    trackError: byId("trackError"),
+    sectionChip: byId("sectionChip"),
+    chartReadout: byId("chartReadout"),
+    movementHint: byId("movementHint"),
+    pilotRoleLabel: byId("pilotRoleLabel"),
+    pilotRunStats: byId("pilotRunStats"),
+    operatorRoleLabel: byId("operatorRoleLabel"),
+    operatorRunStats: byId("operatorRunStats"),
+    rhythmFeedback: byId("rhythmFeedback"),
+    countdown: byId("countdown"),
+    countdownValue: byId("countdownValue"),
+    triviaPanel: byId("triviaPanel"),
+    questionIndex: byId("questionIndex"),
+    questionClock: byId("questionClock"),
+    questionTimerFill: byId("questionTimerFill"),
+    questionCopy: byId("questionCopy"),
+    answerButtons: [...document.querySelectorAll(".answer-button")],
+    triviaFeedback: byId("triviaFeedback"),
+    dualBonus: byId("dualBonus"),
+    roleSwapBanner: byId("roleSwapBanner"),
+    roleSwapTitle: byId("roleSwapTitle"),
+    roleSwapCopy: byId("roleSwapCopy"),
+    screenOverlay: byId("screenOverlay"),
+    mainMenuScreen: byId("mainMenuScreen"),
+    duoReadyScreen: byId("duoReadyScreen"),
+    pauseScreen: byId("pauseScreen"),
+    resultsScreen: byId("resultsScreen"),
+    playMenuPanel: byId("playMenuPanel"),
+    howMenuPanel: byId("howMenuPanel"),
+    preferencesMenuPanel: byId("preferencesMenuPanel"),
+    menuTabs: [...document.querySelectorAll("[data-menu-tab]")],
+    playStyleButtons: [...document.querySelectorAll("[data-play-style]")],
+    modeButtons: [...document.querySelectorAll("[data-mode]")],
+    difficultyButtons: [...document.querySelectorAll("[data-difficulty]")],
+    motionButtons: [...document.querySelectorAll("[data-motion]")],
+    menuEyebrow: byId("menuEyebrow"),
+    menuHeroCopy: byId("menuHeroCopy"),
+    menuModeRule: byId("menuModeRule"),
+    roundDetails: byId("roundDetails"),
+    recordPreview: byId("recordPreview"),
+    startButton: byId("startButton"),
+    howBackButton: byId("howBackButton"),
+    preferencesBackButton: byId("preferencesBackButton"),
+    menuSoundButton: byId("menuSoundButton"),
+    volumeControl: byId("volumeControl"),
+    volumeValue: byId("volumeValue"),
+    metronomeButton: byId("metronomeButton"),
+    pilotReadyCard: byId("pilotReadyCard"),
+    operatorReadyCard: byId("operatorReadyCard"),
+    pilotReadyButton: byId("pilotReadyButton"),
+    operatorReadyButton: byId("operatorReadyButton"),
+    duoReadyStatus: byId("duoReadyStatus"),
+    duoLaunchButton: byId("duoLaunchButton"),
+    duoBackButton: byId("duoBackButton"),
+    resumeButton: byId("resumeButton"),
+    pauseSoundButton: byId("pauseSoundButton"),
+    pauseEffectsButton: byId("pauseEffectsButton"),
+    pauseRestartButton: byId("pauseRestartButton"),
+    pauseMenuButton: byId("pauseMenuButton"),
+    restartButton: byId("restartButton"),
+    changeSetupButton: byId("changeSetupButton"),
+    resultsMenuButton: byId("resultsMenuButton"),
+    resultReason: byId("resultReason"),
+    resultScore: byId("resultScore"),
+    resultGrade: byId("resultGrade"),
+    resultContext: byId("resultContext"),
+    resultCopy: byId("resultCopy"),
+    resultBest: byId("resultBest"),
+    resultPilotOwner: byId("resultPilotOwner"),
+    resultPilotTitle: byId("resultPilotTitle"),
+    resultPilotMetric1Label: byId("resultPilotMetric1Label"),
+    resultPilotMetric2Label: byId("resultPilotMetric2Label"),
+    resultPilotMetric3Label: byId("resultPilotMetric3Label"),
+    resultDodgeAccuracy: byId("resultDodgeAccuracy"),
+    resultOperatorOwner: byId("resultOperatorOwner"),
+    resultOperatorTitle: byId("resultOperatorTitle"),
+    resultOperatorMetric1Label: byId("resultOperatorMetric1Label"),
+    resultOperatorMetric2Label: byId("resultOperatorMetric2Label"),
+    resultOperatorMetric3Label: byId("resultOperatorMetric3Label"),
+    resultTriviaAccuracy: byId("resultTriviaAccuracy"),
+    resultBestCombo: byId("resultBestCombo"),
+    resultHits: byId("resultHits"),
+    resultMisses: byId("resultMisses"),
+    resultCorrect: byId("resultCorrect"),
+    resultWrong: byId("resultWrong"),
+    resultSyncBanks: byId("resultSyncBanks"),
+    resultRunLabel: byId("resultRunLabel"),
+    resultRunValue: byId("resultRunValue"),
+    liveRegion: byId("liveRegion")
+  };
+
+  let status = "menu";
+  let selectedPlayStyle = "solo";
+  let selectedMode = "standard";
+  let selectedDifficulty = "normal";
+  let modeConfig = MODES.standard;
+  let config = DIFFICULTIES.normal;
+  let gameStartTime = 0;
+  let lastElapsed = 0;
+  let pausedElapsed = 0;
+  let pausedFromStatus = "playing";
+  let pausedCountdownRemaining = 0;
+  let splitFlashUntil = 0;
+  let lastCountdownNumber = null;
+  let lastBeatIndex = -1;
+  let questionOrder = [];
+  let questionCursor = 0;
+  let questionsSeen = 0;
+  let currentQuestion = null;
+  let muted = false;
+  let volume = 0.7;
+  let metronomeEnabled = true;
+  let audioContext = null;
+  let masterGain = null;
+  const activeVoices = new Set();
+  let animationFrameId = 0;
+  let systemReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let motionPreference = "system";
+  let reducedMotion = systemReducedMotion;
+  let focusFlashTimer = 0;
+  let rhythmFeedbackTimer = 0;
+  let dualBonusTimer = 0;
+  let roleSwapBannerTimer = 0;
+  let records = {};
+
+  let roundSeed = 0;
+  let chartRandom = Math.random;
+  let triviaRandom = Math.random;
+  let swapRandom = Math.random;
+
+  const held = { up: false, down: false, left: false, right: false };
+  let duoReady = { pilot: false, operator: false };
+  let roleOwners = { pilot: "p1", operator: "p2" };
+  let playerStats = createPlayerStats();
+  let roleSwapTimes = [];
+  let roleSwapIndex = 0;
+  let roleSwapWarningShown = false;
+  let lastRoleStatsElapsed = 0;
+
+  const stats = {
+    score: 0,
+    combo: 0,
+    bestCombo: 0,
+    dodges: 0,
+    collisions: 0,
+    triviaCorrect: 0,
+    triviaWrong: 0,
+    triviaTimeouts: 0,
+    sync: 0,
+    bestSync: 0,
+    syncBanks: 0,
+    syncScore: 0,
+    roleSwaps: 0,
+    focus: STARTING_FOCUS
+  };
+
+  // ---- Evasion field state -------------------------------------------------
+
+  let obstacles = [];
+  let scheduledWaves = [];
+  const activeWaves = new Map();
+  let chartNextBeat = FIRST_ARRIVAL_BEAT;
+  let lastPhraseId = null;
+  let currentPhraseLabel = "Opening drift";
+  let lastPressureTier = 0;
+  let waveCounter = 0;
+  const ship = { x: null, y: null, vx: 0, vy: 0 };
+  let invulnerableUntil = -Infinity;
+  let shakeUntil = 0;
+  let hitFlashUntil = 0;
+  let lastFrameTime = 0;
+  let lastRenderTime = 0;
+  let trailAccumulator = 0;
+  const trail = [];
+  const bursts = [];
+  let stars = [];
+
+  const view = {
+    ready: false,
+    canvas: null,
+    ctx: null,
+    width: 0,
+    height: 0,
+    dpr: 1,
+    resizeObserver: null
+  };
+
+  function initField() {
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.setAttribute("aria-hidden", "true");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("2D canvas unavailable");
+      dom.fieldMount.appendChild(canvas);
+      view.canvas = canvas;
+      view.ctx = ctx;
+
+      const resize = () => {
+        const host = dom.fieldMount.parentElement;
+        const rect = host.getBoundingClientRect();
+        const oldWidth = view.width;
+        const oldHeight = view.height;
+        const oldBand = bandForHeight(oldHeight);
+        view.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        view.width = Math.max(1, rect.width);
+        view.height = Math.max(1, rect.height);
+        canvas.width = Math.round(view.width * view.dpr);
+        canvas.height = Math.round(view.height * view.dpr);
+        canvas.style.width = `${view.width}px`;
+        canvas.style.height = `${view.height}px`;
+
+        if (oldWidth > 1 && oldHeight > 1) {
+          const newBand = fieldBand();
+          const oldBandHeight = oldBand.bottom - oldBand.top;
+          const newBandHeight = newBand.bottom - newBand.top;
+          const remapY = (value) => newBand.top + ((value - oldBand.top) / oldBandHeight) * newBandHeight;
+          if (ship.x !== null) {
+            ship.x = (ship.x / oldWidth) * view.width;
+            ship.y = remapY(ship.y);
+          }
+          for (const obstacle of obstacles) {
+            obstacle.yCenter = remapY(obstacle.yCenter);
+            obstacle.height = (obstacle.height / oldBandHeight) * newBandHeight;
+          }
+          for (const particle of [...trail, ...bursts]) {
+            particle.x = (particle.x / oldWidth) * view.width;
+            particle.y = (particle.y / oldHeight) * view.height;
+          }
+        }
+
+        syncStars();
+      };
+
+      resize();
+      if ("ResizeObserver" in window) {
+        view.resizeObserver = new ResizeObserver(resize);
+        view.resizeObserver.observe(dom.fieldMount.parentElement);
+      } else {
+        window.addEventListener("resize", resize);
+      }
+      view.ready = true;
+    } catch (error) {
+      console.error("SplitBeat could not start the evasion field.", error);
+      dom.trackError.classList.add("show");
+      dom.startButton.disabled = true;
+      dom.startButton.textContent = "Canvas unavailable";
+    }
+  }
+
+  function syncStars() {
+    const count = Math.round(clamp(view.width / 14, 40, 130));
+    if (stars.length > count) stars.length = count;
+    while (stars.length < count) {
+      stars.push({
+        x: Math.random(),
+        y: Math.random(),
+        depth: 0.25 + Math.random() * 0.75,
+        size: 0.6 + Math.random() * 1.7
+      });
+    }
+  }
+
+  // The flight band leaves the top clear for the question and the bottom
+  // clear for the answer row of the overlaid trivia HUD.
+  function bandForHeight(height) {
+    return { top: height * 0.27, bottom: height * 0.8 };
+  }
+
+  function fieldBand() {
+    return bandForHeight(view.height);
+  }
+
+  function shipSize() {
+    return {
+      length: clamp(view.width * 0.05, 42, 66),
+      halfHeight: clamp(view.height * 0.034, 10, 20)
+    };
+  }
+
+  function hazardSize() {
+    const band = fieldBand();
+    return {
+      width: clamp(view.width * 0.035, 30, 54),
+      height: clamp((band.bottom - band.top) / 6, 26, 64)
+    };
+  }
+
+  function obstacleX(obstacle, elapsed) {
+    const { width } = hazardSize();
+    const startX = view.width + width;
+    const timingX = view.width * TIMING_LINE_X;
+    const approachMs = obstacle.approachBeats * BEAT_MS;
+    const speed = (startX - timingX) / approachMs;
+    return timingX - speed * (elapsed - obstacle.arrivalTime);
+  }
+
+  function makeRandom(seed) {
+    return SplitBeatCore.makeRandom(seed);
+  }
+
+  function createRoundSeed() {
+    const seedParameter = new URLSearchParams(window.location.search).get("seed");
+    const requested = seedParameter === null || seedParameter.trim() === "" ? NaN : Number(seedParameter);
+    if (Number.isInteger(requested) && requested >= 0) return requested >>> 0;
+    if (window.crypto?.getRandomValues) {
+      return window.crypto.getRandomValues(new Uint32Array(1))[0];
+    }
+    return (Date.now() ^ Math.floor(performance.now() * 1000)) >>> 0;
+  }
+
+  function resetRoundRandomness() {
+    roundSeed = createRoundSeed();
+    chartRandom = makeRandom(roundSeed || 1);
+    triviaRandom = makeRandom((roundSeed ^ 0x9e3779b9) >>> 0 || 1);
+    swapRandom = makeRandom((roundSeed ^ 0x85ebca6b) >>> 0 || 1);
+  }
+
+  function randomBetween(min, max, random = chartRandom) {
+    return min + random() * Math.max(0, max - min);
+  }
+
+  // ---- Beat chart and wave scoring -----------------------------------------
+
+  function laneY(lane) {
+    const band = fieldBand();
+    const { height: hazardHeight } = hazardSize();
+    const margin = hazardHeight / 2 + 6;
+    return band.top + margin + (clamp(lane, 0, 4) / 4) * Math.max(0, band.bottom - band.top - margin * 2);
+  }
+
+  function mirrorEvent(event, mirrored) {
+    if (!mirrored) return event;
+    if (event.kind === "wall") return { ...event, gapLane: 4 - event.gapLane };
+    return { ...event, lanes: event.lanes.map((lane) => 4 - lane) };
+  }
+
+  function maxPhraseRating(elapsed) {
+    return SplitBeatCore.pressureTier(selectedMode, elapsed);
+  }
+
+  function effectiveEventLevel(tier) {
+    return Math.min(2, config.rank + (selectedMode === "endless" ? Math.floor(tier / 2) : 0));
+  }
+
+  function appendPhrase(startBeat) {
+    const startElapsed = startBeat * BEAT_MS;
+    const tier = SplitBeatCore.pressureTier(selectedMode, startElapsed);
+    const maxRating = Math.min(2, maxPhraseRating(startElapsed));
+    let eligible = WAVE_PHRASES.filter((phrase) => phrase.rating <= maxRating && phrase.id !== lastPhraseId);
+    if (!eligible.length) eligible = WAVE_PHRASES.filter((phrase) => phrase.rating <= maxRating);
+    const phrase = lastPhraseId === null
+      ? WAVE_PHRASES.find((candidate) => candidate.id === "drift-weave")
+      : eligible[Math.floor(chartRandom() * eligible.length)];
+    const mirrored = chartRandom() >= 0.5;
+    const level = effectiveEventLevel(tier);
+    const approachBeats = Math.max(3, config.approachBeats - (selectedMode === "endless" ? Math.floor(tier / 2) * 0.5 : 0));
+    const gapFactor = Math.max(2, config.gapFactor * (selectedMode === "endless" ? 1 - tier * 0.03 : 1));
+
+    for (const rawEvent of phrase.events) {
+      if (rawEvent.level > level) continue;
+      const event = mirrorEvent(rawEvent, mirrored);
+      const arrivalBeat = startBeat + event.beat;
+      const arrivalTime = arrivalBeat * BEAT_MS;
+      if (selectedMode === "standard" && arrivalTime >= STANDARD_DURATION_MS) continue;
+      if (selectedPlayStyle === "duo" && roleSwapTimes.some((swapTime) => Math.abs(swapTime - arrivalTime) < ROLE_SWAP_GRACE_MS)) continue;
+      scheduledWaves.push({
+        id: waveCounter++,
+        phraseId: phrase.id,
+        phraseLabel: phrase.label,
+        kind: event.kind,
+        lanes: event.lanes || null,
+        gapLane: Number.isFinite(event.gapLane) ? event.gapLane : null,
+        arrivalBeat,
+        arrivalTime,
+        spawnTime: arrivalTime - approachBeats * BEAT_MS,
+        approachBeats,
+        gapFactor,
+        pressureTier: tier
+      });
+    }
+
+    lastPhraseId = phrase.id;
+    chartNextBeat = startBeat + PHRASE_BEATS;
+  }
+
+  function ensureChartScheduled(elapsed) {
+    const horizon = elapsed + 36 * BEAT_MS;
+    if (selectedPlayStyle === "duo" && selectedMode === "endless") {
+      ensureEndlessRoleSwapsScheduled(elapsed + (36 + PHRASE_BEATS) * BEAT_MS);
+    }
+    while (chartNextBeat * BEAT_MS <= horizon) {
+      if (selectedMode === "standard" && chartNextBeat * BEAT_MS >= STANDARD_DURATION_MS) break;
+      appendPhrase(chartNextBeat);
+    }
+  }
+
+  function materializeWave(spec) {
+    const band = fieldBand();
+    const { height: hazardHeight } = hazardSize();
+    const shipHeight = shipSize().halfHeight * 2;
+    const components = [];
+    const push = (yCenter, height) => {
+      const obstacle = { ...spec, yCenter, height, state: "pending" };
+      obstacles.push(obstacle);
+      components.push(obstacle);
+    };
+
+    if (spec.kind === "wall") {
+      const gapHeight = shipHeight * spec.gapFactor;
+      const gapY = clamp(laneY(spec.gapLane), band.top + gapHeight / 2 + 8, band.bottom - gapHeight / 2 - 8);
+      const topHeight = gapY - gapHeight / 2 - band.top;
+      const bottomHeight = band.bottom - (gapY + gapHeight / 2);
+      if (topHeight > 10) push(band.top + topHeight / 2, topHeight);
+      if (bottomHeight > 10) push(gapY + gapHeight / 2 + bottomHeight / 2, bottomHeight);
+    } else {
+      for (const lane of spec.lanes) push(laneY(lane), hazardHeight);
+    }
+
+    activeWaves.set(spec.id, { ...spec, state: "pending", components, telegraphed: false });
+    currentPhraseLabel = spec.phraseLabel;
+    dom.chartReadout.textContent = `${spec.phraseLabel} · beat ${Math.floor(spec.arrivalBeat)}`;
+  }
+
+  function spawnScheduledWaves(elapsed) {
+    while (scheduledWaves.length && scheduledWaves[0].spawnTime <= elapsed) {
+      materializeWave(scheduledWaves.shift());
+    }
+  }
+
+  function componentIntersectsShip(component, elapsed, previousElapsed) {
+    const { width: hazardWidth } = hazardSize();
+    const shipDims = shipSize();
+    const x = obstacleX(component, elapsed);
+    const previousX = obstacleX(component, previousElapsed);
+    const obstacleLeft = Math.min(previousX, x) - hazardWidth / 2;
+    const obstacleRight = Math.max(previousX, x) + hazardWidth / 2;
+    const shipLeft = ship.x - shipDims.length * 0.32;
+    const shipRight = ship.x + shipDims.length * 0.32;
+    return obstacleRight >= shipLeft
+      && obstacleLeft <= shipRight
+      && Math.abs(ship.y - component.yCenter) < component.height / 2 + shipDims.halfHeight * 0.72;
+  }
+
+  function waveHasPassedShip(wave, elapsed) {
+    const { width } = hazardSize();
+    return obstacleX(wave.components[0], elapsed) + width / 2 < ship.x - shipSize().length / 2;
+  }
+
+  function endlessScoreMultiplier(tier) {
+    return 1 + Math.min(1, tier * 0.1);
+  }
+
+  function gainSync(amount) {
+    stats.sync = clamp(stats.sync + amount, 0, 100);
+    stats.bestSync = Math.max(stats.bestSync, stats.sync);
+  }
+
+  function breakSync() {
+    stats.sync = 0;
+  }
+
+  function bankSync() {
+    const converted = stats.sync;
+    const score = Math.floor(converted * 10);
+    const focus = Math.min(5, Math.floor(converted / 20));
+    stats.sync = 0;
+    stats.syncScore += score;
+    if (converted >= 25) stats.syncBanks += 1;
+    return { converted, score, focus };
+  }
+
+  function registerDodge(wave, elapsed) {
+    stats.dodges += 1;
+    stats.combo += 1;
+    stats.bestCombo = Math.max(stats.bestCombo, stats.combo);
+    stats.score += Math.round(WAVE_SCORE[wave.kind] * currentMultiplier() * endlessScoreMultiplier(wave.pressureTier));
+    gainSync(WAVE_SYNC[wave.kind]);
+    const pilot = playerStats[roleOwners.pilot].pilot;
+    pilot.dodges += 1;
+    if (stats.combo > 0 && stats.combo % 10 === 0) {
+      showRhythmFeedback(`${stats.combo} chain`, "great");
+      playChainSound();
+    }
+    updateHud(elapsed);
+  }
+
+  function resolveWaveHit(wave, hitComponent, elapsed) {
+    wave.state = "hit";
+    wave.components.forEach((component) => { component.state = component === hitComponent ? "hit" : "contacted"; });
+    stats.collisions += 1;
+    stats.combo = 0;
+    breakSync();
+    playerStats[roleOwners.pilot].pilot.collisions += 1;
+    if (elapsed >= invulnerableUntil) {
+      invulnerableUntil = elapsed + COLLISION_GRACE_MS;
+      shakeUntil = elapsed + 230;
+      hitFlashUntil = elapsed + 300;
+      spawnBurst(hitComponent);
+      showRhythmFeedback("Hit", "miss");
+      playMissSound();
+      changeFocus(-config.collidePenalty);
+    } else {
+      showRhythmFeedback("Contact", "miss");
+      updateHud(elapsed);
+    }
+  }
+
+  function resolveWaveClear(wave, elapsed) {
+    wave.state = "cleared";
+    wave.components.forEach((component) => { component.state = "cleared"; });
+    registerDodge(wave, elapsed);
+  }
+
+  function updateObstacles(elapsed, previousElapsed) {
+    ensureChartScheduled(elapsed);
+    spawnScheduledWaves(elapsed);
+    if (ship.x === null) return;
+    for (const wave of activeWaves.values()) {
+      if (wave.state !== "pending") continue;
+      const hitComponent = wave.components.find((component) => componentIntersectsShip(component, elapsed, previousElapsed));
+      if (hitComponent) {
+        resolveWaveHit(wave, hitComponent, elapsed);
+        if (status !== "playing") return;
+      } else if (waveHasPassedShip(wave, elapsed)) {
+        resolveWaveClear(wave, elapsed);
+      }
+    }
+
+    const { width } = hazardSize();
+    obstacles = obstacles.filter((obstacle) => obstacleX(obstacle, elapsed) > -width * 2.5);
+    for (const [id, wave] of activeWaves) {
+      if (wave.components.every((component) => !obstacles.includes(component))) activeWaves.delete(id);
+    }
+  }
+
+  function spawnBurst(obstacle) {
+    if (reducedMotion) return;
+    const y = ship.y === null ? obstacle.yCenter : ship.y;
+    const x = (ship.x === null ? view.width * 0.18 : ship.x) + hazardSize().width * 0.4;
+    for (let i = 0; i < 14; i += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 60 + Math.random() * 220;
+      bursts.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: BURST_LIFETIME_SECONDS,
+        maxLife: BURST_LIFETIME_SECONDS,
+        size: 1.5 + Math.random() * 3
+      });
+    }
+  }
+
+  function resetFieldState() {
+    obstacles = [];
+    scheduledWaves = [];
+    activeWaves.clear();
+    bursts.length = 0;
+    trail.length = 0;
+    chartNextBeat = FIRST_ARRIVAL_BEAT;
+    lastPhraseId = null;
+    currentPhraseLabel = "Opening drift";
+    roleSwapTimes = [];
+    roleSwapIndex = 0;
+    roleSwapWarningShown = false;
+    waveCounter = 0;
+    ship.x = null;
+    ship.y = null;
+    ship.vx = 0;
+    ship.vy = 0;
+    invulnerableUntil = -Infinity;
+    shakeUntil = 0;
+    hitFlashUntil = 0;
+    trailAccumulator = 0;
+  }
+
+  function updateShip(dt) {
+    if (!view.ready) return;
+    const band = fieldBand();
+    const { length: len, halfHeight: hh } = shipSize();
+    if (ship.x === null) {
+      ship.x = view.width * 0.18;
+      ship.y = (band.top + band.bottom) / 2;
+    }
+
+    let ax = (held.right ? 1 : 0) - (held.left ? 1 : 0);
+    let ay = (held.down ? 1 : 0) - (held.up ? 1 : 0);
+    if (ax && ay) {
+      ax *= Math.SQRT1_2;
+      ay *= Math.SQRT1_2;
+    }
+
+    ship.vx += ax * SHIP_ACCEL * dt;
+    ship.vy += ay * SHIP_ACCEL * dt;
+    const coast = Math.exp(-dt / SHIP_COAST_TAU);
+    if (!ax) ship.vx *= coast;
+    if (!ay) ship.vy *= coast;
+    const speed = Math.hypot(ship.vx, ship.vy);
+    if (speed > SHIP_MAX_SPEED) {
+      const scale = SHIP_MAX_SPEED / speed;
+      ship.vx *= scale;
+      ship.vy *= scale;
+    }
+
+    const minX = len * 0.7;
+    const maxX = view.width * 0.64;
+    const minY = band.top + hh;
+    const maxY = band.bottom - hh;
+    ship.x = clamp(ship.x + ship.vx * dt, minX, maxX);
+    ship.y = clamp(ship.y + ship.vy * dt, minY, maxY);
+    if (ship.x === minX || ship.x === maxX) ship.vx = 0;
+    if (ship.y === minY || ship.y === maxY) ship.vy = 0;
+  }
+
+  function updateEffects(dt) {
+    if (!view.ready || ship.x === null || dt <= 0) return;
+
+    if (reducedMotion) {
+      trail.length = 0;
+      bursts.length = 0;
+      trailAccumulator = 0;
+      return;
+    }
+
+    trailAccumulator += dt;
+    while (trailAccumulator >= TRAIL_INTERVAL_SECONDS) {
+      trailAccumulator -= TRAIL_INTERVAL_SECONDS;
+      trail.push({
+        x: ship.x - shipSize().length * 0.42,
+        y: ship.y,
+        life: TRAIL_LIFETIME_SECONDS,
+        maxLife: TRAIL_LIFETIME_SECONDS
+      });
+    }
+    if (trail.length > 30) trail.splice(0, trail.length - 30);
+
+    for (const particle of trail) {
+      particle.life -= dt;
+      particle.x -= 150 * dt;
+    }
+    while (trail.length && trail[0].life <= 0) trail.shift();
+
+    const drag = Math.exp(-3.9 * dt);
+    for (const particle of bursts) {
+      particle.life -= dt;
+      particle.x += particle.vx * dt;
+      particle.y += particle.vy * dt;
+      particle.vx *= drag;
+      particle.vy *= drag;
+    }
+    for (let index = bursts.length - 1; index >= 0; index -= 1) {
+      if (bursts[index].life <= 0) bursts.splice(index, 1);
+    }
+  }
+
+  // ---- Rendering -----------------------------------------------------------
+
+  function renderField(now) {
+    if (!view.ready) return;
+    const ctx = view.ctx;
+    const w = view.width;
+    const h = view.height;
+    const inRound = status === "playing" || status === "countdown" || status === "paused";
+    const elapsed = status === "playing" ? lastElapsed : status === "paused" ? pausedElapsed : lastElapsed;
+    const scroll = reducedMotion ? 0 : inRound ? elapsed : now * 0.22;
+
+    ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    let shakeX = 0;
+    let shakeY = 0;
+    if (inRound && !reducedMotion && elapsed < shakeUntil) {
+      const power = ((shakeUntil - elapsed) / 230) * 6;
+      shakeX = (Math.random() - 0.5) * power;
+      shakeY = (Math.random() - 0.5) * power;
+      ctx.translate(shakeX, shakeY);
+    }
+
+    drawStars(ctx, w, h, scroll);
+    drawBounds(ctx, w);
+    drawTimingLine(ctx);
+
+    if (inRound) {
+      drawWallTelegraphs(ctx, elapsed);
+      drawObstacles(ctx, elapsed);
+      drawTrail(ctx);
+      drawShip(ctx, elapsed);
+      drawBursts(ctx);
+    } else {
+      drawIdleShip(ctx, now);
+    }
+
+    if (inRound && elapsed < hitFlashUntil) {
+      const strength = (hitFlashUntil - elapsed) / 300;
+      ctx.fillStyle = `rgba(255, 49, 93, ${0.16 * strength})`;
+      ctx.fillRect(-12, -12, w + 24, h + 24);
+    }
+  }
+
+  function drawStars(ctx, w, h, scroll) {
+    for (const star of stars) {
+      const x = ((star.x - (scroll * star.depth * 0.00004) % 1) % 1 + 1) % 1 * w;
+      const y = star.y * h;
+      ctx.globalAlpha = 0.25 + star.depth * 0.45;
+      ctx.fillStyle = star.depth > 0.7 ? "#cfe4ff" : "#6f7ba6";
+      ctx.fillRect(x, y, star.size, star.size);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawBounds(ctx, w) {
+    const band = fieldBand();
+
+    for (const edge of [band.top, band.bottom]) {
+      const rail = ctx.createLinearGradient(0, 0, w, 0);
+      rail.addColorStop(0, "rgba(49, 230, 255, 0.02)");
+      rail.addColorStop(0.5, "rgba(49, 230, 255, 0.22)");
+      rail.addColorStop(1, "rgba(49, 230, 255, 0.02)");
+      ctx.strokeStyle = rail;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, edge);
+      ctx.lineTo(w, edge);
+      ctx.stroke();
+    }
+  }
+
+  function drawTimingLine(ctx) {
+    const band = fieldBand();
+    const x = view.width * TIMING_LINE_X;
+    ctx.save();
+    ctx.strokeStyle = "rgba(49, 230, 255, 0.16)";
+    ctx.setLineDash([4, 8]);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, band.top);
+    ctx.lineTo(x, band.bottom);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawWallTelegraphs(ctx, elapsed) {
+    const timingX = view.width * TIMING_LINE_X;
+    for (const wave of activeWaves.values()) {
+      if (wave.kind !== "wall" || wave.state !== "pending") continue;
+      const remaining = wave.arrivalTime - elapsed;
+      if (remaining <= 0 || remaining > WALL_TELEGRAPH_BEATS * BEAT_MS) continue;
+      if (!wave.telegraphed && status === "playing") {
+        wave.telegraphed = true;
+        showRhythmFeedback(`Gate · ${Math.max(1, Math.ceil(remaining / BEAT_MS))} beats`, "good");
+        playTone(330, 0.08, "triangle", 0.018);
+      }
+
+      const sorted = [...wave.components].sort((a, b) => a.yCenter - b.yCenter);
+      if (sorted.length < 2) continue;
+      const gapTop = sorted[0].yCenter + sorted[0].height / 2;
+      const gapBottom = sorted[1].yCenter - sorted[1].height / 2;
+      const alpha = reducedMotion ? 0.48 : 0.28 + 0.22 * Math.sin(elapsed * 0.018);
+      ctx.save();
+      ctx.fillStyle = `rgba(255, 224, 91, ${alpha * 0.16})`;
+      ctx.fillRect(0, gapTop, timingX, gapBottom - gapTop);
+      ctx.strokeStyle = `rgba(255, 224, 91, ${alpha + 0.28})`;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([7, 6]);
+      ctx.beginPath();
+      ctx.moveTo(timingX - 22, gapTop);
+      ctx.lineTo(timingX + 22, gapTop);
+      ctx.moveTo(timingX - 22, gapBottom);
+      ctx.lineTo(timingX + 22, gapBottom);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  function drawObstacles(ctx, elapsed) {
+    const { width: hw } = hazardSize();
+
+    for (const obstacle of obstacles) {
+      if (obstacle.state === "hit") continue;
+      const x = obstacleX(obstacle, elapsed);
+      if (x < -hw || x > view.width + hw) continue;
+      const y = obstacle.yCenter;
+      const oh = obstacle.height;
+      const pulse = reducedMotion ? 0.86 : 0.75 + 0.25 * Math.sin(elapsed * 0.012 + obstacle.spawnTime);
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.globalAlpha = obstacle.state === "contacted" ? 0.42 : 1;
+      ctx.shadowColor = "#ff315d";
+      ctx.shadowBlur = reducedMotion ? 6 : 16 * pulse;
+
+      const gradient = ctx.createLinearGradient(-hw / 2, 0, hw / 2, 0);
+      gradient.addColorStop(0, "#3d0b1c");
+      gradient.addColorStop(0.5, "#71142f");
+      gradient.addColorStop(1, "#3d0b1c");
+      ctx.fillStyle = gradient;
+      ctx.strokeStyle = `rgba(255, 49, 93, ${0.55 + 0.4 * pulse})`;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.roundRect(-hw / 2, -oh / 2, hw, oh, 5);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(255, 221, 230, 0.95)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-hw / 2 + 3, -oh / 2 + 5);
+      ctx.lineTo(-hw / 2 + 3, oh / 2 - 5);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(255, 178, 196, 0.75)";
+      ctx.lineWidth = 1.4;
+      const braceCount = Math.max(1, Math.round(oh / 56));
+      const step = oh / braceCount;
+      const inset = Math.min(hw, step) * 0.22;
+      for (let brace = 0; brace < braceCount; brace += 1) {
+        const cy = -oh / 2 + step * (brace + 0.5);
+        ctx.beginPath();
+        ctx.moveTo(-hw / 2 + inset, cy - step / 2 + inset);
+        ctx.lineTo(hw / 2 - inset, cy + step / 2 - inset);
+        ctx.moveTo(hw / 2 - inset, cy - step / 2 + inset);
+        ctx.lineTo(-hw / 2 + inset, cy + step / 2 - inset);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawShip(ctx, elapsed) {
+    if (ship.x === null) return;
+    const invulnerable = elapsed < invulnerableUntil;
+    const tilt = reducedMotion ? 0 : clamp(ship.vy * 0.0011, -0.5, 0.5);
+    drawShipShape(ctx, ship.x, ship.y, tilt, invulnerable ? 0.78 : 1, elapsed, invulnerable);
+  }
+
+  function drawIdleShip(ctx, now) {
+    const motionTime = reducedMotion ? 0 : now;
+    const y = view.height * 0.53 + Math.sin(motionTime * 0.0013) * (reducedMotion ? 0 : 9);
+    const tilt = reducedMotion ? 0 : Math.sin(motionTime * 0.0013 + 1.2) * 0.06;
+    drawShipShape(ctx, view.width * 0.18, y, tilt, 0.9, motionTime, false);
+  }
+
+  function drawShipShape(ctx, x, y, tilt, alpha, animationTime, invulnerable) {
+    const { length: len, halfHeight: hh } = shipSize();
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(tilt);
+    ctx.globalAlpha = alpha;
+
+    const flicker = reducedMotion ? 0.64 : 0.72 + Math.sin(animationTime * 0.014) * 0.18;
+    const flameLen = len * (0.34 + flicker * 0.3);
+    const flame = ctx.createLinearGradient(-len / 2 - flameLen, 0, -len / 2, 0);
+    flame.addColorStop(0, "rgba(49, 230, 255, 0)");
+    flame.addColorStop(1, "rgba(49, 230, 255, 0.85)");
+    ctx.fillStyle = flame;
+    ctx.beginPath();
+    ctx.moveTo(-len / 2 - flameLen, 0);
+    ctx.lineTo(-len / 2 + 2, -hh * 0.42);
+    ctx.lineTo(-len / 2 + 2, hh * 0.42);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowColor = invulnerable ? "#ffe05b" : "#31e6ff";
+    ctx.shadowBlur = reducedMotion ? 8 : invulnerable ? 28 : 18;
+    const body = ctx.createLinearGradient(-len / 2, 0, len / 2, 0);
+    body.addColorStop(0, "#0d3b4d");
+    body.addColorStop(0.65, "#1699b8");
+    body.addColorStop(1, "#8ff2ff");
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.moveTo(len / 2, 0);
+    ctx.lineTo(-len / 2, -hh);
+    ctx.lineTo(-len * 0.3, 0);
+    ctx.lineTo(-len / 2, hh);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "rgba(2, 8, 18, 0.95)";
+    ctx.lineWidth = 4.5;
+    ctx.stroke();
+    ctx.strokeStyle = invulnerable ? "#ffe89a" : "#8ff6ff";
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#eaffff";
+    ctx.beginPath();
+    ctx.arc(len * 0.14, 0, Math.max(2, hh * 0.22), 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function drawTrail(ctx) {
+    for (const particle of trail) {
+      if (particle.life <= 0) continue;
+      const ratio = particle.life / particle.maxLife;
+      ctx.globalAlpha = ratio * 0.65;
+      ctx.fillStyle = "#31e6ff";
+      ctx.fillRect(particle.x, particle.y - 1.25, 8 * ratio + 2, 2.5);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawBursts(ctx) {
+    for (const particle of bursts) {
+      if (particle.life <= 0) continue;
+      const ratio = particle.life / particle.maxLife;
+      ctx.globalAlpha = ratio;
+      ctx.fillStyle = ratio > 0.55 ? "#ffb2c4" : "#ff315d";
+      ctx.fillRect(particle.x, particle.y, particle.size, particle.size);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---- Shared helpers (HUD, focus, screens) --------------------------------
+
+  function createPlayerStats() {
+    const roleStats = () => ({ activeMs: 0, dodges: 0, collisions: 0, correct: 0, wrong: 0, timeouts: 0 });
+    return { p1: { pilot: roleStats(), operator: roleStats() }, p2: { pilot: roleStats(), operator: roleStats() } };
+  }
+
+  function resetStats() {
+    stats.score = 0;
+    stats.combo = 0;
+    stats.bestCombo = 0;
+    stats.dodges = 0;
+    stats.collisions = 0;
+    stats.triviaCorrect = 0;
+    stats.triviaWrong = 0;
+    stats.triviaTimeouts = 0;
+    stats.sync = 0;
+    stats.bestSync = 0;
+    stats.syncBanks = 0;
+    stats.syncScore = 0;
+    stats.roleSwaps = 0;
+    stats.focus = STARTING_FOCUS;
+    playerStats = createPlayerStats();
+    roleOwners = { pilot: "p1", operator: "p2" };
+    lastRoleStatsElapsed = 0;
+  }
+
+  function currentMultiplier() {
+    return Math.min(4, 1 + Math.floor(stats.combo / 10));
+  }
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function formatTime(milliseconds) {
+    const seconds = Math.max(0, Math.ceil(milliseconds / 1000));
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+  }
+
+  function formatElapsed(milliseconds) {
+    const seconds = Math.max(0, Math.floor(milliseconds / 1000));
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+  }
+
+  function sectionForElapsed(elapsed) {
+    if (selectedMode === "endless") return `Tier ${SplitBeatCore.pressureTier("endless", elapsed) + 1}`;
+    if (elapsed < 23500) return "Opening drift";
+    if (elapsed < 49000) return "Crossfire";
+    return "Overdrive";
+  }
+
+  function setTextIfChanged(element, value) {
+    if (element.textContent !== value) element.textContent = value;
+  }
+
+  function setStyleIfChanged(element, property, value) {
+    if (element.style[property] !== value) element.style[property] = value;
+  }
+
+  function updateHud(elapsed = lastElapsed) {
+    const safeElapsed = Math.max(0, elapsed);
+    const roundedFocus = Math.round(stats.focus);
+    setTextIfChanged(dom.scoreValue, String(Math.floor(stats.score)).padStart(7, "0"));
+    setTextIfChanged(dom.comboValue, String(stats.combo));
+    setTextIfChanged(dom.multiplierValue, `x${currentMultiplier()}`);
+    setTextIfChanged(dom.syncValue, `Sync ${Math.round(stats.sync)}%`);
+    setStyleIfChanged(dom.syncFill, "width", `${stats.sync}%`);
+    if (dom.syncTrack.getAttribute("aria-valuenow") !== String(Math.round(stats.sync))) {
+      dom.syncTrack.setAttribute("aria-valuenow", String(Math.round(stats.sync)));
+    }
+    setTextIfChanged(dom.focusValue, `${roundedFocus}%`);
+    setStyleIfChanged(dom.focusFill, "width", `${stats.focus}%`);
+    if (dom.focusTrack.getAttribute("aria-valuenow") !== String(roundedFocus)) {
+      dom.focusTrack.setAttribute("aria-valuenow", String(roundedFocus));
+    }
+    if (selectedMode === "endless") {
+      setTextIfChanged(dom.timeLabel, "Survival");
+      setTextIfChanged(dom.timeValue, formatElapsed(safeElapsed));
+      setStyleIfChanged(dom.songProgressFill, "transform", `scaleX(${(safeElapsed % ENDLESS_TIER_MS) / ENDLESS_TIER_MS})`);
+    } else {
+      setTextIfChanged(dom.timeLabel, "Time");
+      setTextIfChanged(dom.timeValue, formatTime(STANDARD_DURATION_MS - clamp(safeElapsed, 0, STANDARD_DURATION_MS)));
+      setStyleIfChanged(dom.songProgressFill, "transform", `scaleX(${clamp(safeElapsed / STANDARD_DURATION_MS, 0, 1)})`);
+    }
+    setTextIfChanged(dom.sectionChip, sectionForElapsed(safeElapsed));
+    updateRoleHud();
+    document.body.classList.toggle("low-focus", roundedFocus <= 25);
+  }
+
+  function playerName(id) {
+    return id === "p1" ? "Player 1" : "Player 2";
+  }
+
+  function accuracy(correct, total) {
+    return total ? Math.round((correct / total) * 100) : 0;
+  }
+
+  function updatePlayerRoleTime(elapsed) {
+    const delta = Math.max(0, elapsed - lastRoleStatsElapsed);
+    if (selectedPlayStyle === "duo" && delta <= 1000) {
+      playerStats[roleOwners.pilot].pilot.activeMs += delta;
+      playerStats[roleOwners.operator].operator.activeMs += delta;
+    }
+    lastRoleStatsElapsed = elapsed;
+  }
+
+  function updateRoleHud() {
+    const dodgeTotal = stats.dodges + stats.collisions;
+    const triviaTotal = stats.triviaCorrect + stats.triviaWrong;
+    if (selectedPlayStyle === "duo") {
+      dom.pilotRoleLabel.textContent = `${playerName(roleOwners.pilot)} · Pilot`;
+      dom.operatorRoleLabel.textContent = `${playerName(roleOwners.operator)} · Operator / J K L ;`;
+    } else {
+      dom.pilotRoleLabel.textContent = "Flight channel";
+      dom.operatorRoleLabel.textContent = "Trivia channel / J K L ;";
+    }
+    dom.pilotRunStats.textContent = `${stats.dodges} clear · ${stats.collisions} hit · ${accuracy(stats.dodges, dodgeTotal)}%`;
+    dom.operatorRunStats.textContent = `${stats.triviaCorrect} correct · ${stats.triviaWrong} wrong · ${accuracy(stats.triviaCorrect, triviaTotal)}%`;
+  }
+
+  function flashFocus(kind) {
+    window.clearTimeout(focusFlashTimer);
+    dom.focusStat.classList.remove("gain", "loss");
+    void dom.focusStat.offsetWidth;
+    dom.focusStat.classList.add(kind);
+    focusFlashTimer = window.setTimeout(() => dom.focusStat.classList.remove(kind), 450);
+  }
+
+  function changeFocus(amount) {
+    const previous = stats.focus;
+    stats.focus = clamp(stats.focus + amount, 0, 100);
+    if (stats.focus !== previous) flashFocus(amount >= 0 ? "gain" : "loss");
+    updateHud();
+    if (stats.focus <= 0 && status === "playing") finishGame("focus");
+  }
+
+  function showRhythmFeedback(label, tone) {
+    window.clearTimeout(rhythmFeedbackTimer);
+    dom.rhythmFeedback.textContent = label;
+    dom.rhythmFeedback.className = `rhythm-feedback ${tone}`;
+    void dom.rhythmFeedback.offsetWidth;
+    dom.rhythmFeedback.classList.add("show");
+    rhythmFeedbackTimer = window.setTimeout(() => dom.rhythmFeedback.classList.remove("show"), 520);
+  }
+
+  function showDualBonus() {
+    window.clearTimeout(dualBonusTimer);
+    dom.dualBonus.classList.remove("show");
+    void dom.dualBonus.offsetWidth;
+    dom.dualBonus.classList.add("show");
+    dualBonusTimer = window.setTimeout(() => dom.dualBonus.classList.remove("show"), 1000);
+  }
+
+  function showRoleSwapBanner(kind, title, copy) {
+    window.clearTimeout(roleSwapBannerTimer);
+    dom.roleSwapTitle.textContent = title;
+    dom.roleSwapCopy.textContent = copy;
+    dom.roleSwapBanner.classList.remove("show-warning", "show-swap");
+    void dom.roleSwapBanner.offsetWidth;
+    dom.roleSwapBanner.classList.add(kind === "warning" ? "show-warning" : "show-swap");
+    roleSwapBannerTimer = window.setTimeout(() => {
+      dom.roleSwapBanner.classList.remove("show-warning", "show-swap");
+    }, kind === "warning" ? 1100 : 1550);
+  }
+
+  function setOverlayScreen(screen) {
+    const overlayActive = screen !== null;
+    dom.mainMenuScreen.hidden = screen !== "menu";
+    dom.duoReadyScreen.hidden = screen !== "duo";
+    dom.pauseScreen.hidden = screen !== "pause";
+    dom.resultsScreen.hidden = screen !== "results";
+    dom.screenOverlay.classList.toggle("is-hidden", !overlayActive);
+    dom.screenOverlay.setAttribute("aria-hidden", String(!overlayActive));
+    dom.topbar.inert = overlayActive;
+    dom.splitStage.inert = overlayActive;
+    if (!overlayActive) window.setTimeout(() => dom.appFrame.focus({ preventScroll: true }), 0);
+  }
+
+  function setMenuTab(tabName) {
+    const isPlay = tabName === "play";
+    dom.playMenuPanel.hidden = !isPlay;
+    dom.howMenuPanel.hidden = tabName !== "how";
+    dom.preferencesMenuPanel.hidden = tabName !== "preferences";
+    dom.menuTabs.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.menuTab === tabName)));
+    if (isPlay) window.setTimeout(() => dom.playStyleButtons.find((button) => button.dataset.playStyle === selectedPlayStyle)?.focus(), 0);
+  }
+
+  function selectionAllowed() {
+    return status === "menu" || status === "gameOver";
+  }
+
+  function setPlayStyle(name) {
+    if (!selectionAllowed() || !["solo", "duo"].includes(name)) return;
+    selectedPlayStyle = name;
+    renderSetup();
+    updateRoleHud();
+    persistData();
+  }
+
+  function setMode(name) {
+    if (!selectionAllowed() || !MODES[name]) return;
+    selectedMode = name;
+    modeConfig = MODES[name];
+    renderSetup();
+    updateHud(0);
+    persistData();
+  }
+
+  function setDifficulty(name) {
+    if (!DIFFICULTIES[name] || !selectionAllowed()) return;
+    selectedDifficulty = name;
+    config = DIFFICULTIES[name];
+    renderSetup();
+    persistData();
+  }
+
+  function setSelectedButtons(buttons, key, value) {
+    buttons.forEach((button) => {
+      const selected = button.dataset[key] === value;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+  }
+
+  function currentRecordKey() {
+    return SplitBeatCore.recordKey(selectedPlayStyle, selectedMode, selectedDifficulty);
+  }
+
+  function renderSetup() {
+    modeConfig = MODES[selectedMode];
+    config = DIFFICULTIES[selectedDifficulty];
+    setSelectedButtons(dom.playStyleButtons, "playStyle", selectedPlayStyle);
+    setSelectedButtons(dom.modeButtons, "mode", selectedMode);
+    dom.difficultyButtons.forEach((button) => {
+      const selected = button.dataset.difficulty === selectedDifficulty;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+    const duo = selectedPlayStyle === "duo";
+    const endless = selectedMode === "endless";
+    dom.menuEyebrow.textContent = duo ? "Two players. Two roles. One signal." : "One brain. Two jobs.";
+    dom.menuHeroCopy.innerHTML = duo
+      ? "The <em>Pilot</em> flies. The <em>Operator</em> answers. Stay ready, because the signal will swap your roles."
+      : "Dodge the field with your <em>left hand</em>. Answer trivia with your <em>right</em>, both on one screen.";
+    dom.menuModeRule.textContent = endless ? "Survive escalating pressure until shared Focus reaches zero." : "Protect Focus until the 78-second Standard Signal ends.";
+    dom.roundDetails.textContent = `${modeConfig.label} · ${config.label} · ${duo ? "Couch Duo with random role swaps" : "Solo"}. ${config.description}`;
+    dom.startButton.textContent = duo ? "Set up Couch Duo" : `Start ${endless ? "endless" : "solo"} signal`;
+    const record = records[currentRecordKey()];
+    dom.recordPreview.textContent = record
+      ? `Best ${String(Math.floor(record.bestScore || 0)).padStart(7, "0")} · Grade ${record.bestGrade || "D"}${endless ? ` · ${formatElapsed(record.bestTime || 0)}` : ` · ${record.completions || 0} complete`}`
+      : "No record yet. Set the first signal.";
+    dom.chartReadout.textContent = `About ${config.estimatedWaves} beat-authored waves`;
+  }
+
+  function applyMotionPreference() {
+    reducedMotion = systemReducedMotion || motionPreference === "reduced";
+    document.body.classList.toggle("reduce-motion", reducedMotion);
+    if (reducedMotion) {
+      trail.length = 0;
+      bursts.length = 0;
+      trailAccumulator = 0;
+    }
+    setSelectedButtons(dom.motionButtons, "motion", motionPreference);
+    dom.pauseEffectsButton.textContent = reducedMotion ? "Motion reduced" : "Use reduced motion";
+  }
+
+  function setMotionPreference(value) {
+    motionPreference = value === "reduced" ? "reduced" : "system";
+    applyMotionPreference();
+    persistData();
+  }
+
+  function syncSoundControls() {
+    const label = muted ? "Sound off" : "Sound on";
+    for (const button of [dom.muteButton, dom.menuSoundButton, dom.pauseSoundButton]) {
+      button.textContent = label;
+      button.classList.toggle("is-muted", muted);
+      button.setAttribute("aria-pressed", String(muted));
+    }
+    dom.muteButton.setAttribute("aria-label", muted ? "Turn sound on" : "Turn sound off");
+    dom.metronomeButton.textContent = metronomeEnabled ? "Metronome on" : "Metronome off";
+    dom.metronomeButton.setAttribute("aria-pressed", String(metronomeEnabled));
+    dom.volumeControl.value = String(Math.round(volume * 100));
+    dom.volumeValue.textContent = `${Math.round(volume * 100)}%`;
+  }
+
+  function loadPersistentData() {
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "null");
+      const preferences = SplitBeatCore.validatePreferences(parsed?.preferences);
+      selectedPlayStyle = preferences.playStyle;
+      selectedMode = preferences.mode;
+      selectedDifficulty = preferences.difficulty;
+      muted = preferences.muted;
+      volume = preferences.volume;
+      metronomeEnabled = preferences.metronome;
+      motionPreference = preferences.motion;
+      records = parsed?.records && typeof parsed.records === "object" && !Array.isArray(parsed.records) ? parsed.records : {};
+    } catch (error) {
+      const preferences = SplitBeatCore.DEFAULT_PREFERENCES;
+      selectedPlayStyle = preferences.playStyle;
+      selectedMode = preferences.mode;
+      selectedDifficulty = preferences.difficulty;
+      muted = preferences.muted;
+      volume = preferences.volume;
+      metronomeEnabled = preferences.metronome;
+      motionPreference = preferences.motion;
+      records = {};
+    }
+    modeConfig = MODES[selectedMode];
+    config = DIFFICULTIES[selectedDifficulty];
+  }
+
+  function persistData() {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        preferences: { schemaVersion: 1, playStyle: selectedPlayStyle, mode: selectedMode, difficulty: selectedDifficulty, muted, volume, metronome: metronomeEnabled, motion: motionPreference },
+        records
+      }));
+    } catch (error) {
+      // Storage can be unavailable in private or embedded browsing contexts.
+    }
+  }
+
+  function resetDuoReady() {
+    duoReady = { pilot: false, operator: false };
+    for (const [role, card, button] of [["pilot", dom.pilotReadyCard, dom.pilotReadyButton], ["operator", dom.operatorReadyCard, dom.operatorReadyButton]]) {
+      card.classList.remove("is-ready");
+      button.setAttribute("aria-pressed", "false");
+      button.textContent = role === "pilot" ? "Pilot ready" : "Operator ready";
+    }
+    dom.duoLaunchButton.disabled = true;
+    dom.duoReadyStatus.textContent = "Each player presses one of their role keys, or uses the ready button.";
+  }
+
+  function showDuoReady() {
+    stopActiveVoices();
+    clearHeldKeys();
+    resetDuoReady();
+    status = "duoReady";
+    setOverlayScreen("duo");
+    dom.duoReadyScreen.focus();
+    dom.liveRegion.textContent = "Couch Duo briefing. Player 1 is Pilot. Player 2 is Operator.";
+  }
+
+  function setDuoRoleReady(role) {
+    if (status !== "duoReady" || !["pilot", "operator"].includes(role)) return;
+    duoReady[role] = true;
+    const card = role === "pilot" ? dom.pilotReadyCard : dom.operatorReadyCard;
+    const button = role === "pilot" ? dom.pilotReadyButton : dom.operatorReadyButton;
+    card.classList.add("is-ready");
+    button.setAttribute("aria-pressed", "true");
+    button.textContent = role === "pilot" ? "Pilot ready ✓" : "Operator ready ✓";
+    const bothReady = duoReady.pilot && duoReady.operator;
+    dom.duoLaunchButton.disabled = !bothReady;
+    dom.duoReadyStatus.textContent = bothReady ? "Crew linked. Launch when both players are settled." : `${role === "pilot" ? "Pilot" : "Operator"} ready. Waiting for the other player.`;
+    dom.liveRegion.textContent = dom.duoReadyStatus.textContent;
+    if (bothReady) dom.duoLaunchButton.focus();
+  }
+
+  function requestRoundStart() {
+    if (selectedPlayStyle === "duo") showDuoReady();
+    else startRound();
+  }
+
+  function launchDuo() {
+    if (status !== "duoReady" || !duoReady.pilot || !duoReady.operator) return;
+    startRound();
+  }
+
+  function prepareRoleSwaps() {
+    roleSwapTimes = [];
+    roleSwapIndex = 0;
+    roleSwapWarningShown = false;
+    if (selectedPlayStyle !== "duo") return;
+    roleSwapTimes = SplitBeatCore.createInitialRoleSwapTimes(selectedMode, swapRandom);
+  }
+
+  function scheduleNextEndlessSwap() {
+    if (selectedMode !== "endless" || !roleSwapTimes.length) return;
+    roleSwapTimes = SplitBeatCore.extendEndlessRoleSwapTimes(roleSwapTimes, roleSwapTimes[roleSwapTimes.length - 1] + 1, swapRandom);
+  }
+
+  function ensureEndlessRoleSwapsScheduled(reservationHorizon) {
+    if (selectedMode !== "endless" || selectedPlayStyle !== "duo" || !roleSwapTimes.length) return;
+    roleSwapTimes = SplitBeatCore.extendEndlessRoleSwapTimes(roleSwapTimes, reservationHorizon, swapRandom);
+  }
+
+  function executeRoleSwap(elapsed) {
+    updatePlayerRoleTime(elapsed);
+    roleOwners = { pilot: roleOwners.operator, operator: roleOwners.pilot };
+    stats.roleSwaps += 1;
+    clearHeldKeys();
+    invulnerableUntil = Math.max(invulnerableUntil, elapsed + ROLE_SWAP_GRACE_MS);
+    if (currentQuestion) {
+      if (currentQuestion.resolved) currentQuestion.resolveAt += ROLE_SWAP_GRACE_MS;
+      else currentQuestion.deadline += ROLE_SWAP_GRACE_MS;
+    }
+    showRoleSwapBanner("swap", "Swap now", `${playerName(roleOwners.pilot)} to Pilot · ${playerName(roleOwners.operator)} to Operator`);
+    dom.liveRegion.textContent = `Roles swapped. ${playerName(roleOwners.pilot)} is now Pilot. ${playerName(roleOwners.operator)} is now Operator.`;
+    lastRoleStatsElapsed = elapsed;
+    roleSwapIndex += 1;
+    roleSwapWarningShown = false;
+    if (selectedMode === "endless" && roleSwapIndex === roleSwapTimes.length) scheduleNextEndlessSwap();
+    updateHud(elapsed);
+  }
+
+  function updateRoleSwaps(elapsed) {
+    if (selectedPlayStyle !== "duo" || roleSwapIndex >= roleSwapTimes.length) return false;
+    const target = roleSwapTimes[roleSwapIndex];
+    const warningAt = target - ROLE_SWAP_WARNING_BEATS * BEAT_MS;
+    if (!roleSwapWarningShown && elapsed >= warningAt) {
+      roleSwapWarningShown = true;
+      showRoleSwapBanner("warning", "Role swap in 2 beats", `${playerName(roleOwners.pilot)} to Operator · ${playerName(roleOwners.operator)} to Pilot`);
+      dom.liveRegion.textContent = "Role swap in two beats.";
+      playTone(440, 0.08, "square", 0.022);
+      playTone(660, 0.08, "square", 0.02, BEAT_MS / 1000);
+    }
+    if (elapsed >= target) {
+      executeRoleSwap(elapsed);
+      return true;
+    }
+    return false;
+  }
+
+  function clearHeldKeys() {
+    held.up = false;
+    held.down = false;
+    held.left = false;
+    held.right = false;
+    dom.movementHint.classList.remove("is-active");
+    dom.answerButtons.forEach((button) => button.classList.remove("is-key-active"));
+  }
+
+  // ---- Trivia --------------------------------------------------------------
+
+  function resetTriviaDisplay() {
+    currentQuestion = null;
+    dom.triviaPanel.classList.remove("urgent", "is-correct", "is-wrong");
+    dom.questionIndex.textContent = "Question standby";
+    dom.questionClock.textContent = "--.-";
+    dom.questionTimerFill.style.transform = "scaleX(1)";
+    dom.questionCopy.textContent = "Start a round to load the first question.";
+    dom.answerButtons.forEach((button) => {
+      button.disabled = true;
+      button.className = "answer-button";
+      button.querySelector(".answer-text").textContent = "Awaiting link";
+    });
+    setTriviaFeedback("Answer with J K L ;", "Focus online", "");
+  }
+
+  function showMainMenu() {
+    stopActiveVoices();
+    clearHeldKeys();
+    resetFieldState();
+    status = "menu";
+    lastElapsed = 0;
+    pausedElapsed = 0;
+    resetStats();
+    resetTriviaDisplay();
+    updateHud(0);
+    dom.pauseButton.disabled = true;
+    dom.gameStatus.textContent = "Attention link ready";
+    dom.countdown.classList.remove("show");
+    dom.roleSwapBanner.classList.remove("show-warning", "show-swap");
+    renderSetup();
+    syncSoundControls();
+    applyMotionPreference();
+    setMenuTab("play");
+    setOverlayScreen("menu");
+    dom.liveRegion.textContent = "SplitBeat main menu.";
+  }
+
+  function shuffleQuestionOrder() {
+    questionOrder = QUESTIONS
+      .map((question, index) => ({ question, index }))
+      .filter(({ question }) => question.rank <= config.rank)
+      .map(({ index }) => index);
+    for (let index = questionOrder.length - 1; index > 0; index -= 1) {
+      const target = Math.floor(triviaRandom() * (index + 1));
+      [questionOrder[index], questionOrder[target]] = [questionOrder[target], questionOrder[index]];
+    }
+    questionCursor = 0;
+  }
+
+  function beginQuestion(elapsed) {
+    if (questionCursor >= questionOrder.length) shuffleQuestionOrder();
+    const questionIndex = questionOrder[questionCursor++];
+    const question = QUESTIONS[questionIndex];
+    const tier = SplitBeatCore.pressureTier(selectedMode, elapsed);
+    const durationMs = selectedMode === "endless" ? Math.max(4200, config.questionMs - tier * 250) : config.questionMs;
+    questionsSeen += 1;
+    currentQuestion = {
+      question,
+      startedAt: elapsed,
+      durationMs,
+      deadline: elapsed + durationMs,
+      resolved: false,
+      resolveAt: Infinity
+    };
+
+    dom.triviaPanel.classList.remove("urgent", "is-correct", "is-wrong");
+    dom.questionIndex.textContent = `Question ${String(questionsSeen).padStart(2, "0")} / ${question.category}`;
+    dom.questionCopy.textContent = question.prompt;
+    dom.questionClock.textContent = (durationMs / 1000).toFixed(1);
+    dom.questionTimerFill.style.transform = "scaleX(1)";
+    dom.answerButtons.forEach((button, index) => {
+      button.className = "answer-button";
+      button.disabled = status !== "playing";
+      button.querySelector(".answer-text").textContent = question.answers[index];
+    });
+    setTriviaFeedback("Answer with J K L ;", "Clock running", "");
+    dom.liveRegion.textContent = `Question ${questionsSeen}. ${question.prompt} Answer with J, K, L, or semicolon.`;
+  }
+
+  function setTriviaFeedback(left, right, tone) {
+    dom.triviaFeedback.className = `trivia-feedback${tone ? ` ${tone}` : ""}`;
+    dom.triviaFeedback.innerHTML = `<span>${left}</span><strong>${right}</strong>`;
+  }
+
+  function setAnswersEnabled(enabled) {
+    if (!currentQuestion || currentQuestion.resolved) return;
+    dom.answerButtons.forEach((button) => { button.disabled = !enabled; });
+  }
+
+  function resolveQuestion(outcome, selectedIndex, elapsed) {
+    if (!currentQuestion || currentQuestion.resolved || status !== "playing") return;
+    currentQuestion.resolved = true;
+    currentQuestion.resolveAt = elapsed + QUESTION_FEEDBACK_MS;
+    const { question } = currentQuestion;
+
+    dom.answerButtons.forEach((button, index) => {
+      button.disabled = true;
+      if (index === question.correct) button.classList.add("correct");
+      else if (index === selectedIndex) button.classList.add("wrong");
+      else button.classList.add("dimmed");
+    });
+    dom.triviaPanel.classList.remove("urgent");
+
+    if (outcome === "correct") {
+      stats.triviaCorrect += 1;
+      playerStats[roleOwners.operator].operator.correct += 1;
+      const syncBank = bankSync();
+      const award = 750 + syncBank.score;
+      const focusGain = config.triviaGain + syncBank.focus;
+      if (syncBank.converted >= 25) {
+        dom.dualBonus.textContent = `Sync ${Math.round(syncBank.converted)}% · +${syncBank.score}`;
+        showDualBonus();
+      }
+      stats.score += award;
+      dom.triviaPanel.classList.add("is-correct");
+      setTriviaFeedback(syncBank.converted >= 25 ? "Shared Sync banked" : "Answer locked", `+${award}`, "correct");
+      dom.liveRegion.textContent = syncBank.converted >= 25 ? `Correct. ${Math.round(syncBank.converted)} percent Sync banked.` : "Correct answer.";
+      changeFocus(focusGain);
+      playCorrectSound(syncBank.converted >= 25);
+    } else {
+      stats.triviaWrong += 1;
+      playerStats[roleOwners.operator].operator.wrong += 1;
+      breakSync();
+      dom.triviaPanel.classList.add("is-wrong");
+      if (outcome === "timeout") {
+        stats.triviaTimeouts += 1;
+        playerStats[roleOwners.operator].operator.timeouts += 1;
+        setTriviaFeedback("Clock expired", `-${config.timeoutPenalty} focus`, "wrong");
+        dom.liveRegion.textContent = "Question timed out.";
+        changeFocus(-config.timeoutPenalty);
+      } else {
+        setTriviaFeedback("Incorrect answer", `-${config.wrongPenalty} focus`, "wrong");
+        dom.liveRegion.textContent = "Incorrect answer.";
+        changeFocus(-config.wrongPenalty);
+      }
+      playWrongSound();
+    }
+
+    updateHud();
+  }
+
+  function updateTrivia(elapsed) {
+    if (!currentQuestion) {
+      beginQuestion(elapsed);
+      return;
+    }
+
+    if (currentQuestion.resolved) {
+      if (elapsed >= currentQuestion.resolveAt) beginQuestion(elapsed);
+      return;
+    }
+
+    const remaining = currentQuestion.deadline - elapsed;
+    if (remaining <= 0) {
+      dom.questionClock.textContent = "0.0";
+      dom.questionTimerFill.style.transform = "scaleX(0)";
+      resolveQuestion("timeout", -1, elapsed);
+      return;
+    }
+
+    const ratio = clamp(remaining / currentQuestion.durationMs, 0, 1);
+    setTextIfChanged(dom.questionClock, (remaining / 1000).toFixed(1));
+    dom.questionTimerFill.style.transform = `scaleX(${ratio})`;
+    dom.triviaPanel.classList.toggle("urgent", remaining <= 2400);
+  }
+
+  function handleAnswer(index) {
+    if (status !== "playing" || !currentQuestion || currentQuestion.resolved) return;
+    const elapsed = performance.now() - gameStartTime;
+    if (selectedMode === "standard" && elapsed >= STANDARD_DURATION_MS) return;
+    if (elapsed >= currentQuestion.deadline) {
+      resolveQuestion("timeout", -1, elapsed);
+      return;
+    }
+    resolveQuestion(index === currentQuestion.question.correct ? "correct" : "wrong", index, elapsed);
+  }
+
+  // ---- Round flow ----------------------------------------------------------
+
+  function startRound() {
+    if (status === "countdown" || status === "playing") return;
+
+    stopActiveVoices();
+    clearHeldKeys();
+    modeConfig = MODES[selectedMode];
+    config = DIFFICULTIES[selectedDifficulty];
+    resetFieldState();
+    resetStats();
+    resetRoundRandomness();
+    prepareRoleSwaps();
+    lastElapsed = 0;
+    pausedElapsed = 0;
+    lastPressureTier = 0;
+    lastBeatIndex = -1;
+    lastCountdownNumber = null;
+    questionsSeen = 0;
+    shuffleQuestionOrder();
+    status = "countdown";
+    gameStartTime = performance.now() + COUNTDOWN_MS;
+    updateShip(0);
+    beginQuestion(0);
+    setAnswersEnabled(false);
+    setOverlayScreen(null);
+    dom.pauseButton.disabled = true;
+    dom.countdown.classList.add("show");
+    dom.countdownValue.textContent = "3";
+    dom.gameStatus.textContent = `${modeConfig.label} · ${config.label} · arming`;
+    dom.chartReadout.textContent = `Beat chart seeded ${roundSeed}`;
+    updateHud(0);
+    dom.liveRegion.textContent = "Round starting. Three.";
+    unlockAudio();
+  }
+
+  function updateCountdown(now) {
+    const remaining = Math.max(0, gameStartTime - now);
+    const number = Math.max(1, Math.ceil(remaining / 1000));
+    if (number !== lastCountdownNumber && remaining > 0) {
+      lastCountdownNumber = number;
+      dom.countdownValue.textContent = String(number);
+      playCountdownSound(number);
+    }
+
+    if (remaining <= 0) {
+      status = "playing";
+      lastElapsed = Math.max(0, now - gameStartTime);
+      splitFlashUntil = lastElapsed + 560;
+      dom.countdownValue.textContent = "SPLIT";
+      dom.pauseButton.disabled = false;
+      dom.gameStatus.textContent = `${modeConfig.label} · ${config.label} · live`;
+      setAnswersEnabled(true);
+      dom.liveRegion.textContent = currentQuestion
+        ? `Split. Round live. Question ${questionsSeen}. ${currentQuestion.question.prompt} Answer with J, K, L, or semicolon.`
+        : "Split. Round live.";
+      playSplitSound();
+    }
+  }
+
+  function updateMetronome(elapsed) {
+    const beatIndex = Math.floor(elapsed / BEAT_MS);
+    if (beatIndex === lastBeatIndex) return;
+    lastBeatIndex = beatIndex;
+    if (metronomeEnabled) playMetronomeBeat(beatIndex % 4 === 0);
+  }
+
+  function updatePressureTier(elapsed, roleSwapped = false) {
+    if (selectedMode !== "endless") return;
+    const tier = SplitBeatCore.pressureTier("endless", elapsed);
+    if (tier === lastPressureTier) return;
+    lastPressureTier = tier;
+    showRhythmFeedback(`Tier ${tier + 1}`, "great");
+    const announcement = `Pressure tier ${tier + 1}.`;
+    dom.liveRegion.textContent = roleSwapped ? `${dom.liveRegion.textContent} ${announcement}` : announcement;
+    playChainSound();
+  }
+
+  function updatePlaying(now, previousElapsed) {
+    const elapsed = Math.max(0, now - gameStartTime);
+    if (selectedMode === "standard" && elapsed >= STANDARD_DURATION_MS) {
+      lastElapsed = STANDARD_DURATION_MS;
+      dom.countdown.classList.remove("show");
+      updatePlayerRoleTime(STANDARD_DURATION_MS);
+      updateHud(STANDARD_DURATION_MS);
+      finishGame("complete");
+      return;
+    }
+
+    lastElapsed = elapsed;
+    updatePlayerRoleTime(elapsed);
+    const roleSwapped = updateRoleSwaps(elapsed);
+    updatePressureTier(elapsed, roleSwapped);
+    updateObstacles(elapsed, previousElapsed);
+    if (status !== "playing") return;
+    updateTrivia(elapsed);
+    if (status !== "playing") return;
+    updateMetronome(elapsed);
+    updateHud(elapsed);
+
+    if (elapsed >= splitFlashUntil) dom.countdown.classList.remove("show");
+  }
+
+  function pauseGame(countdownRemainingOverride = null) {
+    if (status !== "playing" && status !== "countdown") return;
+    pausedFromStatus = status;
+    if (status === "countdown") {
+      pausedCountdownRemaining = countdownRemainingOverride === null
+        ? Math.max(0, gameStartTime - performance.now())
+        : Math.max(0, countdownRemainingOverride);
+    } else {
+      pausedElapsed = lastElapsed;
+    }
+    status = "paused";
+    clearHeldKeys();
+    setAnswersEnabled(false);
+    dom.pauseButton.disabled = true;
+    dom.countdown.classList.remove("show");
+    dom.gameStatus.textContent = "Attention link paused";
+    stopActiveVoices();
+    setOverlayScreen("pause");
+    dom.resumeButton.focus();
+    dom.liveRegion.textContent = "Round paused. All timers are frozen.";
+  }
+
+  function resumeGame() {
+    if (status !== "paused") return;
+    const now = performance.now();
+    if (pausedFromStatus === "countdown") {
+      gameStartTime = now + pausedCountdownRemaining;
+      lastCountdownNumber = null;
+      status = "countdown";
+      dom.countdown.classList.add("show");
+      dom.pauseButton.disabled = true;
+      dom.gameStatus.textContent = `${config.label} link arming`;
+      dom.liveRegion.textContent = "Countdown resumed.";
+    } else {
+      gameStartTime = now - pausedElapsed;
+      lastElapsed = pausedElapsed;
+      lastRoleStatsElapsed = pausedElapsed;
+      lastBeatIndex = Math.floor(pausedElapsed / BEAT_MS);
+      status = "playing";
+      setAnswersEnabled(true);
+      dom.pauseButton.disabled = false;
+      dom.gameStatus.textContent = `${modeConfig.label} · ${config.label} · live`;
+      dom.liveRegion.textContent = "Round resumed.";
+    }
+    setOverlayScreen(null);
+    if (status === "playing" && selectedPlayStyle === "duo" && roleSwapWarningShown && roleSwapIndex < roleSwapTimes.length) {
+      const beats = Math.max(1, Math.ceil((roleSwapTimes[roleSwapIndex] - lastElapsed) / BEAT_MS));
+      showRoleSwapBanner("warning", `Role swap in ${beats} ${beats === 1 ? "beat" : "beats"}`, `${playerName(roleOwners.pilot)} to Operator · ${playerName(roleOwners.operator)} to Pilot`);
+    }
+    unlockAudio();
+  }
+
+  function calculateGrade() {
+    return SplitBeatCore.calculateGrade(stats);
+  }
+
+  function renderSoloResults(dodgeAccuracy, triviaAccuracy) {
+    dom.resultPilotOwner.textContent = "Flight channel";
+    dom.resultPilotTitle.textContent = "Pilot report";
+    dom.resultPilotMetric1Label.textContent = "Accuracy";
+    dom.resultPilotMetric2Label.textContent = "Clears";
+    dom.resultPilotMetric3Label.textContent = "Hits";
+    dom.resultDodgeAccuracy.textContent = `${dodgeAccuracy}%`;
+    dom.resultHits.textContent = String(stats.dodges);
+    dom.resultMisses.textContent = String(stats.collisions);
+    dom.resultOperatorOwner.textContent = "Trivia channel";
+    dom.resultOperatorTitle.textContent = "Operator report";
+    dom.resultOperatorMetric1Label.textContent = "Accuracy";
+    dom.resultOperatorMetric2Label.textContent = "Correct";
+    dom.resultOperatorMetric3Label.textContent = "Wrong";
+    dom.resultTriviaAccuracy.textContent = `${triviaAccuracy}%`;
+    dom.resultCorrect.textContent = String(stats.triviaCorrect);
+    dom.resultWrong.textContent = String(stats.triviaWrong);
+  }
+
+  function renderDuoResults() {
+    const renderPlayer = (playerId, owner, title, labels, values) => {
+      owner.textContent = `${playerName(playerId)} · Swapped crew`;
+      title.textContent = playerName(playerId);
+      labels[0].textContent = "Flight";
+      labels[1].textContent = "Trivia";
+      labels[2].textContent = "Role split";
+      const data = playerStats[playerId];
+      const flightAccuracy = accuracy(data.pilot.dodges, data.pilot.dodges + data.pilot.collisions);
+      const triviaAccuracy = accuracy(data.operator.correct, data.operator.correct + data.operator.wrong);
+      values[0].textContent = data.pilot.dodges + data.pilot.collisions ? `${flightAccuracy}%` : "N/A";
+      values[1].textContent = data.operator.correct + data.operator.wrong ? `${triviaAccuracy}%` : "N/A";
+      values[2].textContent = `P ${formatElapsed(data.pilot.activeMs)} · O ${formatElapsed(data.operator.activeMs)}`;
+    };
+    renderPlayer("p1", dom.resultPilotOwner, dom.resultPilotTitle, [dom.resultPilotMetric1Label, dom.resultPilotMetric2Label, dom.resultPilotMetric3Label], [dom.resultDodgeAccuracy, dom.resultHits, dom.resultMisses]);
+    renderPlayer("p2", dom.resultOperatorOwner, dom.resultOperatorTitle, [dom.resultOperatorMetric1Label, dom.resultOperatorMetric2Label, dom.resultOperatorMetric3Label], [dom.resultTriviaAccuracy, dom.resultCorrect, dom.resultWrong]);
+  }
+
+  function finishGame(reason) {
+    if (status !== "playing") return;
+    status = "gameOver";
+    clearHeldKeys();
+    setAnswersEnabled(false);
+    dom.countdown.classList.remove("show");
+    dom.pauseButton.disabled = true;
+    dom.triviaPanel.classList.remove("urgent");
+    updatePlayerRoleTime(lastElapsed);
+
+    const dodgeTotal = stats.dodges + stats.collisions;
+    const triviaTotal = stats.triviaCorrect + stats.triviaWrong;
+    const dodgeAccuracy = dodgeTotal ? Math.round((stats.dodges / dodgeTotal) * 100) : 0;
+    const triviaAccuracy = triviaTotal ? Math.round((stats.triviaCorrect / triviaTotal) * 100) : 0;
+    const complete = reason === "complete";
+    if (selectedMode === "standard") lastElapsed = clamp(lastElapsed, 0, STANDARD_DURATION_MS);
+    const grade = calculateGrade();
+    const tier = SplitBeatCore.pressureTier(selectedMode, lastElapsed) + 1;
+    const previousRecord = records[currentRecordKey()];
+    const merged = SplitBeatCore.mergeRecord(previousRecord, { mode: selectedMode, score: Math.floor(stats.score), complete, grade, bestCombo: stats.bestCombo, dodgeAccuracy, triviaAccuracy, elapsed: lastElapsed, tier, focus: stats.focus });
+    records[currentRecordKey()] = merged.record;
+    persistData();
+
+    dom.resultReason.textContent = complete ? "Signal complete" : selectedMode === "endless" ? `Signal lost · Tier ${tier}` : "Focus depleted";
+    dom.resultScore.textContent = String(Math.floor(stats.score)).padStart(7, "0");
+    dom.resultGrade.textContent = grade;
+    dom.resultContext.textContent = `${modeConfig.label} · ${config.label} · ${selectedPlayStyle === "duo" ? `Couch Duo · ${stats.roleSwaps} swaps` : "Solo"} · Seed ${roundSeed}`;
+    dom.resultCopy.textContent = complete
+      ? `You held both channels to the end with ${dodgeAccuracy}% dodge accuracy and ${triviaAccuracy}% trivia accuracy.`
+      : `${selectedMode === "endless" ? `The team reached Tier ${tier}` : "The attention link collapsed"} at ${formatElapsed(lastElapsed)} with ${dodgeAccuracy}% flight accuracy and ${triviaAccuracy}% trivia accuracy.`;
+    dom.resultBest.textContent = merged.newBest
+      ? previousRecord ? `New personal best. Previous score: ${String(Math.floor(merged.previousBestScore)).padStart(7, "0")}.` : "First result recorded for this setup."
+      : `${Math.max(0, merged.record.bestScore - Math.floor(stats.score))} points short of your best.`;
+    dom.resultBestCombo.textContent = String(stats.bestCombo);
+    dom.resultSyncBanks.textContent = String(stats.syncBanks);
+    if (selectedMode === "endless") {
+      dom.resultRunLabel.textContent = "Survival / Tier";
+      dom.resultRunValue.textContent = `${formatElapsed(lastElapsed)} · T${tier}`;
+    } else {
+      dom.resultRunLabel.textContent = "Finishing Focus";
+      dom.resultRunValue.textContent = `${Math.round(stats.focus)}%`;
+    }
+    if (selectedPlayStyle === "duo") renderDuoResults();
+    else renderSoloResults(dodgeAccuracy, triviaAccuracy);
+    dom.gameStatus.textContent = complete ? "Signal complete" : "Focus signal lost";
+    dom.restartButton.textContent = selectedPlayStyle === "duo" ? "Ready team again" : "Play again";
+    renderSetup();
+    updateHud(lastElapsed);
+    setOverlayScreen("results");
+    dom.restartButton.focus();
+    dom.liveRegion.textContent = complete
+      ? `Round complete. Grade ${dom.resultGrade.textContent}. Score ${Math.floor(stats.score)}.`
+      : `Focus depleted. Grade ${dom.resultGrade.textContent}. Score ${Math.floor(stats.score)}.`;
+    playResultSound(complete);
+  }
+
+  // ---- Audio ---------------------------------------------------------------
+
+  function toggleMute() {
+    muted = !muted;
+    syncSoundControls();
+    if (masterGain && audioContext) {
+      masterGain.gain.cancelScheduledValues(audioContext.currentTime);
+      masterGain.gain.setValueAtTime(muted ? 0 : volume, audioContext.currentTime);
+    }
+    if (muted) stopActiveVoices();
+    if (!muted) unlockAudio();
+    persistData();
+  }
+
+  function setVolume(value) {
+    volume = clamp(Number(value) / 100, 0, 1);
+    if (masterGain && audioContext) masterGain.gain.setValueAtTime(muted ? 0 : volume, audioContext.currentTime);
+    syncSoundControls();
+    persistData();
+  }
+
+  function toggleMetronome() {
+    metronomeEnabled = !metronomeEnabled;
+    syncSoundControls();
+    persistData();
+  }
+
+  function stopActiveVoices() {
+    for (const voice of [...activeVoices]) {
+      try { voice.oscillator.stop(); } catch (error) { /* The voice may already have ended. */ }
+      voice.cleanup();
+    }
+  }
+
+  async function unlockAudio() {
+    if (muted) return;
+    try {
+      if (!audioContext || audioContext.state === "closed") {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        audioContext = new AudioContextClass();
+        masterGain = audioContext.createGain();
+        masterGain.gain.value = muted ? 0 : volume;
+        masterGain.connect(audioContext.destination);
+      }
+      if (audioContext.state !== "running") await audioContext.resume();
+    } catch (error) {
+      console.warn("SplitBeat audio is unavailable.", error);
+    }
+  }
+
+  function playTone(frequency, duration, type = "sine", volume = 0.03, delay = 0, endFrequency = null) {
+    if (muted || !audioContext || audioContext.state !== "running") return;
+    const start = audioContext.currentTime + delay;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, start);
+    if (endFrequency) oscillator.frequency.exponentialRampToValueAtTime(endFrequency, start + duration);
+    gain.gain.setValueAtTime(Math.max(0.0001, volume), start);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    oscillator.connect(gain).connect(masterGain || audioContext.destination);
+    const voice = { oscillator, gain, cleanup: null };
+    voice.cleanup = () => {
+      if (!activeVoices.delete(voice)) return;
+      oscillator.disconnect();
+      gain.disconnect();
+    };
+    activeVoices.add(voice);
+    oscillator.addEventListener("ended", voice.cleanup, { once: true });
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.02);
+  }
+
+  function playMetronomeBeat(accent) {
+    playTone(accent ? 145 : 105, 0.105, "sine", accent ? 0.04 : 0.024, 0, accent ? 48 : 55);
+  }
+
+  function playChainSound() {
+    playTone(659.25, 0.08, "triangle", 0.022);
+    playTone(880, 0.1, "triangle", 0.02, 0.06);
+  }
+
+  function playMissSound() {
+    playTone(105, 0.16, "sawtooth", 0.026, 0, 52);
+    playTone(58, 0.22, "sine", 0.03, 0.02, 38);
+  }
+
+  function playCorrectSound(dual) {
+    playTone(523.25, 0.1, "triangle", 0.026);
+    playTone(659.25, 0.1, "triangle", 0.023, 0.07);
+    playTone(dual ? 987.77 : 783.99, 0.16, "triangle", 0.025, 0.14);
+  }
+
+  function playWrongSound() {
+    playTone(170, 0.21, "sawtooth", 0.026, 0, 78);
+  }
+
+  function playCountdownSound(number) {
+    playTone(number === 1 ? 660 : 440, 0.07, "square", 0.024);
+  }
+
+  function playSplitSound() {
+    playTone(523.25, 0.14, "triangle", 0.032);
+    playTone(783.99, 0.18, "triangle", 0.026, 0.05);
+  }
+
+  function playResultSound(complete) {
+    if (complete) {
+      playTone(392, 0.14, "triangle", 0.027);
+      playTone(523.25, 0.14, "triangle", 0.025, 0.11);
+      playTone(783.99, 0.28, "triangle", 0.023, 0.22);
+    } else {
+      playTone(155, 0.35, "sawtooth", 0.023, 0, 65);
+    }
+  }
+
+  // ---- Input ---------------------------------------------------------------
+
+  function isInteractiveTarget(target) {
+    return target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, [contenteditable='true']"));
+  }
+
+  function activeOverlayCard() {
+    return [dom.mainMenuScreen, dom.duoReadyScreen, dom.pauseScreen, dom.resultsScreen].find((screen) => !screen.hidden) || null;
+  }
+
+  function trapOverlayFocus(event) {
+    if (event.key !== "Tab" || dom.screenOverlay.classList.contains("is-hidden")) return false;
+    const card = activeOverlayCard();
+    if (!card) return false;
+    const focusable = [...card.querySelectorAll("button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex='-1'])")]
+      .filter((element) => !element.closest("[hidden]"));
+    if (!focusable.length) return false;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+      return true;
+    }
+    if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+      return true;
+    }
+    return false;
+  }
+
+  function handleKeyDown(event) {
+    const key = event.key.toLowerCase();
+    if (trapOverlayFocus(event)) return;
+
+    const direction = MOVE_CODES[event.code] || MOVE_KEYS[key];
+    const answerIndex = ANSWER_CODES[event.code] ?? ANSWER_KEYS.indexOf(key);
+
+    if (status === "duoReady") {
+      if (event.repeat) return;
+      if (["KeyW", "KeyA", "KeyS", "KeyD"].includes(event.code)) {
+        event.preventDefault();
+        setDuoRoleReady("pilot");
+        return;
+      }
+      if (answerIndex >= 0) {
+        event.preventDefault();
+        setDuoRoleReady("operator");
+        return;
+      }
+      if (key === "escape") {
+        event.preventDefault();
+        showMainMenu();
+        return;
+      }
+      if ((key === "enter" || key === " ") && duoReady.pilot && duoReady.operator && !isInteractiveTarget(event.target)) {
+        event.preventDefault();
+        launchDuo();
+      }
+      return;
+    }
+
+    if (direction) {
+      if (status === "playing" || status === "countdown") {
+        event.preventDefault();
+        held[direction] = true;
+        if (status === "playing") dom.movementHint.classList.add("is-active");
+      }
+      return;
+    }
+
+    if (answerIndex >= 0) {
+      if (status === "playing") {
+        event.preventDefault();
+        dom.answerButtons[answerIndex].classList.add("is-key-active");
+        if (!event.repeat) handleAnswer(answerIndex);
+      }
+      return;
+    }
+
+    if (key === "escape" || key === "p") {
+      event.preventDefault();
+      if (event.repeat) return;
+      if (status === "playing" || status === "countdown") pauseGame();
+      else if (status === "paused") resumeGame();
+      return;
+    }
+
+    if ((key === "enter" || key === " ") && status === "menu" && !dom.playMenuPanel.hidden && !isInteractiveTarget(event.target)) {
+      event.preventDefault();
+      requestRoundStart();
+    }
+  }
+
+  function handleKeyUp(event) {
+    const direction = MOVE_CODES[event.code] || MOVE_KEYS[event.key.toLowerCase()];
+    if (direction) {
+      held[direction] = false;
+      if (!Object.values(held).some(Boolean)) dom.movementHint.classList.remove("is-active");
+    }
+    const answerIndex = ANSWER_CODES[event.code] ?? ANSWER_KEYS.indexOf(event.key.toLowerCase());
+    if (answerIndex >= 0) dom.answerButtons[answerIndex].classList.remove("is-key-active");
+  }
+
+  function gameLoop(now) {
+    try {
+      const rawFrameMs = lastFrameTime ? now - lastFrameTime : 16;
+      if ((status === "playing" || status === "countdown") && rawFrameMs > MAX_ACTIVE_FRAME_GAP_MS) {
+        const countdownRemaining = status === "countdown" ? Math.max(0, gameStartTime - lastFrameTime) : null;
+        pauseGame(countdownRemaining);
+      }
+
+      const frameSeconds = clamp(rawFrameMs / 1000, 0, 0.05);
+      const previousElapsed = lastElapsed;
+      if (status === "countdown") updateCountdown(now);
+      if (status === "countdown") updateShip(0);
+      if (status === "playing") updateShip(frameSeconds);
+      if (status === "playing") updatePlaying(now, previousElapsed);
+      if (status === "playing") updateEffects(frameSeconds);
+      const active = status === "playing" || status === "countdown";
+      if (active || now - lastRenderTime >= 66) {
+        renderField(now);
+        lastRenderTime = now;
+      }
+      lastFrameTime = now;
+      animationFrameId = requestAnimationFrame(gameLoop);
+    } catch (error) {
+      console.error("SplitBeat stopped after an unexpected runtime error.", error);
+      status = "error";
+      clearHeldKeys();
+      setAnswersEnabled(false);
+      dom.pauseButton.disabled = true;
+      dom.trackError.textContent = "The signal stopped after an unexpected browser error. Reload SplitBeat to try again.";
+      dom.trackError.classList.add("show");
+      dom.liveRegion.textContent = "SplitBeat stopped after an unexpected browser error.";
+    }
+  }
+
+  dom.menuTabs.forEach((button) => button.addEventListener("click", () => setMenuTab(button.dataset.menuTab)));
+  dom.howBackButton.addEventListener("click", () => setMenuTab("play"));
+  dom.preferencesBackButton.addEventListener("click", () => setMenuTab("play"));
+  dom.playStyleButtons.forEach((button) => button.addEventListener("click", () => setPlayStyle(button.dataset.playStyle)));
+  dom.modeButtons.forEach((button) => button.addEventListener("click", () => setMode(button.dataset.mode)));
+  dom.difficultyButtons.forEach((button) => button.addEventListener("click", () => setDifficulty(button.dataset.difficulty)));
+  dom.motionButtons.forEach((button) => button.addEventListener("click", () => setMotionPreference(button.dataset.motion)));
+  dom.startButton.addEventListener("click", requestRoundStart);
+  dom.pilotReadyButton.addEventListener("click", () => setDuoRoleReady("pilot"));
+  dom.operatorReadyButton.addEventListener("click", () => setDuoRoleReady("operator"));
+  dom.duoLaunchButton.addEventListener("click", launchDuo);
+  dom.duoBackButton.addEventListener("click", showMainMenu);
+  dom.pauseButton.addEventListener("click", pauseGame);
+  dom.resumeButton.addEventListener("click", resumeGame);
+  dom.pauseSoundButton.addEventListener("click", toggleMute);
+  dom.pauseEffectsButton.addEventListener("click", () => setMotionPreference(motionPreference === "reduced" ? "system" : "reduced"));
+  dom.pauseRestartButton.addEventListener("click", startRound);
+  dom.pauseMenuButton.addEventListener("click", showMainMenu);
+  dom.restartButton.addEventListener("click", requestRoundStart);
+  dom.changeSetupButton.addEventListener("click", showMainMenu);
+  dom.resultsMenuButton.addEventListener("click", showMainMenu);
+  dom.muteButton.addEventListener("click", toggleMute);
+  dom.menuSoundButton.addEventListener("click", toggleMute);
+  dom.volumeControl.addEventListener("input", () => setVolume(dom.volumeControl.value));
+  dom.metronomeButton.addEventListener("click", toggleMetronome);
+  dom.answerButtons.forEach((button, index) => button.addEventListener("click", () => handleAnswer(index)));
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+  window.addEventListener("blur", () => {
+    if (status === "playing" || status === "countdown") pauseGame();
+    else {
+      clearHeldKeys();
+      if (status === "duoReady") resetDuoReady();
+    }
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && (status === "playing" || status === "countdown")) pauseGame();
+  });
+
+  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const updateMotionPreference = (event) => {
+    systemReducedMotion = event.matches;
+    applyMotionPreference();
+  };
+  if (motionQuery.addEventListener) motionQuery.addEventListener("change", updateMotionPreference);
+  else motionQuery.addListener(updateMotionPreference);
+
+  const layoutQuery = window.matchMedia("(max-width: 899px), (orientation: portrait)");
+  const updateLayoutSupport = (event) => {
+    const blocked = event.matches;
+    if (blocked && (status === "playing" || status === "countdown")) pauseGame();
+    document.body.classList.toggle("layout-blocked", blocked);
+    dom.appFrame.inert = blocked;
+    dom.appFrame.setAttribute("aria-hidden", String(blocked));
+    dom.mobileWarning.setAttribute("aria-hidden", String(!blocked));
+  };
+  if (layoutQuery.addEventListener) layoutQuery.addEventListener("change", updateLayoutSupport);
+  else layoutQuery.addListener(updateLayoutSupport);
+
+  // A read-only snapshot makes quick QA possible from browser tools.
+  window.SplitBeat = Object.freeze({
+    getSnapshot: () => ({
+      status,
+      version: SplitBeatCore.GAME_VERSION,
+      playStyle: selectedPlayStyle,
+      mode: selectedMode,
+      difficulty: selectedDifficulty,
+      seed: roundSeed,
+      elapsed: lastElapsed,
+      pressureTier: SplitBeatCore.pressureTier(selectedMode, lastElapsed) + 1,
+      score: stats.score,
+      combo: stats.combo,
+      bestCombo: stats.bestCombo,
+      sync: stats.sync,
+      syncBanks: stats.syncBanks,
+      roleSwaps: stats.roleSwaps,
+      dodges: stats.dodges,
+      collisions: stats.collisions,
+      triviaCorrect: stats.triviaCorrect,
+      triviaWrong: stats.triviaWrong,
+      focus: stats.focus,
+      muted,
+      volume,
+      metronomeEnabled,
+      audioState: audioContext?.state || "idle",
+      reducedMotion,
+      roleOwners: { ...roleOwners },
+      nextRoleSwapAt: roleSwapTimes[roleSwapIndex] ?? null,
+      roleSwapWarningShown,
+      playerStats: JSON.parse(JSON.stringify(playerStats)),
+      viewport: {
+        width: Math.round(view.width),
+        height: Math.round(view.height),
+        dpr: view.dpr
+      },
+      shipX: ship.x === null ? null : Math.round(ship.x),
+      shipY: ship.y === null ? null : Math.round(ship.y),
+      obstacleCount: obstacles.length,
+      obstacles: obstacles.map((obstacle) => ({
+        wave: obstacle.id,
+        kind: obstacle.kind,
+        state: obstacle.state,
+        arrivalBeat: obstacle.arrivalBeat,
+        x: Math.round(obstacleX(obstacle, lastElapsed)),
+        y: Math.round(obstacle.yCenter),
+        height: Math.round(obstacle.height)
+      })),
+      scheduledWaveCount: scheduledWaves.length,
+      nextArrivalBeat: scheduledWaves[0]?.arrivalBeat ?? null,
+      activeWaves: [...activeWaves.values()].map((wave) => ({ id: wave.id, kind: wave.kind, state: wave.state, phrase: wave.phraseId, arrivalBeat: wave.arrivalBeat })),
+      trailCount: trail.length,
+      burstCount: bursts.length,
+      questionDeadline: currentQuestion ? Math.round(currentQuestion.deadline) : null,
+      questionCount: QUESTIONS.length,
+      phraseCount: WAVE_PHRASES.length
+    }),
+    runDiagnostics: () => ({
+      duplicateIds: [...document.querySelectorAll("[id]")].map((element) => element.id).filter((id, index, ids) => ids.indexOf(id) !== index),
+      missingDomBindings: Object.entries(dom).filter(([, value]) => value === null).map(([key]) => key),
+      questionCount: QUESTIONS.length,
+      phraseCount: WAVE_PHRASES.length,
+      recordKey: currentRecordKey()
+    }),
+    qa: new URLSearchParams(window.location.search).get("qa") === "1" ? Object.freeze({
+      select: ({ playStyle = selectedPlayStyle, mode = selectedMode, difficulty = selectedDifficulty } = {}) => { setPlayStyle(playStyle); setMode(mode); setDifficulty(difficulty); },
+      start: requestRoundStart,
+      setFocus: (value) => { stats.focus = clamp(Number(value), 0, 100); updateHud(); },
+      finish: () => { if (status === "playing") finishGame(selectedMode === "standard" ? "complete" : "focus"); }
+    }) : null
+  });
+
+  loadPersistentData();
+  initField();
+  syncSoundControls();
+  applyMotionPreference();
+  renderSetup();
+  showMainMenu();
+  updateLayoutSupport(layoutQuery);
+  animationFrameId = requestAnimationFrame(gameLoop);
+})();
+  </script>
+</body>
+</html>
